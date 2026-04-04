@@ -140,3 +140,260 @@ def test_bucket_boundary_detection() -> None:
     # Mean far from boundary: mean=67.5, std=1 -> nearest boundary is 65 or 70, distance=2.5
     fc3 = NOAAForecast(temperature_f=67.5, uncertainty_f=1.0)
     assert not fc3.is_boundary_adjacent, "67.5F is 2.5F from nearest boundary (>1 std dev)"
+
+
+# ---------------------------------------------------------------------------
+# Test 5: parse_city_from_ticker with real Kalshi formats
+# ---------------------------------------------------------------------------
+
+
+class TestParseCityFromTicker:
+    """Tests for _parse_city_from_ticker with actual Kalshi ticker formats.
+
+    Real Kalshi weather tickers follow the pattern:
+        KXHIGH<CITY>-<DATE>-<STRIKE>
+    e.g. KXHIGHNY-26APR04-T75, KXHIGHCHI-26APR04-B74.5
+    """
+
+    def test_new_york_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHNY-26APR04-T75") == "new_york"
+
+    def test_chicago_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHCHI-26APR04-B74.5") == "chicago"
+
+    def test_dallas_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHDAL-26APR04-T80") == "dallas"
+
+    def test_miami_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHMIA-26APR04-T85") == "miami"
+
+    def test_denver_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHDEN-26APR04-T60") == "denver"
+
+    def test_atlanta_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHATL-26APR04-T70") == "atlanta"
+
+    def test_austin_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHAUS-26APR04-T78") == "austin"
+
+    def test_los_angeles_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHLA-26APR04-T80") == "los_angeles"
+
+    def test_phoenix_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHPHX-26APR04-T100") == "phoenix"
+
+    def test_seattle_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHSEA-26APR04-T55") == "seattle"
+
+    def test_boston_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHBOS-26APR04-T58") == "boston"
+
+    def test_houston_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHHOU-26APR04-T85") == "houston"
+
+    def test_philadelphia_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHPHL-26APR04-T65") == "philadelphia"
+
+    def test_san_francisco_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHSFO-26APR04-T62") == "san_francisco"
+
+    def test_washington_dc_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHDCA-26APR04-T68") == "washington_dc"
+
+    def test_san_antonio_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHSAT-26APR04-T90") == "san_antonio"
+
+    def test_las_vegas_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHLAS-26APR04-T95") == "las_vegas"
+
+    def test_minneapolis_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHMSP-26APR04-T50") == "minneapolis"
+
+    def test_new_orleans_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHMSY-26APR04-T82") == "new_orleans"
+
+    def test_oklahoma_city_ticker(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHOKC-26APR04-T75") == "oklahoma_city"
+
+    def test_unknown_city_returns_none(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHZZZ-26APR04-T75") is None
+
+    def test_non_weather_ticker_returns_none(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("CPI-26APR04-250") is None
+
+    def test_case_insensitive(self) -> None:
+        assert WeatherEdgeEngine._parse_city_from_ticker("kxhighny-26apr04-t75") == "new_york"
+
+    def test_lowtemp_series_prefix(self) -> None:
+        """KXLOW series tickers should also parse correctly."""
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXLOWNY-26APR04-T30") == "new_york"
+
+    def test_event_ticker_format(self) -> None:
+        """Event tickers like KXHIGHNY without date/strike should still parse."""
+        assert WeatherEdgeEngine._parse_city_from_ticker("KXHIGHNY") == "new_york"
+
+
+# ---------------------------------------------------------------------------
+# Test 6: parse_strike_from_ticker
+# ---------------------------------------------------------------------------
+
+
+class TestParseStrikeFromTicker:
+    """Tests for _parse_strike_from_ticker.
+
+    Extracts the strike info from the last segment of Kalshi weather tickers:
+    - T75 -> ("above", 75.0) — threshold, YES = "75 or above"
+    - B74.5 -> ("boundary", 74.5) — bucket boundary value
+    """
+
+    def test_threshold_integer(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHNY-26APR04-T75")
+        assert result == ("above", 75.0)
+
+    def test_threshold_three_digits(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHPHX-26APR04-T100")
+        assert result == ("above", 100.0)
+
+    def test_boundary_decimal(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHCHI-26APR04-B74.5")
+        assert result == ("boundary", 74.5)
+
+    def test_boundary_integer(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHNY-26APR04-B60")
+        assert result == ("boundary", 60.0)
+
+    def test_no_strike_segment_returns_none(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHNY")
+        assert result is None
+
+    def test_unknown_prefix_returns_none(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHNY-26APR04-X50")
+        assert result is None
+
+    def test_case_insensitive(self) -> None:
+        result = WeatherEdgeEngine._parse_strike_from_ticker("kxhighny-26apr04-t75")
+        assert result == ("above", 75.0)
+
+    def test_negative_temperature(self) -> None:
+        """Some cities can have sub-zero thresholds in winter."""
+        result = WeatherEdgeEngine._parse_strike_from_ticker("KXHIGHMSP-26JAN15-T-5")
+        assert result == ("above", -5.0)
+
+
+# ---------------------------------------------------------------------------
+# Test 7: _evaluate_market uses floor_strike/cap_strike
+# ---------------------------------------------------------------------------
+
+
+class TestEvaluateMarketWithStrikes:
+    """Verify _evaluate_market reads floor_strike/cap_strike from Market model."""
+
+    def _make_engine(self) -> WeatherEdgeEngine:
+        stations = _make_icao_stations(
+            {
+                "new_york": {
+                    "icao": "KNYC",
+                    "verified": True,
+                    "office": "OKX",
+                    "grid_x": 34,
+                    "grid_y": 38,
+                },
+            },
+        )
+        return WeatherEdgeEngine(icao_stations=stations, min_edge_pp=0.1)
+
+    def test_range_market_with_strikes(self) -> None:
+        """A range market (floor=60, cap=65) should use strikes for probability."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-B62",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="62F to 64F",
+            yes_bid=40,
+            yes_ask=45,
+            no_bid=50,
+            no_ask=55,
+            last_price=42,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=62.0,
+            cap_strike=64.0,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        # With mean=62 and std=3, P(62-64) ~ 0.24, market price 45c = 0.45
+        # Edge should be on the NO side
+        assert signal is not None
+        assert signal.side == "no"
+
+    def test_above_market_with_floor_strike(self) -> None:
+        """An 'above' market (floor=80, no cap) should use floor_strike."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-T80",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="80 or above",
+            yes_bid=5,
+            yes_ask=10,
+            no_bid=85,
+            no_ask=90,
+            last_price=8,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=80.0,
+            cap_strike=None,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        # With mean=62 and std=3, P(>=80) is essentially 0
+        # Market prices YES at 10c = 0.10, huge NO edge
+        assert signal is not None
+        assert signal.side == "no"
+
+    def test_below_market_with_cap_strike(self) -> None:
+        """A 'below' market (no floor, cap=50) should use cap_strike."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-T50",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="Below 50",
+            yes_bid=2,
+            yes_ask=5,
+            no_bid=90,
+            no_ask=95,
+            last_price=3,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=None,
+            cap_strike=50.0,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        # With mean=62 and std=3, P(<50) is essentially 0
+        # Market prices YES at 5c = 0.05, NO edge
+        assert signal is not None
+        assert signal.side == "no"

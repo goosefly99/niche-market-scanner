@@ -19,25 +19,44 @@ from niche_scanner.sizing.fees import round_trip_fee_pp
 
 logger = logging.getLogger(__name__)
 
-# Kalshi weather ticker city abbreviation -> canonical city name used in ICAO
-# stations config.  Extend as Kalshi adds new cities.
+# Kalshi weather ticker city suffix -> canonical city name used in ICAO
+# stations config.  Kalshi embeds the city code as a suffix on the series
+# prefix, e.g. KXHIGHNY -> "NY" -> new_york, KXHIGHCHI -> "CHI" -> chicago.
+# Ordered longest-first so that "MSP" matches before "SP", etc.
 _TICKER_CITY_MAP: dict[str, str] = {
-    "NYC": "new_york",
     "CHI": "chicago",
     "DAL": "dallas",
     "MIA": "miami",
     "DEN": "denver",
     "ATL": "atlanta",
     "AUS": "austin",
-    "LA": "los_angeles",
     "PHX": "phoenix",
     "SEA": "seattle",
+    "BOS": "boston",
+    "HOU": "houston",
+    "PHL": "philadelphia",
+    "SFO": "san_francisco",
+    "DCA": "washington_dc",
+    "SAT": "san_antonio",
+    "LAS": "las_vegas",
+    "MSP": "minneapolis",
+    "MSY": "new_orleans",
+    "OKC": "oklahoma_city",
+    "NY": "new_york",
+    "LA": "los_angeles",
 }
 
 _NOAA_HOURLY_URL = (
     "https://api.weather.gov/gridpoints/{office}/{grid_x},{grid_y}"
     "/forecast/hourly"
 )
+
+# Pre-compiled patterns for parsing Kalshi weather tickers.
+# Series prefix: KXHIGH, KXLOW, HIGH, LOW (followed by city suffix).
+_RE_SERIES_PREFIX = re.compile(r"^(?:KX)?(?:HIGH|LOW)", re.IGNORECASE)
+
+# Strike segment (last hyphen-delimited part): T75 (threshold), B74.5 (boundary).
+_RE_STRIKE = re.compile(r"^([TB])(-?\d+(?:\.\d+)?)$", re.IGNORECASE)
 
 # Pre-compiled patterns for parsing Kalshi weather subtitles.
 _RE_RANGE = re.compile(r"(\d+)\s*F?\s*to\s*(\d+)\s*F?", re.IGNORECASE)
@@ -105,15 +124,81 @@ class WeatherEdgeEngine(EdgeEngine):
     def _parse_city_from_ticker(ticker: str) -> str | None:
         """Extract the canonical city key from a Kalshi weather ticker.
 
-        Kalshi weather tickers typically follow patterns like
-        ``KXHIGHNY-26APR4-T58`` or ``HIGHNY-...``. This method
-        searches for known city abbreviations in the ticker.
+        Kalshi weather tickers embed the city code as a suffix on the series
+        prefix.  Examples::
+
+            KXHIGHNY-26APR04-T75   -> "NY"  -> new_york
+            KXHIGHCHI-26APR04-B74  -> "CHI" -> chicago
+            KXLOWMIA-26APR04-T60  -> "MIA" -> miami
+
+        The method strips the known series prefix (``KXHIGH``, ``KXLOW``,
+        ``HIGH``, ``LOW``), takes the remainder up to the first ``-``, and
+        looks it up in ``_TICKER_CITY_MAP``.
+
+        Falls back to a substring search across the full ticker for edge
+        cases (event tickers without date/strike segments).
         """
         upper = ticker.upper()
+
+        # Try structured parse: strip series prefix, extract city suffix.
+        series_match = _RE_SERIES_PREFIX.match(upper)
+        if series_match:
+            after_prefix = upper[series_match.end():]
+            # City suffix is everything up to the first '-' (or end of string).
+            city_suffix = after_prefix.split("-", 1)[0]
+            if city_suffix and city_suffix in _TICKER_CITY_MAP:
+                return _TICKER_CITY_MAP[city_suffix]
+
+        # Fallback: search for known city codes anywhere in the ticker.
+        # Iterate longest-first to avoid partial matches.
         for abbr, city in _TICKER_CITY_MAP.items():
             if abbr in upper:
                 return city
         return None
+
+    @staticmethod
+    def _parse_strike_from_ticker(ticker: str) -> tuple[str, float] | None:
+        """Extract the strike type and value from the last segment of a ticker.
+
+        Kalshi weather tickers encode the strike in the final
+        hyphen-delimited segment::
+
+            KXHIGHNY-26APR04-T75   -> ("above", 75.0)
+            KXHIGHCHI-26APR04-B74.5 -> ("boundary", 74.5)
+            KXHIGHMSP-26JAN15-T-5  -> ("above", -5.0)
+
+        Returns:
+            ``("above", value)`` for threshold (T) strikes,
+            ``("boundary", value)`` for bucket boundary (B) strikes,
+            or ``None`` if the ticker has no recognisable strike segment.
+        """
+        parts = ticker.split("-")
+        if len(parts) < 2:
+            return None
+
+        # The strike is in the last segment.  For negative temperatures
+        # the value follows a second '-', so rejoin the last two parts
+        # when the final part is purely numeric.
+        last = parts[-1].upper()
+
+        # Check if this is a negative number: last part is digits and
+        # second-to-last starts with T or B.
+        if last.replace(".", "", 1).isdigit() and len(parts) >= 3:
+            candidate = parts[-2].upper()
+            if len(candidate) == 1 and candidate in ("T", "B"):
+                # Reconstruct: e.g. parts = [..., "T", "5"] -> "T-5"
+                last = candidate + "-" + last
+
+        m = _RE_STRIKE.match(last)
+        if not m:
+            return None
+
+        prefix = m.group(1).upper()
+        value = float(m.group(2))
+
+        if prefix == "T":
+            return ("above", value)
+        return ("boundary", value)
 
     # -- subtitle bucket parsing --------------------------------------------
 

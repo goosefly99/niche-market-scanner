@@ -12,7 +12,7 @@ from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.journal.trade_journal import TradeJournal
 from niche_scanner.kalshi.models import Market, OrderBook
 from niche_scanner.scanner.market_scanner import MarketScanner
-from niche_scanner.sizing.kelly import KellySizer, PositionSize, SizingConfig
+from niche_scanner.sizing.kelly import KellySizer, SizingConfig
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ async def test_scan_cycle_batches_orderbooks(
     client.get_batch_orderbooks = AsyncMock(return_value={})
 
     # Bypass the per-series fetching by mocking scan_cycle's market list directly
-    scanner = MarketScanner(
+    MarketScanner(
         client=client,
         engines=[StubEngine()],
         sizer=sizer,
