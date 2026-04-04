@@ -40,7 +40,119 @@ FRED_FED_SERIES: dict[str, str] = {
     "T10YIE": "10-Year Breakeven Inflation Rate (market inflation expectations)",
 }
 
+# FRED series for historical backtesting and calibration
+FRED_HISTORICAL_SERIES: dict[str, str] = {
+    "UNRATE": "Civilian Unemployment Rate (monthly, seasonally adjusted)",
+    "PAYEMS": "Total Nonfarm Payrolls (monthly, thousands, seasonally adjusted)",
+    "GDP": "Gross Domestic Product (quarterly, billions, seasonally adjusted annual rate)",
+    "CPIAUCSL": "CPI All Urban Consumers (monthly index, seasonally adjusted)",
+    "CPILFESL": "CPI Less Food and Energy (monthly index, seasonally adjusted)",
+    "PCEPI": "PCE Price Index (monthly index, seasonally adjusted)",
+    "DFF": "Effective Federal Funds Rate (daily)",
+    "T10YIE": "10-Year Breakeven Inflation Rate (daily)",
+    "ICSA": "Initial Claims (weekly, seasonally adjusted)",
+}
+
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+
+
+class FREDClient:
+    """Client for fetching economic data from the FRED API.
+
+    Provides caching, historical series retrieval, and YoY calculations.
+    Used by the economics engine for both live indicator fetching and
+    backtesting/calibration against historical releases.
+
+    Requires a FRED API key (free, register at https://fred.stlouisfed.org/docs/api/api_key.html).
+    """
+
+    def __init__(self, api_key: str) -> None:
+        self.api_key = api_key
+        self._cache: dict[str, list[tuple[str, float]]] = {}
+
+    def fetch_history(
+        self,
+        series_id: str,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        limit: int = 1000,
+    ) -> list[tuple[str, float]]:
+        """Fetch observation history for a FRED series.
+
+        Args:
+            series_id: FRED series identifier (e.g. "CPIAUCSL").
+            start_date: Start date in YYYY-MM-DD format (optional).
+            end_date: End date in YYYY-MM-DD format (optional).
+            limit: Maximum observations to return (default 1000).
+
+        Returns:
+            List of (date_str, value) pairs sorted chronologically.
+            Cached after first fetch for the same series_id.
+        """
+        cache_key = f"{series_id}:{start_date}:{end_date}:{limit}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
+        params: dict[str, str | int] = {
+            "series_id": series_id,
+            "api_key": self.api_key,
+            "file_type": "json",
+            "sort_order": "asc",
+            "limit": limit,
+        }
+        if start_date:
+            params["observation_start"] = start_date
+        if end_date:
+            params["observation_end"] = end_date
+
+        try:
+            resp = httpx.get(FRED_BASE_URL, params=params, timeout=15.0)
+            resp.raise_for_status()
+            history = self._parse_history(resp.json())
+            self._cache[cache_key] = history
+            return history
+        except httpx.HTTPError:
+            logger.exception("FRED history fetch failed for %s", series_id)
+            return []
+
+    def fetch_latest(self, series_id: str) -> float | None:
+        """Fetch the most recent observation value."""
+        params: dict[str, str | int] = {
+            "series_id": series_id,
+            "api_key": self.api_key,
+            "file_type": "json",
+            "sort_order": "desc",
+            "limit": 1,
+        }
+        try:
+            resp = httpx.get(FRED_BASE_URL, params=params, timeout=10.0)
+            resp.raise_for_status()
+            values = self._parse_history(resp.json())
+            return values[0][1] if values else None
+        except (httpx.HTTPError, IndexError):
+            return None
+
+    @staticmethod
+    def _parse_history(raw: dict) -> list[tuple[str, float]]:
+        """Parse FRED JSON observations into (date, value) pairs.
+
+        Skips entries with '.' (FRED's missing data marker).
+        """
+        return parse_fred_observations(raw)
+
+    @staticmethod
+    def _yoy_from_history(
+        history: list[tuple[str, float]],
+    ) -> float | None:
+        """Calculate YoY rate from the last 12+ months of history.
+
+        Returns None if fewer than 12 observations are available.
+        """
+        if len(history) < 12:
+            return None
+        current = history[-1][1]
+        year_ago = history[-13][1] if len(history) >= 13 else history[0][1]
+        return calculate_yoy_rate(current, year_ago)
 
 
 def parse_fed_target_range(effective_rate: float) -> tuple[float, float]:

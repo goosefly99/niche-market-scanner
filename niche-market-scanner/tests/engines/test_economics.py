@@ -240,3 +240,64 @@ class TestFedWatchFetcher:
         engine = EconomicsEdgeEngine(min_edge_pp=12.0)
         readings = engine.fetch_indicators("fed_rate")
         assert isinstance(readings, list)
+
+
+# ---------------------------------------------------------------------------
+# Item 3.3: FRED historical data client
+# ---------------------------------------------------------------------------
+
+
+class TestFREDClient:
+    """Tests for the FRED API client for historical economic data."""
+
+    def test_fred_historical_series_defined(self) -> None:
+        """Verify FRED historical series for backtesting are defined."""
+        from niche_scanner.engines.economics import FRED_HISTORICAL_SERIES
+        assert "UNRATE" in FRED_HISTORICAL_SERIES      # Unemployment rate
+        assert "PAYEMS" in FRED_HISTORICAL_SERIES       # Total nonfarm payrolls
+        assert "GDP" in FRED_HISTORICAL_SERIES          # GDP
+        assert len(FRED_HISTORICAL_SERIES) >= 5
+
+    def test_fred_client_init(self) -> None:
+        """FREDClient initializes with api_key and caching."""
+        from niche_scanner.engines.economics import FREDClient
+        client = FREDClient(api_key="test-key-123")
+        assert client.api_key == "test-key-123"
+        assert len(client._cache) == 0
+
+    def test_fred_client_parse_history(self) -> None:
+        """FREDClient parses a full history response."""
+        from niche_scanner.engines.economics import FREDClient
+        client = FREDClient(api_key="test")
+        raw = {
+            "observations": [
+                {"date": "2025-01-01", "value": "3.5"},
+                {"date": "2025-02-01", "value": "3.6"},
+                {"date": "2025-03-01", "value": "."},
+                {"date": "2025-04-01", "value": "3.7"},
+            ]
+        }
+        history = client._parse_history(raw)
+        assert len(history) == 3  # skips "."
+        assert history[0] == ("2025-01-01", 3.5)
+        assert history[2] == ("2025-04-01", 3.7)
+
+    def test_fred_client_yoy_from_history(self) -> None:
+        """Calculate YoY rate from a history series."""
+        from niche_scanner.engines.economics import FREDClient
+        client = FREDClient(api_key="test")
+        # Simulate 13 months of CPI index
+        history = [(f"2025-{m:02d}-01", 300.0 + m * 0.5) for m in range(1, 14)]
+        yoy = client._yoy_from_history(history)
+        # month 13 vs month 1: (306.5 / 300.5 - 1) * 100
+        expected = ((306.5 / 300.5) - 1) * 100
+        assert yoy is not None
+        assert abs(yoy - expected) < 0.01
+
+    def test_fred_client_yoy_insufficient_data(self) -> None:
+        """YoY returns None with less than 12 months of data."""
+        from niche_scanner.engines.economics import FREDClient
+        client = FREDClient(api_key="test")
+        history = [("2025-01-01", 300.0), ("2025-02-01", 301.0)]
+        yoy = client._yoy_from_history(history)
+        assert yoy is None
