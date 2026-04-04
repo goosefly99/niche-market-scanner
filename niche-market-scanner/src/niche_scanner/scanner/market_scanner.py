@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from niche_scanner.config import ICAOStations
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.kalshi.client import KalshiClient
@@ -28,6 +29,8 @@ class MarketScanner:
         Kelly position sizer for computing trade sizes.
     trader:
         Paper (or live) trader that executes sized signals.
+    icao_stations:
+        ICAO station config providing series_tickers for weather scanning.
     """
 
     def __init__(
@@ -36,11 +39,13 @@ class MarketScanner:
         engines: list[EdgeEngine],
         sizer: KellySizer,
         trader: PaperTrader,
+        icao_stations: ICAOStations | None = None,
     ) -> None:
         self._client = client
         self._engines = engines
         self._sizer = sizer
         self._trader = trader
+        self._icao = icao_stations
 
     async def scan_cycle(self, bankroll_cents: int) -> list[EdgeSignal]:
         """Run one full scan cycle and return all detected signals.
@@ -54,27 +59,20 @@ class MarketScanner:
         5. Track aggregate NO-side exposure across the cycle.
         6. Log a summary of the cycle.
         """
-        # 1. Fetch markets from target weather series
+        # 1. Fetch markets from configured weather series
         from niche_scanner.kalshi.models import Market
         markets: list[Market] = []
-        weather_series = [
-            "KXHIGHNY", "KXHIGHCHI", "KXHIGHTBOS", "KXHIGHTHOU",
-            "KXHIGHTDAL", "KXHIGHDEN", "KXHIGHLAX", "KXHIGHMIA",
-            "KXHIGHTSEA", "KXHIGHTATL", "KXHIGHTPHX", "KXHIGHPHIL",
-            "KXHIGHTSFO", "KXHIGHTDC", "KXHIGHAUS", "KXHIGHTSATX",
-            "KXHIGHTLV", "KXHIGHTMIN", "KXHIGHTNOLA", "KXHIGHTOKC",
-            "KXLOWTNYC", "KXLOWTCHI", "KXLOWTBOS", "KXLOWTHOU",
-            "KXLOWTDAL", "KXLOWTDEN", "KXLOWTLAX", "KXLOWTMIA",
-            "KXLOWTSEA", "KXLOWTATL", "KXLOWTPHX", "KXLOWTPHIL",
-            "KXLOWTSFO", "KXLOWTDC",
-        ]
-        for series in weather_series:
+        series_tickers = self._icao.all_series_tickers() if self._icao else []
+        if not series_tickers:
+            logger.warning("No series tickers configured in icao_stations.yaml")
+            return []
+        for series in series_tickers:
             try:
                 batch = await self._client.get_markets(series_ticker=series, limit=10)
                 markets.extend(batch)
             except Exception:
                 logger.debug("Series %s not found or empty", series)
-        logger.info("Fetched %d markets from %d weather series", len(markets), len(weather_series))
+        logger.info("Fetched %d markets from %d weather series", len(markets), len(series_tickers))
         if not markets:
             logger.info("No weather markets found")
             return []

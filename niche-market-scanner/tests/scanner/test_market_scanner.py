@@ -7,6 +7,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from unittest.mock import MagicMock
+
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.journal.trade_journal import TradeJournal
@@ -116,12 +118,20 @@ async def trader(journal):
     return PaperTrader(journal=journal)
 
 
+@pytest.fixture
+def mock_icao():
+    """Mock ICAOStations that returns a single series ticker."""
+    icao = MagicMock()
+    icao.all_series_tickers.return_value = ["KXTEST"]
+    return icao
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 
 async def test_scan_cycle_no_markets(
-    mock_client, sizer, trader,
+    mock_client, sizer, trader, mock_icao,
 ) -> None:
     """Scan cycle returns empty when no markets are available."""
     mock_client.get_markets = AsyncMock(return_value=[])
@@ -130,13 +140,14 @@ async def test_scan_cycle_no_markets(
         engines=[StubEngine()],
         sizer=sizer,
         trader=trader,
+        icao_stations=mock_icao,
     )
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert signals == []
 
 
 async def test_scan_cycle_returns_signals(
-    mock_client, sizer, trader,
+    mock_client, sizer, trader, mock_icao,
 ) -> None:
     """Scan cycle collects signals from engines."""
     engine = StubEngine(signals=[_make_signal()])
@@ -145,6 +156,7 @@ async def test_scan_cycle_returns_signals(
         engines=[engine],
         sizer=sizer,
         trader=trader,
+        icao_stations=mock_icao,
     )
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert len(signals) == 1
@@ -152,7 +164,7 @@ async def test_scan_cycle_returns_signals(
 
 
 async def test_scan_cycle_engine_failure_is_caught(
-    mock_client, sizer, trader,
+    mock_client, sizer, trader, mock_icao,
 ) -> None:
     """A failing engine does not crash the scan cycle."""
     good_engine = StubEngine(signals=[_make_signal()])
@@ -162,6 +174,7 @@ async def test_scan_cycle_engine_failure_is_caught(
         engines=[bad_engine, good_engine],
         sizer=sizer,
         trader=trader,
+        icao_stations=mock_icao,
     )
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     # Only the good engine's signal should come through
@@ -192,7 +205,7 @@ async def test_scan_cycle_batches_orderbooks(
 
 
 async def test_scan_cycle_tracks_no_exposure(
-    mock_client, trader,
+    mock_client, trader, mock_icao,
 ) -> None:
     """NO-side exposure is tracked and passed to the sizer."""
     no_signal = _make_signal(side="no")
@@ -208,6 +221,7 @@ async def test_scan_cycle_tracks_no_exposure(
         engines=[engine],
         sizer=sizer,
         trader=trader,
+        icao_stations=mock_icao,
     )
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert len(signals) == 1

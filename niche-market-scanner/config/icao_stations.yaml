@@ -4,6 +4,8 @@
 #
 # Settlement source format: forecast.weather.gov/product.php?site={office}&product=CLI&issuedby={station}
 # NOAA forecast URL: api.weather.gov/gridpoints/{office}/{grid_x},{grid_y}/forecast/hourly
+#
+# series_tickers: Kalshi series to scan for this city's temperature markets.
 
 stations:
   new_york:
@@ -14,6 +16,7 @@ stations:
     grid_y: 38
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHNY, KXLOWTNYC, KXLOWNY]
 
   chicago:
     icao: KMDW
@@ -23,6 +26,7 @@ stations:
     grid_y: 69
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHCHI, KXLOWTCHI, KXLOWCHI]
 
   boston:
     icao: KBOS
@@ -32,6 +36,7 @@ stations:
     grid_y: 91
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTBOS, KXLOWTBOS]
 
   houston:
     icao: KHOU
@@ -41,6 +46,7 @@ stations:
     grid_y: 89
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTHOU, KXHOUHIGH, KXHIGHOU, KXLOWTHOU]
 
   dallas:
     icao: KDFW
@@ -50,6 +56,7 @@ stations:
     grid_y: 109
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTDAL, KXLOWTDAL]
 
   denver:
     icao: KDEN
@@ -59,6 +66,7 @@ stations:
     grid_y: 66
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHDEN, KXHIGHTEMPDEN, KXDENHIGH, KXLOWTDEN, KXLOWDEN]
 
   los_angeles:
     icao: KLAX
@@ -68,6 +76,7 @@ stations:
     grid_y: 41
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHLAX, KXLOWTLAX, KXLOWLAX]
 
   miami:
     icao: KMIA
@@ -77,6 +86,7 @@ stations:
     grid_y: 51
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHMIA, KXLOWTMIA, KXLOWMIA]
 
   seattle:
     icao: KSEA
@@ -86,6 +96,7 @@ stations:
     grid_y: 61
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTSEA, KXLOWTSEA]
 
   atlanta:
     icao: KATL
@@ -95,6 +106,7 @@ stations:
     grid_y: 82
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTATL, KXLOWTATL]
 
   phoenix:
     icao: KPHX
@@ -104,6 +116,7 @@ stations:
     grid_y: 57
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTPHX, KXLOWTPHX]
 
   philadelphia:
     icao: KPHL
@@ -113,6 +126,7 @@ stations:
     grid_y: 72
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHPHIL, KXPHILHIGH, KXLOWTPHIL, KXLOWPHIL]
 
   san_francisco:
     icao: KSFO
@@ -122,6 +136,7 @@ stations:
     grid_y: 98
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTSFO, KXLOWTSFO]
 
   washington_dc:
     icao: KDCA
@@ -131,6 +146,7 @@ stations:
     grid_y: 69
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTDC, KXLOWTDC]
 
   austin:
     icao: KAUS
@@ -140,6 +156,7 @@ stations:
     grid_y: 88
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHAUS, KXLOWTAUS, KXLOWAUS]
 
   san_antonio:
     icao: KSAT
@@ -149,6 +166,7 @@ stations:
     grid_y: 59
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTSATX, KXLOWTSATX]
 
   las_vegas:
     icao: KLAS
@@ -158,6 +176,7 @@ stations:
     grid_y: 94
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTLV, KXLOWTLV]
 
   minneapolis:
     icao: KMSP
@@ -167,6 +186,7 @@ stations:
     grid_y: 68
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTMIN, KXLOWTMIN]
 
   new_orleans:
     icao: KMSY
@@ -176,6 +196,7 @@ stations:
     grid_y: 90
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTNOLA, KXLOWTNOLA]
 
   oklahoma_city:
     icao: KOKC
@@ -185,3 +206,4 @@ stations:
     grid_y: 90
     verified: true
     last_checked: "2026-04-04"
+    series_tickers: [KXHIGHTOKC, KXLOWTOKC]

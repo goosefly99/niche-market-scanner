@@ -150,3 +150,14 @@ class ICAOStations:
                 if icao:
                     result[city] = icao
         return result
+
+    def all_series_tickers(self) -> list[str]:
+        """Return a flat list of all Kalshi series tickers across verified cities."""
+        tickers: list[str] = []
+        for city, entry in self._stations.items():
+            if not isinstance(entry, dict) or not entry.get("verified", False):
+                continue
+            series = entry.get("series_tickers", [])
+            if isinstance(series, list):
+                tickers.extend(series)
+        return tickers

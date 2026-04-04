@@ -97,6 +97,7 @@ async def main() -> None:
         engines=engines,
         sizer=sizer,
         trader=trader,
+        icao_stations=icao,
     )
 
     # 8. Determine bankroll
