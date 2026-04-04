@@ -13,7 +13,7 @@ Commands:
 - /start — Resume scanner
 - /help — List commands
 
-Requires TELEGRAM_NICHE_MARKET_SCANNER_BOT_API_KEY and TELEGRAM_CHAT_ID env vars.
+Requires TELEGRAM_NICHE_MARKET_SCANNER_BOT_API_KEY and TELEGRAM_NICHE_MARKET_SCANNER_BOT_CHAT_ID env vars.
 When credentials are missing, all operations are no-ops (no crash).
 """
 

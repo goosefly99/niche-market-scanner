@@ -87,7 +87,7 @@ async def main() -> None:
     paper_mode = sizing_data.get("paper_trade", True)
     alert_manager = AlertManager(
         bot_token=telegram_cfg.TELEGRAM_NICHE_MARKET_SCANNER_BOT_API_KEY,
-        chat_id=telegram_cfg.TELEGRAM_CHAT_ID,
+        chat_id=telegram_cfg.TELEGRAM_NICHE_MARKET_SCANNER_BOT_CHAT_ID,
         paper_mode=paper_mode,
     )
 

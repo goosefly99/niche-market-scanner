@@ -48,7 +48,7 @@ class TelegramConfig(BaseSettings):
     """Telegram bot credentials loaded from environment variables."""
 
     TELEGRAM_NICHE_MARKET_SCANNER_BOT_API_KEY: str = ""
-    TELEGRAM_CHAT_ID: str = ""
+    TELEGRAM_NICHE_MARKET_SCANNER_BOT_CHAT_ID: str = ""
 
 
 # ---------------------------------------------------------------------------
