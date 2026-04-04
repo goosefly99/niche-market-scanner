@@ -13,8 +13,24 @@ import yaml
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-_CONFIG_DIR = _PROJECT_ROOT / "config"
+def _find_config_dir() -> Path:
+    """Locate the config directory.
+
+    Checks in order: CWD/config, then relative to package source.
+    This handles both Docker (WORKDIR /app, config mounted at /app/config)
+    and local dev (running from the project root).
+    """
+    cwd_config = Path.cwd() / "config"
+    if cwd_config.is_dir():
+        return cwd_config
+    # Fallback: relative to source tree (dev mode with pip install -e)
+    src_config = Path(__file__).resolve().parent.parent.parent / "config"
+    if src_config.is_dir():
+        return src_config
+    return cwd_config  # Will fail with clear error on file open
+
+
+_CONFIG_DIR = _find_config_dir()
 
 
 # ---------------------------------------------------------------------------

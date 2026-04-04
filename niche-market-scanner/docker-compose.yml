@@ -1,9 +1,15 @@
 services:
   scanner:
     build: .
+    container_name: niche-market-scanner
     env_file: .env
     volumes:
-      - ./data:/app/data
-      - ./config:/app/config
-      - ./secrets:/app/secrets:ro
+      - ./data:/app/data          # SQLite journal persistence
+      - ./config:/app/config      # Settings, ICAO stations (hot-reload)
+      - ./secrets:/app/secrets:ro # RSA private key (read-only)
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
