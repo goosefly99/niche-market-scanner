@@ -1,0 +1,4 @@
+# ICAO station mappings for Kalshi weather contracts.
+# CRITICAL: Each mapping MUST be verified against Kalshi resolution rules
+# before any weather trading. Unverified stations are ignored.
+stations: {}

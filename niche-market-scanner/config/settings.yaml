@@ -1,0 +1,24 @@
+scanner:
+  weather_interval_min: 15
+  weather_urgent_interval_min: 2
+  weather_urgent_hours_before: 4
+  economics_interval_min: 30
+  economics_urgent_interval_min: 5
+  economics_urgent_hours_before: 48
+  thin_market_interval_min: 10
+
+sizing:
+  kelly_fraction: 0.5
+  no_bet_per_position_cap: 0.02
+  no_bet_aggregate_cap: 0.25
+  min_edge_pp: 12
+  max_drawdown_daily: 0.05
+  kill_switch_drawdown: 0.40
+  paper_trade: true
+
+verticals:
+  weather: { enabled: true }
+  economics: { enabled: true }
+  thin_market: { enabled: false }
+  sports: { enabled: false }
+  earnings: { enabled: false }
