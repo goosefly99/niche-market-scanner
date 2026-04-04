@@ -22,6 +22,7 @@ live_trading:
   enabled: false  # Must be explicitly true AND paper_trade must be false
   starting_cash_cents: 100000  # $1,000 — initial capital for risk calculations
   max_bet_size_cents: 1000  # $10 max per individual trade
+  max_buy_usd_cum: 100  # $100 cumulative spend cap across ALL positions (hard cap)
   max_portfolio_drawdown: 0.15  # 15% from peak balance triggers kill switch
   max_daily_loss_cents: 5000  # $50/day loss limit triggers kill switch
   position_stop_loss: 0.50  # 50% loss on a single position

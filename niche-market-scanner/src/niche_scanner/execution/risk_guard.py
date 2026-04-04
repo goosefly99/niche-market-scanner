@@ -32,6 +32,7 @@ class LiveTradingConfig:
     enabled: bool = False  # Master switch — must be explicitly True
     starting_cash_cents: int = 100_000  # $1,000 default
     max_bet_size_cents: int = 1_000  # $10 max per trade
+    max_buy_usd_cum_cents: int = 10_000  # $100 cumulative spend cap (all positions)
     max_portfolio_drawdown: float = 0.15  # 15% from peak
     max_daily_loss_cents: int = 5_000  # $50/day
     position_stop_loss: float = 0.50  # 50% of position value
@@ -42,10 +43,16 @@ class LiveTradingConfig:
     @classmethod
     def from_dict(cls, data: dict) -> LiveTradingConfig:
         """Create from a settings dict, converting dollar amounts to cents."""
+        # Support max_buy_usd_cum in dollars (convert to cents)
+        max_buy_usd = data.get("max_buy_usd_cum", None)
+        max_buy_cents = int(max_buy_usd * 100) if max_buy_usd is not None else int(
+            data.get("max_buy_usd_cum_cents", 10_000)
+        )
         return cls(
             enabled=data.get("enabled", False),
             starting_cash_cents=int(data.get("starting_cash_cents", 100_000)),
             max_bet_size_cents=int(data.get("max_bet_size_cents", 1_000)),
+            max_buy_usd_cum_cents=max_buy_cents,
             max_portfolio_drawdown=float(data.get("max_portfolio_drawdown", 0.15)),
             max_daily_loss_cents=int(data.get("max_daily_loss_cents", 5_000)),
             position_stop_loss=float(data.get("position_stop_loss", 0.50)),
@@ -61,6 +68,7 @@ class RiskState:
 
     peak_balance_cents: int = 0
     current_balance_cents: int = 0
+    cumulative_spend_cents: int = 0  # Running total of all position entries
     daily_loss_cents: int = 0
     daily_trade_count: int = 0
     open_position_count: int = 0
@@ -169,6 +177,15 @@ class RiskGuard:
                 f"${self.config.max_bet_size_cents/100:.2f}"
             )
 
+        # 3b. Cumulative spend cap
+        new_cumulative = self.state.cumulative_spend_cents + cost_cents
+        if new_cumulative > self.config.max_buy_usd_cum_cents:
+            return (
+                f"Cumulative spend ${new_cumulative/100:.2f} would exceed cap "
+                f"${self.config.max_buy_usd_cum_cents/100:.2f} "
+                f"(already spent ${self.state.cumulative_spend_cents/100:.2f})"
+            )
+
         # 4. Daily trade count
         self._maybe_reset_daily_counters()
         if self.state.daily_trade_count >= self.config.max_daily_trades:
@@ -214,6 +231,7 @@ class RiskGuard:
         """Record that an order was filled."""
         self.state.daily_trade_count += 1
         self.state.current_balance_cents -= cost_cents
+        self.state.cumulative_spend_cents += cost_cents
         self.state.open_position_count += 1
         self.state.positions[ticker] = self.state.positions.get(ticker, 0) + cost_cents
 
@@ -266,6 +284,8 @@ class RiskGuard:
             f"  Balance: ${s.current_balance_cents/100:.2f} "
             f"(peak ${s.peak_balance_cents/100:.2f}, "
             f"drawdown {drawdown:.1%}/{c.max_portfolio_drawdown:.1%})\n"
+            f"  Cumulative spend: ${s.cumulative_spend_cents/100:.2f}"
+            f"/${c.max_buy_usd_cum_cents/100:.2f}\n"
             f"  Daily: {s.daily_trade_count}/{c.max_daily_trades} trades, "
             f"${s.daily_loss_cents/100:.2f}/${c.max_daily_loss_cents/100:.2f} loss\n"
             f"  Positions: {s.open_position_count}/{c.max_open_positions}\n"

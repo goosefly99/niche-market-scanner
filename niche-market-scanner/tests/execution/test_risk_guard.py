@@ -133,6 +133,31 @@ class TestRiskGuardChecks:
         # Either passes (0/0 handled) or kills — either way shouldn't crash
         assert isinstance(result, str) or result is None
 
+    def test_cumulative_spend_cap(self) -> None:
+        guard = self._guard(max_buy_usd_cum_cents=500)  # $5 cap
+        # First trade: 200 cents = $2 (passes)
+        assert guard.check_order("T-0", "yes", 4, 50) is None
+        guard.record_fill("T-0", 200)
+        assert guard.state.cumulative_spend_cents == 200
+        # Second trade: 200 more = $4 cumulative (passes)
+        assert guard.check_order("T-1", "yes", 4, 50) is None
+        guard.record_fill("T-1", 200)
+        assert guard.state.cumulative_spend_cents == 400
+        # Third trade: 200 more = $6 cumulative > $5 cap (blocked)
+        result = guard.check_order("T-2", "yes", 4, 50)
+        assert result is not None
+        assert "Cumulative spend" in result
+        assert "$6.00" in result  # would-be total
+        assert "$5.00" in result  # the cap
+
+    def test_cumulative_spend_exact_cap(self) -> None:
+        guard = self._guard(max_buy_usd_cum_cents=400)
+        guard.record_fill("T-0", 400)
+        # Exactly at cap — next trade of any size should be blocked
+        result = guard.check_order("T-1", "yes", 1, 1)
+        assert result is not None
+        assert "Cumulative spend" in result
+
     def test_format_status(self) -> None:
         guard = self._guard()
         guard.record_fill("T-1", 200)
@@ -140,6 +165,7 @@ class TestRiskGuardChecks:
         assert "Active" in status
         assert "$10.00" in status  # max bet
         assert "1/" in status  # 1 trade
+        assert "Cumulative spend" in status
 
 
 class TestLiveTradingConfig:
