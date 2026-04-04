@@ -1,0 +1,9 @@
+services:
+  scanner:
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./secrets:/app/secrets:ro
+    restart: unless-stopped
