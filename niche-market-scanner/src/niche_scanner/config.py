@@ -26,7 +26,7 @@ class KalshiConfig(BaseSettings):
     """Kalshi API credentials loaded from environment variables."""
 
     KALSHI_API_KEY_ID: str = ""
-    KALSHI_PRIVATE_KEY_PATH: str = ""
+    KALSHI_PRIVATE_KEY: str = ""  # Path to RSA PEM file
     KALSHI_ENV: str = "demo"
 
     @field_validator("KALSHI_ENV")

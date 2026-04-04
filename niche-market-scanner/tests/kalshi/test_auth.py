@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -34,7 +35,7 @@ def test_sign_produces_valid_signature(tmp_path: Path) -> None:
     path = "/trade-api/v2/markets"
 
     headers = auth.sign(timestamp_ms, method, path)
-    signature_bytes = bytes.fromhex(headers["KALSHI-ACCESS-SIGNATURE"])
+    signature_bytes = base64.b64decode(headers["KALSHI-ACCESS-SIGNATURE"])
     message = f"{timestamp_ms}{method}{path}".encode()
 
     # Load public key from the same PEM file
@@ -49,7 +50,7 @@ def test_sign_produces_valid_signature(tmp_path: Path) -> None:
         message,
         padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=hashes.SHA256().digest_size,
+            salt_length=padding.PSS.DIGEST_LENGTH,
         ),
         hashes.SHA256(),
     )

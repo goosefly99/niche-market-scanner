@@ -39,7 +39,7 @@ async def main() -> None:
     # 2. Create auth + client
     auth = KalshiAuth(
         api_key_id=kalshi_cfg.KALSHI_API_KEY_ID,
-        private_key_path=kalshi_cfg.KALSHI_PRIVATE_KEY_PATH,
+        private_key_path=kalshi_cfg.KALSHI_PRIVATE_KEY,
     )
     client = KalshiClient(
         base_url=kalshi_cfg.base_url,

@@ -40,9 +40,17 @@ class KalshiClient:
     # ------------------------------------------------------------------
 
     def _headers(self, method: str, path: str) -> dict[str, str]:
-        """Build signed headers for the given *method* and *path*."""
+        """Build signed headers for the given *method* and *path*.
+
+        The signing message must use the full path from root
+        (e.g. /trade-api/v2/markets), not just the relative path.
+        """
         timestamp_ms = int(time.time() * 1000)
-        return self._auth.sign(timestamp_ms, method, path)
+        # Extract the URL path component from base_url for signing
+        from urllib.parse import urlparse
+        base_path = urlparse(self._base_url).path.rstrip("/")
+        full_path = f"{base_path}{path}"
+        return self._auth.sign(timestamp_ms, method.upper(), full_path)
 
     async def _request(
         self,
