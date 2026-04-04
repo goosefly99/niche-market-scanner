@@ -8,9 +8,9 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 17 |
+| Complete | 18 |
 | In Progress | 0 |
-| Not Started | 3 |
+| Not Started | 2 |
 | Blocked | 0 |
 | **Total** | **20** |
 
@@ -56,16 +56,16 @@ Weather engine refined for live Kalshi market structure (2F buckets, floor_strik
 
 ---
 
-## Phase 3: Economics Engine Integration (Not Started)
+## Phase 3: Economics Engine Integration (Complete)
 
-Economics engine has the framework but indicator fetchers are stubs. Need to integrate real data sources.
+Economics engine integrated with FRED API (CPI YoY, Fed rate, historical data) and release calendar for scan intensification.
 
 | # | Item | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
 | 3.1 | Integrate Cleveland Fed Inflation Nowcast scraper | Complete | — | `src/niche_scanner/engines/economics.py`, `tests/engines/test_economics.py` |
 | 3.2 | Integrate CME FedWatch probability scraper | Complete | — | `src/niche_scanner/engines/economics.py` |
 | 3.3 | Integrate FRED API for historical economic data | Complete | — | `src/niche_scanner/engines/economics.py` |
-| 3.4 | Build economics release calendar from BLS/Fed schedule | Not Started | — | `src/niche_scanner/engines/economics.py`, `config/settings.yaml` |
+| 3.4 | Build economics release calendar from BLS/Fed schedule | Complete | — | `src/niche_scanner/engines/economics.py`, `config/settings.yaml` |
 | 3.5 | Map Kalshi economics series tickers (CPI, Fed rate, GDP, jobs) | Complete | — | `src/niche_scanner/engines/economics.py` |
 
 ---

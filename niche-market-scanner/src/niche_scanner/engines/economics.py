@@ -14,6 +14,8 @@ import logging
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import httpx
 
@@ -213,8 +215,116 @@ class ReleaseCalendarEntry:
     """An upcoming economic data release."""
 
     release_type: str
-    release_date: str
-    series_ticker: str
+    release_date: str  # YYYY-MM-DD
+    description: str = ""
+
+    @property
+    def date(self) -> datetime:
+        """Parse release_date string to datetime (UTC midnight)."""
+        return datetime.strptime(self.release_date, "%Y-%m-%d").replace(
+            tzinfo=timezone.utc
+        )
+
+
+class ReleaseCalendar:
+    """Tracks upcoming BLS/Fed/BEA release dates for scan intensification.
+
+    The scanner checks ``is_within_window()`` each cycle to decide whether
+    to use the normal interval (30min) or the urgent interval (5min).
+    """
+
+    def __init__(self, entries: list[ReleaseCalendarEntry] | None = None) -> None:
+        self.entries = sorted(entries or [], key=lambda e: e.release_date)
+
+    @classmethod
+    def from_yaml(cls, path: Path) -> ReleaseCalendar:
+        """Load release calendar from a YAML file."""
+        import yaml
+        with open(path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        entries = []
+        for raw in data.get("releases", []):
+            entries.append(ReleaseCalendarEntry(
+                release_type=raw["type"],
+                release_date=str(raw["date"]),
+                description=raw.get("description", ""),
+            ))
+        return cls(entries)
+
+    @classmethod
+    def default(cls) -> ReleaseCalendar:
+        """Create a calendar with known 2026 economic release dates.
+
+        Sources: BLS release schedule, FOMC meeting schedule.
+        Dates are approximate — verify against official schedules.
+        """
+        entries = [
+            # CPI releases (BLS, ~10th-15th of each month for prior month)
+            ReleaseCalendarEntry("cpi", "2026-04-10", "March 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-05-13", "April 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-06-11", "May 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-07-14", "June 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-08-12", "July 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-09-10", "August 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-10-13", "September 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-11-12", "October 2026 CPI"),
+            ReleaseCalendarEntry("cpi", "2026-12-10", "November 2026 CPI"),
+            # Jobs reports (BLS, first Friday of each month)
+            ReleaseCalendarEntry("jobs", "2026-04-03", "March 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-05-01", "April 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-06-05", "May 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-07-02", "June 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-08-07", "July 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-09-04", "August 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-10-02", "September 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-11-06", "October 2026 jobs"),
+            ReleaseCalendarEntry("jobs", "2026-12-04", "November 2026 jobs"),
+            # FOMC decisions (2-day meetings, decision on day 2)
+            ReleaseCalendarEntry("fed_rate", "2026-05-06", "FOMC May decision"),
+            ReleaseCalendarEntry("fed_rate", "2026-06-17", "FOMC June decision"),
+            ReleaseCalendarEntry("fed_rate", "2026-07-29", "FOMC July decision"),
+            ReleaseCalendarEntry("fed_rate", "2026-09-16", "FOMC September decision"),
+            ReleaseCalendarEntry("fed_rate", "2026-11-04", "FOMC November decision"),
+            ReleaseCalendarEntry("fed_rate", "2026-12-16", "FOMC December decision"),
+            # GDP (BEA, advance estimate ~4 weeks after quarter end)
+            ReleaseCalendarEntry("gdp", "2026-04-29", "Q1 2026 GDP advance"),
+            ReleaseCalendarEntry("gdp", "2026-07-29", "Q2 2026 GDP advance"),
+            ReleaseCalendarEntry("gdp", "2026-10-28", "Q3 2026 GDP advance"),
+        ]
+        return cls(entries)
+
+    def next_release(
+        self, release_type: str, now: datetime | None = None,
+    ) -> ReleaseCalendarEntry | None:
+        """Return the soonest upcoming release of the given type.
+
+        Returns None if no future releases of that type exist.
+        """
+        if now is None:
+            now = datetime.now(timezone.utc)
+        for entry in self.entries:
+            if entry.release_type == release_type and entry.date > now:
+                return entry
+        return None
+
+    def is_within_window(
+        self, release_type: str, hours: float = 48, now: datetime | None = None,
+    ) -> bool:
+        """True if the next release of this type is within ``hours`` hours."""
+        nxt = self.next_release(release_type, now=now)
+        if nxt is None:
+            return False
+        if now is None:
+            now = datetime.now(timezone.utc)
+        delta = nxt.date - now
+        return 0 <= delta.total_seconds() <= hours * 3600
+
+    def upcoming(self, days: int = 30, now: datetime | None = None) -> list[ReleaseCalendarEntry]:
+        """Return all releases within the next ``days`` days."""
+        if now is None:
+            now = datetime.now(timezone.utc)
+        cutoff = now + timedelta(days=days)
+        return [e for e in self.entries if now < e.date <= cutoff]
 
 
 class EconomicsEdgeEngine(EdgeEngine):

@@ -301,3 +301,108 @@ class TestFREDClient:
         history = [("2025-01-01", 300.0), ("2025-02-01", 301.0)]
         yoy = client._yoy_from_history(history)
         assert yoy is None
+
+
+# ---------------------------------------------------------------------------
+# Item 3.4: Economics release calendar
+# ---------------------------------------------------------------------------
+
+
+class TestReleaseCalendar:
+    """Tests for the economics release calendar."""
+
+    def test_calendar_from_yaml_config(self) -> None:
+        """Calendar loads release dates from YAML."""
+        import tempfile
+        from pathlib import Path
+        from niche_scanner.engines.economics import ReleaseCalendar
+
+        yaml_content = """
+releases:
+  - type: cpi
+    date: "2026-05-13"
+    description: "April 2026 CPI"
+  - type: fed_rate
+    date: "2026-05-07"
+    description: "FOMC May decision"
+  - type: jobs
+    date: "2026-05-02"
+    description: "April 2026 jobs report"
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            f.write(yaml_content)
+            path = Path(f.name)
+
+        cal = ReleaseCalendar.from_yaml(path)
+        assert len(cal.entries) == 3
+        types = {e.release_type for e in cal.entries}
+        assert types == {"cpi", "fed_rate", "jobs"}
+
+    def test_next_release(self) -> None:
+        """next_release returns the soonest upcoming release of a type."""
+        from datetime import datetime, timezone
+        from niche_scanner.engines.economics import ReleaseCalendar, ReleaseCalendarEntry
+
+        entries = [
+            ReleaseCalendarEntry("cpi", "2026-05-13", "May CPI"),
+            ReleaseCalendarEntry("cpi", "2026-04-10", "April CPI"),
+            ReleaseCalendarEntry("jobs", "2026-05-02", "Jobs"),
+        ]
+        cal = ReleaseCalendar(entries)
+
+        # When "now" is April 5, 2026, the next CPI is April 10
+        now = datetime(2026, 4, 5, tzinfo=timezone.utc)
+        nxt = cal.next_release("cpi", now=now)
+        assert nxt is not None
+        assert nxt.release_date == "2026-04-10"
+
+    def test_next_release_skips_past(self) -> None:
+        """next_release skips releases that have already passed."""
+        from datetime import datetime, timezone
+        from niche_scanner.engines.economics import ReleaseCalendar, ReleaseCalendarEntry
+
+        entries = [
+            ReleaseCalendarEntry("cpi", "2026-04-01", "Past CPI"),
+            ReleaseCalendarEntry("cpi", "2026-05-13", "Future CPI"),
+        ]
+        cal = ReleaseCalendar(entries)
+        now = datetime(2026, 4, 5, tzinfo=timezone.utc)
+        nxt = cal.next_release("cpi", now=now)
+        assert nxt is not None
+        assert nxt.release_date == "2026-05-13"
+
+    def test_next_release_returns_none_when_no_future(self) -> None:
+        """next_release returns None if all releases are past."""
+        from datetime import datetime, timezone
+        from niche_scanner.engines.economics import ReleaseCalendar, ReleaseCalendarEntry
+
+        entries = [ReleaseCalendarEntry("cpi", "2025-01-01", "Old")]
+        cal = ReleaseCalendar(entries)
+        now = datetime(2026, 4, 5, tzinfo=timezone.utc)
+        assert cal.next_release("cpi", now=now) is None
+
+    def test_is_within_window(self) -> None:
+        """is_within_window returns True when next release is within N hours."""
+        from datetime import datetime, timezone
+        from niche_scanner.engines.economics import ReleaseCalendar, ReleaseCalendarEntry
+
+        # Release on April 6 at midnight UTC
+        entries = [ReleaseCalendarEntry("cpi", "2026-04-06", "CPI")]
+        cal = ReleaseCalendar(entries)
+
+        # 20 hours before = within 48h window
+        now = datetime(2026, 4, 5, 4, 0, tzinfo=timezone.utc)
+        assert cal.is_within_window("cpi", hours=48, now=now) is True
+
+        # 3 days before = outside 48h window
+        now_far = datetime(2026, 4, 3, 0, 0, tzinfo=timezone.utc)
+        assert cal.is_within_window("cpi", hours=48, now=now_far) is False
+
+    def test_default_calendar_has_known_dates(self) -> None:
+        """The default release calendar config includes real 2026 dates."""
+        from niche_scanner.engines.economics import ReleaseCalendar
+        cal = ReleaseCalendar.default()
+        assert len(cal.entries) > 0
+        types = {e.release_type for e in cal.entries}
+        assert "cpi" in types
+        assert "fed_rate" in types
