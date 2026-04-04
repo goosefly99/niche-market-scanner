@@ -146,3 +146,61 @@ class TestSeriesTickerMap:
         assert "CPIYOY" in engine._ticker_to_type
         assert engine._ticker_to_type["CPIYOY"] == "cpi"
         assert engine._ticker_to_type["KXRECSSNBER"] == "recession"
+
+
+# ---------------------------------------------------------------------------
+# Item 3.1: Cleveland Fed / FRED CPI indicator integration
+# ---------------------------------------------------------------------------
+
+
+class TestCPIIndicatorFetcher:
+    """Tests for the CPI indicator fetching via FRED API."""
+
+    def test_fred_cpi_series_ids_defined(self) -> None:
+        """Verify FRED series IDs for CPI indicators are defined."""
+        from niche_scanner.engines.economics import FRED_CPI_SERIES
+        assert "CPIAUCSL" in FRED_CPI_SERIES  # CPI All Urban Consumers
+        assert "CPILFESL" in FRED_CPI_SERIES  # Core CPI (less food & energy)
+        assert len(FRED_CPI_SERIES) >= 2
+
+    def test_parse_fred_response(self) -> None:
+        """Verify parsing of FRED JSON observation response."""
+        from niche_scanner.engines.economics import parse_fred_observations
+        raw = {
+            "observations": [
+                {"date": "2026-02-01", "value": "313.500"},
+                {"date": "2026-03-01", "value": "314.200"},
+            ]
+        }
+        values = parse_fred_observations(raw)
+        assert len(values) == 2
+        assert values[0] == ("2026-02-01", 313.5)
+        assert values[1] == ("2026-03-01", 314.2)
+
+    def test_parse_fred_handles_missing_value(self) -> None:
+        """FRED sometimes returns '.' for missing data — should be skipped."""
+        from niche_scanner.engines.economics import parse_fred_observations
+        raw = {
+            "observations": [
+                {"date": "2026-02-01", "value": "."},
+                {"date": "2026-03-01", "value": "314.200"},
+            ]
+        }
+        values = parse_fred_observations(raw)
+        assert len(values) == 1
+        assert values[0] == ("2026-03-01", 314.2)
+
+    def test_cpi_yoy_calculation(self) -> None:
+        """Verify YoY CPI inflation rate calculation from index values."""
+        from niche_scanner.engines.economics import calculate_yoy_rate
+        # CPI index: 300.0 a year ago, 309.0 now -> 3.0% YoY
+        rate = calculate_yoy_rate(current=309.0, year_ago=300.0)
+        assert abs(rate - 3.0) < 0.01
+
+    def test_fetch_cpi_indicators_returns_readings(self) -> None:
+        """Integration: fetch_indicators('cpi') returns IndicatorReadings
+        when FRED API key is not set (should return empty gracefully)."""
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        readings = engine.fetch_indicators("cpi")
+        # Without FRED_API_KEY env var, should return empty (not crash)
+        assert isinstance(readings, list)

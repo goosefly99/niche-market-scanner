@@ -1,16 +1,65 @@
-"""Economics edge engine for macro-indicator markets (CPI, Fed rate, jobs, GDP)."""
+"""Economics edge engine for macro-indicator markets (CPI, Fed rate, jobs, GDP).
+
+Integrates FRED API for CPI index data. The Cleveland Fed Inflation Nowcast
+is not available via public API (site blocks automated access); FRED provides
+CPI index series that can be used to calculate YoY inflation rates as a proxy.
+
+FRED API: https://api.stlouisfed.org/fred/series/observations
+Requires FRED_API_KEY environment variable.
+"""
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 from dataclasses import dataclass
+
+import httpx
 
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.kalshi.models import Market, OrderBook
 from niche_scanner.sizing.fees import round_trip_fee_pp
 
 logger = logging.getLogger(__name__)
+
+# FRED series IDs for CPI-related indicators
+FRED_CPI_SERIES: dict[str, str] = {
+    "CPIAUCSL": "CPI All Urban Consumers (headline CPI index, seasonally adjusted)",
+    "CPILFESL": "CPI Less Food and Energy (core CPI index, seasonally adjusted)",
+    "PCEPI": "PCE Price Index (headline PCE, seasonally adjusted)",
+    "PCEPILFE": "PCE Less Food and Energy (core PCE, seasonally adjusted)",
+    "CORESTICKM159SFRBATL": "Sticky Price CPI (Atlanta Fed, inflation expectations proxy)",
+}
+
+FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+
+
+def parse_fred_observations(raw: dict) -> list[tuple[str, float]]:
+    """Parse FRED JSON response into (date, value) pairs.
+
+    FRED returns ``"."`` for missing observations — these are skipped.
+    """
+    result: list[tuple[str, float]] = []
+    for obs in raw.get("observations", []):
+        val_str = obs.get("value", ".")
+        if val_str == "." or val_str is None:
+            continue
+        try:
+            result.append((obs["date"], float(val_str)))
+        except (ValueError, KeyError):
+            continue
+    return result
+
+
+def calculate_yoy_rate(current: float, year_ago: float) -> float:
+    """Calculate year-over-year percentage change.
+
+    Returns the annualized rate as a percentage (e.g., 3.0 for 3%).
+    """
+    if year_ago == 0:
+        return 0.0
+    return ((current / year_ago) - 1.0) * 100.0
 
 
 @dataclass
@@ -186,25 +235,94 @@ class EconomicsEdgeEngine(EdgeEngine):
     def fetch_indicators(self, release_type: str) -> list[IndicatorReading]:
         """Fetch indicator readings for a release type.
 
-        Phase 2 will integrate Cleveland Fed Nowcast, CME FedWatch, and
-        ADP data sources.  For now every release type returns an empty
-        list so the engine gracefully skips markets with no model data.
+        Currently implemented: CPI (via FRED API).
+        Stubs: fed_rate (CME FedWatch), jobs (ADP).
         """
-        return self._fetch_cpi_indicators() if release_type == "CPI" else []
+        if release_type == "cpi":
+            return self._fetch_cpi_indicators()
+        if release_type == "fed_rate":
+            return self._fetch_fed_rate_indicators()
+        if release_type == "jobs":
+            return self._fetch_jobs_indicators()
+        return []
+
+    def _fetch_cpi_indicators(self) -> list[IndicatorReading]:
+        """Fetch CPI indicator readings from FRED API.
+
+        Uses CPIAUCSL (headline CPI) and CPILFESL (core CPI) to calculate
+        YoY inflation rates. These serve as the model's CPI estimate
+        until the Cleveland Fed Nowcast becomes programmatically accessible.
+
+        Requires FRED_API_KEY environment variable.
+        """
+        api_key = os.environ.get("FRED_API_KEY", "")
+        if not api_key:
+            logger.debug("FRED_API_KEY not set; skipping CPI indicators")
+            return []
+
+        readings: list[IndicatorReading] = []
+
+        for series_id, weight, name in [
+            ("CPIAUCSL", 0.5, "FRED Headline CPI YoY"),
+            ("CPILFESL", 0.5, "FRED Core CPI YoY"),
+        ]:
+            try:
+                yoy = self._fetch_fred_yoy(api_key, series_id)
+                if yoy is not None:
+                    # For a CPI threshold like "3.5% or above":
+                    # probability_above is estimated from how close
+                    # current YoY is to the threshold. This is a rough
+                    # model — refinement comes with Cleveland Fed nowcast.
+                    readings.append(IndicatorReading(
+                        name=name,
+                        value=yoy,
+                        probability_above=0.5,  # Neutral default; refined per-market
+                        weight=weight,
+                    ))
+            except Exception:
+                logger.exception("Failed to fetch FRED series %s", series_id)
+
+        return readings
 
     @staticmethod
-    def _fetch_cpi_indicators() -> list[IndicatorReading]:
-        """Stub: Cleveland Fed Inflation Nowcast + breakeven spreads."""
-        return []
+    def _fetch_fred_yoy(api_key: str, series_id: str) -> float | None:
+        """Fetch latest YoY rate for a FRED series.
+
+        Retrieves the last 13 months of data, calculates YoY from the
+        most recent vs 12-months-ago observations.
+        """
+        try:
+            resp = httpx.get(
+                FRED_BASE_URL,
+                params={
+                    "series_id": series_id,
+                    "api_key": api_key,
+                    "file_type": "json",
+                    "sort_order": "desc",
+                    "limit": 13,
+                },
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            values = parse_fred_observations(resp.json())
+            if len(values) < 2:
+                return None
+            # Most recent and ~12 months ago
+            current = values[0][1]
+            year_ago = values[-1][1] if len(values) >= 12 else values[-1][1]
+            return calculate_yoy_rate(current, year_ago)
+        except (httpx.HTTPError, KeyError, IndexError):
+            logger.exception("FRED fetch failed for %s", series_id)
+            return None
 
     @staticmethod
     def _fetch_fed_rate_indicators() -> list[IndicatorReading]:
-        """Stub: CME FedWatch probabilities."""
+        """Stub: CME FedWatch probabilities (item 3.2)."""
         return []
 
     @staticmethod
     def _fetch_jobs_indicators() -> list[IndicatorReading]:
-        """Stub: ADP, jobless claims, ISM employment."""
+        """Stub: ADP, jobless claims, ISM employment (future)."""
         return []
 
     # ------------------------------------------------------------------
