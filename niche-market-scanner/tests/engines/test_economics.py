@@ -41,3 +41,108 @@ def test_no_bet_detection() -> None:
 
     # Verify _calculate_model_probability returns None for empty readings
     assert EconomicsEdgeEngine._calculate_model_probability([]) is None
+
+
+# ---------------------------------------------------------------------------
+# Item 3.5: Kalshi economics series ticker mapping
+# ---------------------------------------------------------------------------
+
+
+class TestSeriesTickerMap:
+    """Verify the SERIES_TICKER_MAP maps real Kalshi tickers to release types."""
+
+    def test_all_series_tickers_returns_flat_list(self) -> None:
+        tickers = EconomicsEdgeEngine.all_series_tickers()
+        assert isinstance(tickers, list)
+        assert len(tickers) > 20  # We mapped 30+ series
+        assert "CPIYOY" in tickers
+        assert "KXFEDDECISION" in tickers
+        assert "KXRECSSNBER" in tickers
+
+    def test_all_release_types_have_tickers(self) -> None:
+        for rtype, tickers in EconomicsEdgeEngine.SERIES_TICKER_MAP.items():
+            assert len(tickers) > 0, f"Release type {rtype} has no tickers"
+
+    def test_classify_market_uses_structured_map(self) -> None:
+        from datetime import datetime, timezone
+        from niche_scanner.kalshi.models import Market
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+
+        # CPI market
+        m = Market(
+            ticker="CPIYOY-26APR10-T3.5",
+            event_ticker="CPIYOY-26APR10",
+            subtitle="3.5% or above",
+            status="active",
+            close_time=datetime(2026, 4, 11, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m) == "cpi"
+
+        # Fed rate market
+        m2 = Market(
+            ticker="KXFEDDECISION-26MAY07-HOLD",
+            event_ticker="KXFEDDECISION-26MAY07",
+            subtitle="Hold",
+            status="active",
+            close_time=datetime(2026, 5, 8, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m2) == "fed_rate"
+
+        # Recession market (high volume)
+        m3 = Market(
+            ticker="KXRECSSNBER-26",
+            event_ticker="KXRECSSNBER",
+            subtitle="",
+            status="active",
+            close_time=datetime(2026, 12, 31, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m3) == "recession"
+
+        # Gas market
+        m4 = Market(
+            ticker="KXAAAGASW-26APR06-4.170",
+            event_ticker="KXAAAGASW-26APR06",
+            subtitle="",
+            status="active",
+            close_time=datetime(2026, 4, 7, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m4) == "gas"
+
+    def test_classify_falls_back_to_regex(self) -> None:
+        from datetime import datetime, timezone
+        from niche_scanner.kalshi.models import Market
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+
+        # Unknown series but matches GDP regex (standalone word boundary)
+        m = Market(
+            ticker="NEWGDP-26Q2",
+            event_ticker="NEW-GDP-TRACKER",
+            subtitle="",
+            status="active",
+            close_time=datetime(2026, 7, 1, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m) == "gdp"
+
+    def test_classify_returns_none_for_unknown(self) -> None:
+        from datetime import datetime, timezone
+        from niche_scanner.kalshi.models import Market
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+
+        m = Market(
+            ticker="KXRANDOMUNRELATED-26",
+            event_ticker="KXRANDOMUNRELATED",
+            subtitle="",
+            status="active",
+            close_time=datetime(2026, 12, 31, tzinfo=timezone.utc),
+        )
+        assert engine._classify_market(m) is None
+
+    def test_reverse_lookup_is_case_insensitive(self) -> None:
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        # The reverse map keys are uppercased
+        assert "CPIYOY" in engine._ticker_to_type
+        assert engine._ticker_to_type["CPIYOY"] == "cpi"
+        assert engine._ticker_to_type["KXRECSSNBER"] == "recession"

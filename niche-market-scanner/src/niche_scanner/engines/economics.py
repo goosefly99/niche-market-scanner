@@ -39,6 +39,7 @@ class EconomicsEdgeEngine(EdgeEngine):
     classification, and probability math are fully functional.
     """
 
+    # Regex fallback for markets not matched by SERIES_TICKER_MAP
     SERIES_PATTERNS: dict[str, re.Pattern[str]] = {
         "CPI": re.compile(r"(?i)\bCPI\b"),
         "fed_rate": re.compile(r"(?i)\b(FED|FOMC|RATE)\b"),
@@ -46,17 +47,102 @@ class EconomicsEdgeEngine(EdgeEngine):
         "gdp": re.compile(r"(?i)\bGDP\b"),
     }
 
+    # Verified Kalshi economics series tickers mapped to release types.
+    # Surveyed 2026-04-04 from Kalshi /series endpoint (493 Economics series).
+    # Only includes series with demonstrated liquidity or structural importance.
+    SERIES_TICKER_MAP: dict[str, list[str]] = {
+        "cpi": [
+            "CPIYOY",           # Monthly CPI YoY (headline inflation)
+            "CPICOREYOY",       # Core CPI YoY (ex food & energy)
+            "KXACPICORE-",      # Annual core inflation
+            "KXCPISHELTER",     # CPI shelter component (424.x index)
+            "KXAIRFARECPI",     # CPI airfare component (vol=1700+)
+            "KXSHELTERCPI",     # CPI shelter (alternate series)
+            "PCECORE",          # Core PCE inflation
+            "KXPCECORE",        # Core PCE (alternate ticker)
+            "KXPPIVSCPI",       # PPI vs CPI comparison (vol=40K+)
+        ],
+        "fed_rate": [
+            "KXFEDDECISION",    # Fed meeting rate decision
+            "KXRATECUT",        # Next Fed rate cut
+            "KXFEDHIKE",        # Next Fed rate hike
+            "KXTERMINALRATE",   # Fed funds terminal rate
+            "LOWESTRATE",       # Fed funds lowest rate
+            "KXDOTPLOT",        # Fed dot plot projections
+        ],
+        "jobs": [
+            "KXPROLLS",         # Monthly nonfarm payrolls
+            "PAYROLLS",         # Jobs numbers (alt ticker)
+            "PROLLS",           # Jobs numbers (alt ticker)
+            "KXPAYROLLS",       # Jobs numbers (alt ticker)
+        ],
+        "gdp": [
+            "GDP",              # US GDP growth quarterly
+            "KXGDP",            # US GDP growth (alt ticker)
+            "KXGDPYEAR",        # Annual GDP
+            "KXNGDP",           # Nominal GDP growth
+        ],
+        "unemployment": [
+            "KXUE",             # Monthly unemployment rate
+            "KXU3",             # U-3 unemployment rate
+            "U3",               # U-3 (alt ticker)
+            "KXU3MIN",          # Unemployment floor
+            "U3MAX",            # Unemployment ceiling
+        ],
+        "gas": [
+            "KXAAAGASW",        # Weekly gas price (vol=28K+, tight spreads)
+            "KXAAAGASD",        # Daily gas price
+            "KXAAAGASMAX",      # Yearly gas price max (vol=3.6K+)
+            "GASD",             # Daily gas (alt ticker)
+        ],
+        "recession": [
+            "KXRECSSNBER",      # NBER recession call (vol=1.25M, OI=493K)
+        ],
+        "credit": [
+            "KXCREDITRATING",   # US credit downgrade/default (vol=38K+)
+        ],
+    }
+
     def __init__(self, min_edge_pp: float = 12.0) -> None:
         self.min_edge_pp = min_edge_pp
+        # Build reverse lookup: series_ticker -> release_type
+        self._ticker_to_type: dict[str, str] = {}
+        for release_type, tickers in self.SERIES_TICKER_MAP.items():
+            for ticker in tickers:
+                self._ticker_to_type[ticker.upper()] = release_type
+
+    @classmethod
+    def all_series_tickers(cls) -> list[str]:
+        """Return flat list of all economics series tickers for scanning."""
+        tickers: list[str] = []
+        for series_list in cls.SERIES_TICKER_MAP.values():
+            tickers.extend(series_list)
+        return tickers
 
     # ------------------------------------------------------------------
     # Market classification
     # ------------------------------------------------------------------
 
     def _classify_market(self, market: Market) -> str | None:
-        """Return the release type if *market* matches a known pattern."""
+        """Return the release type if *market* matches a known series or pattern.
+
+        First checks the structured SERIES_TICKER_MAP (reliable), then
+        falls back to regex SERIES_PATTERNS (broad catch-all).
+        """
+        # Check series ticker from the market's event or series prefix
+        # Kalshi tickers are like CPIYOY-26APR10-T3.5, so the series
+        # is everything before the first date segment
+        ticker_upper = market.ticker.upper()
+        event_upper = (market.event_ticker or "").upper()
+
+        # Direct lookup in the reverse map
+        for known_ticker in self._ticker_to_type:
+            if ticker_upper.startswith(known_ticker) or event_upper.startswith(known_ticker):
+                return self._ticker_to_type[known_ticker]
+
+        # Regex fallback
         for release_type, pattern in self.SERIES_PATTERNS.items():
-            if pattern.search(market.ticker) or pattern.search(market.event_ticker):
+            if pattern.search(market.ticker) or pattern.search(event_upper):
                 return release_type
         return None
 
