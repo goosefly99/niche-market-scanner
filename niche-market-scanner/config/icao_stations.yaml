@@ -1,4 +1,187 @@
 # ICAO station mappings for Kalshi weather contracts.
-# CRITICAL: Each mapping MUST be verified against Kalshi resolution rules
-# before any weather trading. Unverified stations are ignored.
-stations: {}
+# Verified against Kalshi settlement_sources (NWS Climatological Reports) on 2026-04-04.
+# Each station's office/grid coordinates confirmed via api.weather.gov/points/.
+#
+# Settlement source format: forecast.weather.gov/product.php?site={office}&product=CLI&issuedby={station}
+# NOAA forecast URL: api.weather.gov/gridpoints/{office}/{grid_x},{grid_y}/forecast/hourly
+
+stations:
+  new_york:
+    icao: KNYC
+    station: NYC
+    office: OKX
+    grid_x: 34
+    grid_y: 38
+    verified: true
+    last_checked: "2026-04-04"
+
+  chicago:
+    icao: KMDW
+    station: MDW
+    office: LOT
+    grid_x: 72
+    grid_y: 69
+    verified: true
+    last_checked: "2026-04-04"
+
+  boston:
+    icao: KBOS
+    station: BOS
+    office: BOX
+    grid_x: 73
+    grid_y: 91
+    verified: true
+    last_checked: "2026-04-04"
+
+  houston:
+    icao: KHOU
+    station: HOU
+    office: HGX
+    grid_x: 66
+    grid_y: 89
+    verified: true
+    last_checked: "2026-04-04"
+
+  dallas:
+    icao: KDFW
+    station: DFW
+    office: FWD
+    grid_x: 80
+    grid_y: 109
+    verified: true
+    last_checked: "2026-04-04"
+
+  denver:
+    icao: KDEN
+    station: DEN
+    office: BOU
+    grid_x: 74
+    grid_y: 66
+    verified: true
+    last_checked: "2026-04-04"
+
+  los_angeles:
+    icao: KLAX
+    station: LAX
+    office: LOX
+    grid_x: 148
+    grid_y: 41
+    verified: true
+    last_checked: "2026-04-04"
+
+  miami:
+    icao: KMIA
+    station: MIA
+    office: MFL
+    grid_x: 106
+    grid_y: 51
+    verified: true
+    last_checked: "2026-04-04"
+
+  seattle:
+    icao: KSEA
+    station: SEA
+    office: SEW
+    grid_x: 124
+    grid_y: 61
+    verified: true
+    last_checked: "2026-04-04"
+
+  atlanta:
+    icao: KATL
+    station: ATL
+    office: FFC
+    grid_x: 50
+    grid_y: 82
+    verified: true
+    last_checked: "2026-04-04"
+
+  phoenix:
+    icao: KPHX
+    station: PHX
+    office: PSR
+    grid_x: 161
+    grid_y: 57
+    verified: true
+    last_checked: "2026-04-04"
+
+  philadelphia:
+    icao: KPHL
+    station: PHL
+    office: PHI
+    grid_x: 48
+    grid_y: 72
+    verified: true
+    last_checked: "2026-04-04"
+
+  san_francisco:
+    icao: KSFO
+    station: SFO
+    office: MTR
+    grid_x: 85
+    grid_y: 98
+    verified: true
+    last_checked: "2026-04-04"
+
+  washington_dc:
+    icao: KDCA
+    station: DCA
+    office: LWX
+    grid_x: 97
+    grid_y: 69
+    verified: true
+    last_checked: "2026-04-04"
+
+  austin:
+    icao: KAUS
+    station: AUS
+    office: EWX
+    grid_x: 159
+    grid_y: 88
+    verified: true
+    last_checked: "2026-04-04"
+
+  san_antonio:
+    icao: KSAT
+    station: SAT
+    office: EWX
+    grid_x: 127
+    grid_y: 59
+    verified: true
+    last_checked: "2026-04-04"
+
+  las_vegas:
+    icao: KLAS
+    station: LAS
+    office: VEF
+    grid_x: 122
+    grid_y: 94
+    verified: true
+    last_checked: "2026-04-04"
+
+  minneapolis:
+    icao: KMSP
+    station: MSP
+    office: MPX
+    grid_x: 110
+    grid_y: 68
+    verified: true
+    last_checked: "2026-04-04"
+
+  new_orleans:
+    icao: KMSY
+    station: MSY
+    office: LIX
+    grid_x: 60
+    grid_y: 90
+    verified: true
+    last_checked: "2026-04-04"
+
+  oklahoma_city:
+    icao: KOKC
+    station: OKC
+    office: OUN
+    grid_x: 94
+    grid_y: 90
+    verified: true
+    last_checked: "2026-04-04"
