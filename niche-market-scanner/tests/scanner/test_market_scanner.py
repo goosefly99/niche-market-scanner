@@ -374,3 +374,69 @@ async def test_scan_cycle_alert_failure_does_not_crash(
     # Should not raise
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert len(signals) == 1
+
+
+# ---------------------------------------------------------------------------
+# Item 5.6: Economics markets in scanner
+# ---------------------------------------------------------------------------
+
+
+async def test_scan_cycle_fetches_economics_series(
+    sizer, trader, mock_icao,
+) -> None:
+    """Scanner fetches economics series tickers alongside weather."""
+    client = AsyncMock()
+    # Return different markets for weather vs economics series
+    weather_market = _make_market("KXHIGHNY-26APR05-T67")
+    econ_market = _make_market("KXRECSSNBER-26")
+
+    async def _get_markets(**kwargs):
+        series = kwargs.get("series_ticker", "")
+        if series == "KXTEST":
+            return [weather_market]
+        if series == "KXRECSSNBER":
+            return [econ_market]
+        return []
+
+    client.get_markets = AsyncMock(side_effect=_get_markets)
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    # Mock ICAO returns one weather series
+    mock_icao.all_series_tickers.return_value = ["KXTEST"]
+
+    # Engine that returns signals for any market
+    engine = StubEngine(signals=[_make_signal()])
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        economics_series=["KXRECSSNBER"],
+    )
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    # Verify both weather and economics markets were fetched
+    call_series = [
+        call.kwargs.get("series_ticker") or call.args[0] if call.args else call.kwargs.get("series_ticker")
+        for call in client.get_markets.call_args_list
+    ]
+    assert "KXTEST" in call_series
+    assert "KXRECSSNBER" in call_series
+
+
+async def test_scan_cycle_works_without_economics_series(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Scanner works fine when no economics_series is provided (backward compat)."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    # Should not raise — economics_series defaults to empty
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert isinstance(signals, list)

@@ -149,9 +149,13 @@ async def main() -> None:
                 "Weather vertical enabled but no verified ICAO stations; skipping",
             )
 
+    economics_series: list[str] = []
     if settings.is_vertical_enabled("economics"):
         engines.append(EconomicsEdgeEngine(min_edge_pp=sizing_config.min_edge_pp))
-        logger.info("Economics engine enabled")
+        economics_series = EconomicsEdgeEngine.all_series_tickers()
+        logger.info(
+            "Economics engine enabled (%d series tickers)", len(economics_series),
+        )
 
     if not engines:
         logger.warning("No engines enabled; scanner will produce no signals")
@@ -164,6 +168,7 @@ async def main() -> None:
         trader=trader,
         icao_stations=icao,
         alert_manager=alert_manager,
+        economics_series=economics_series,
     )
 
     # 8. Determine bankroll

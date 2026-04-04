@@ -48,6 +48,7 @@ class MarketScanner:
         trader: PaperTrader,
         icao_stations: ICAOStations | None = None,
         alert_manager: AlertManager | None = None,
+        economics_series: list[str] | None = None,
     ) -> None:
         self._client = client
         self._engines = engines
@@ -55,6 +56,7 @@ class MarketScanner:
         self._trader = trader
         self._icao = icao_stations
         self._alert_manager = alert_manager
+        self._economics_series = economics_series or []
 
     async def scan_cycle(self, bankroll_cents: int) -> list[EdgeSignal]:
         """Run one full scan cycle and return all detected signals.
@@ -68,22 +70,35 @@ class MarketScanner:
         5. Track aggregate NO-side exposure across the cycle.
         6. Log a summary of the cycle.
         """
-        # 1. Fetch markets from configured weather series
+        # 1. Fetch markets from all configured series (weather + economics)
         from niche_scanner.kalshi.models import Market
         markets: list[Market] = []
-        series_tickers = self._icao.all_series_tickers() if self._icao else []
-        if not series_tickers:
-            logger.warning("No series tickers configured in icao_stations.yaml")
-            return []
-        for series in series_tickers:
+
+        # Weather series from ICAO config
+        weather_tickers = self._icao.all_series_tickers() if self._icao else []
+        for series in weather_tickers:
             try:
                 batch = await self._client.get_markets(series_ticker=series, limit=10)
                 markets.extend(batch)
             except Exception:
-                logger.debug("Series %s not found or empty", series)
-        logger.info("Fetched %d markets from %d weather series", len(markets), len(series_tickers))
+                logger.debug("Weather series %s not found or empty", series)
+
+        # Economics series
+        for series in self._economics_series:
+            try:
+                batch = await self._client.get_markets(series_ticker=series, limit=10)
+                markets.extend(batch)
+            except Exception:
+                logger.debug("Economics series %s not found or empty", series)
+
+        total_series = len(weather_tickers) + len(self._economics_series)
+        logger.info(
+            "Fetched %d markets from %d series (%d weather, %d economics)",
+            len(markets), total_series,
+            len(weather_tickers), len(self._economics_series),
+        )
         if not markets:
-            logger.info("No weather markets found")
+            logger.info("No markets found across any series")
             return []
 
         # 2. Batch-fetch order books in chunks of 100

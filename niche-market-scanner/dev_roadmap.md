@@ -8,9 +8,9 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 22 |
+| Complete | 23 |
 | In Progress | 0 |
-| Not Started | 5 |
+| Not Started | 4 |
 | Blocked | 0 |
 | **Total** | **27** |
 
@@ -90,7 +90,7 @@ Identified during continuous improvement review. Not blocking — all core funct
 | 5.3 | Wire ReleaseCalendar into scan loop for dynamic interval switching | Not Started | High | `src/niche_scanner/main.py`, `src/niche_scanner/scanner/market_scanner.py` |
 | 5.4 | Add thin-market scanner engine (cross-category dead room detection) | Not Started | Medium | `src/niche_scanner/engines/thin_market.py` |
 | 5.5 | Add Kalshi WebSocket client for real-time orderbook streaming | Not Started | Medium | `src/niche_scanner/kalshi/websocket.py` |
-| 5.6 | Add economics markets to scanner fetch (alongside weather series) | Not Started | High | `src/niche_scanner/scanner/market_scanner.py` |
+| 5.6 | Add economics markets to scanner fetch (alongside weather series) | Complete | High | `src/niche_scanner/scanner/market_scanner.py` |
 | 5.7 | Integration test: end-to-end scan cycle with mocked Kalshi + NOAA APIs | Not Started | Medium | `tests/test_integration.py` |
 
 ---
