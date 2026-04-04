@@ -1,0 +1,265 @@
+"""Economics edge engine for macro-indicator markets (CPI, Fed rate, jobs, GDP)."""
+
+from __future__ import annotations
+
+import logging
+import re
+from dataclasses import dataclass
+
+from niche_scanner.engines.base import EdgeEngine, EdgeSignal
+from niche_scanner.kalshi.models import Market, OrderBook
+from niche_scanner.sizing.fees import round_trip_fee_pp
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class IndicatorReading:
+    """A single macro-indicator observation used to estimate probability."""
+
+    name: str
+    value: float
+    probability_above: float
+    weight: float
+
+
+@dataclass
+class ReleaseCalendarEntry:
+    """An upcoming economic data release."""
+
+    release_type: str
+    release_date: str
+    series_ticker: str
+
+
+class EconomicsEdgeEngine(EdgeEngine):
+    """Detect edges on economic-indicator markets using macro data.
+
+    Phase 1 stubs indicator fetching; the engine structure, market
+    classification, and probability math are fully functional.
+    """
+
+    SERIES_PATTERNS: dict[str, re.Pattern[str]] = {
+        "CPI": re.compile(r"(?i)\bCPI\b"),
+        "fed_rate": re.compile(r"(?i)\b(FED|FOMC|RATE)\b"),
+        "jobs": re.compile(r"(?i)\b(JOBS|NFP|NONFARM|EMPLOY)\b"),
+        "gdp": re.compile(r"(?i)\bGDP\b"),
+    }
+
+    def __init__(self, min_edge_pp: float = 12.0) -> None:
+        self.min_edge_pp = min_edge_pp
+
+    # ------------------------------------------------------------------
+    # Market classification
+    # ------------------------------------------------------------------
+
+    def _classify_market(self, market: Market) -> str | None:
+        """Return the release type if *market* matches a known pattern."""
+        for release_type, pattern in self.SERIES_PATTERNS.items():
+            if pattern.search(market.ticker) or pattern.search(market.event_ticker):
+                return release_type
+        return None
+
+    # ------------------------------------------------------------------
+    # Threshold parsing
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _parse_threshold(subtitle: str) -> tuple[float, str] | None:
+        """Extract a numeric threshold and direction from a market subtitle.
+
+        Recognises forms like ``"3.5% or above"``, ``"Below 200K"``,
+        ``"above 150K"``, ``"under 4.0%"``.
+
+        Returns ``(threshold_value, direction)`` where direction is
+        ``"above"`` or ``"below"``, or *None* if unparseable.
+        """
+        above_match = re.search(
+            r"([\d.]+)\s*[%K]?\s+or\s+above|above\s+([\d.]+)\s*[%K]?",
+            subtitle,
+            re.IGNORECASE,
+        )
+        if above_match:
+            value_str = above_match.group(1) or above_match.group(2)
+            return float(value_str), "above"
+
+        below_match = re.search(
+            r"[Bb]elow\s+([\d.]+)\s*[%K]?|[Uu]nder\s+([\d.]+)\s*[%K]?",
+            subtitle,
+        )
+        if below_match:
+            value_str = below_match.group(1) or below_match.group(2)
+            return float(value_str), "below"
+
+        return None
+
+    # ------------------------------------------------------------------
+    # Indicator fetching (Phase 2 stubs)
+    # ------------------------------------------------------------------
+
+    def fetch_indicators(self, release_type: str) -> list[IndicatorReading]:
+        """Fetch indicator readings for a release type.
+
+        Phase 2 will integrate Cleveland Fed Nowcast, CME FedWatch, and
+        ADP data sources.  For now every release type returns an empty
+        list so the engine gracefully skips markets with no model data.
+        """
+        return self._fetch_cpi_indicators() if release_type == "CPI" else []
+
+    @staticmethod
+    def _fetch_cpi_indicators() -> list[IndicatorReading]:
+        """Stub: Cleveland Fed Inflation Nowcast + breakeven spreads."""
+        return []
+
+    @staticmethod
+    def _fetch_fed_rate_indicators() -> list[IndicatorReading]:
+        """Stub: CME FedWatch probabilities."""
+        return []
+
+    @staticmethod
+    def _fetch_jobs_indicators() -> list[IndicatorReading]:
+        """Stub: ADP, jobless claims, ISM employment."""
+        return []
+
+    # ------------------------------------------------------------------
+    # Probability model
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _calculate_model_probability(
+        readings: list[IndicatorReading],
+    ) -> float | None:
+        """Weighted average of indicator probability-above values.
+
+        Returns *None* when there are no readings or total weight is
+        zero, signalling that no model estimate is available.
+        """
+        if not readings:
+            return None
+        total_weight = sum(r.weight for r in readings)
+        if total_weight == 0:
+            return None
+        return sum(r.probability_above * r.weight for r in readings) / total_weight
+
+    # ------------------------------------------------------------------
+    # Evaluation
+    # ------------------------------------------------------------------
+
+    def _evaluate_market(
+        self,
+        market: Market,
+        orderbook: OrderBook | None,
+        model_prob: float,
+        release_type: str,
+    ) -> EdgeSignal | None:
+        """Check YES and NO sides for fee-adjusted edge, return the best."""
+        threshold_info = self._parse_threshold(market.subtitle)
+        threshold_str = (
+            f"{threshold_info[0]} ({threshold_info[1]})"
+            if threshold_info
+            else "unknown threshold"
+        )
+
+        # Market-implied probability from last price
+        market_prob_yes = market.last_price / 100.0 if market.last_price > 0 else 0.5
+
+        candidates: list[EdgeSignal] = []
+
+        # --- YES side ---
+        yes_edge_pp = (model_prob - market_prob_yes) * 100
+        price_cents_yes = max(1, min(99, round(market_prob_yes * 100)))
+        fee_pp_yes = round_trip_fee_pp(price_cents_yes)
+        fee_adj_yes = yes_edge_pp - fee_pp_yes
+
+        if fee_adj_yes >= self.min_edge_pp:
+            candidates.append(
+                EdgeSignal(
+                    engine="economics",
+                    ticker=market.ticker,
+                    side="yes",
+                    model_prob=model_prob,
+                    market_prob=market_prob_yes,
+                    edge_pp=yes_edge_pp,
+                    fee_adjusted_edge=fee_adj_yes,
+                    confidence=0.6,
+                    thesis=(
+                        f"{release_type} indicators suggest YES "
+                        f"({threshold_str}); "
+                        f"model {model_prob:.0%} vs market {market_prob_yes:.0%}"
+                    ),
+                    metadata={"release_type": release_type},
+                ),
+            )
+
+        # --- NO side ---
+        model_prob_no = 1.0 - model_prob
+        market_prob_no = 1.0 - market_prob_yes
+        no_edge_pp = (model_prob_no - market_prob_no) * 100
+        price_cents_no = max(1, min(99, round(market_prob_no * 100)))
+        fee_pp_no = round_trip_fee_pp(price_cents_no)
+        fee_adj_no = no_edge_pp - fee_pp_no
+
+        if fee_adj_no >= self.min_edge_pp:
+            candidates.append(
+                EdgeSignal(
+                    engine="economics",
+                    ticker=market.ticker,
+                    side="no",
+                    model_prob=model_prob,
+                    market_prob=market_prob_yes,
+                    edge_pp=no_edge_pp,
+                    fee_adjusted_edge=fee_adj_no,
+                    confidence=0.6,
+                    thesis=(
+                        f"{release_type} indicators suggest NO "
+                        f"({threshold_str}); "
+                        f"model {model_prob:.0%} vs market {market_prob_yes:.0%}"
+                    ),
+                    metadata={"release_type": release_type},
+                ),
+            )
+
+        if not candidates:
+            return None
+        return max(candidates, key=lambda s: s.fee_adjusted_edge)
+
+    # ------------------------------------------------------------------
+    # Public scan interface
+    # ------------------------------------------------------------------
+
+    async def scan(
+        self,
+        markets: list[Market],
+        orderbooks: dict[str, OrderBook],
+    ) -> list[EdgeSignal]:
+        """Group markets by release type, evaluate each for edge."""
+        # 1. Classify
+        grouped: dict[str, list[Market]] = {}
+        for market in markets:
+            rt = self._classify_market(market)
+            if rt is not None:
+                grouped.setdefault(rt, []).append(market)
+
+        signals: list[EdgeSignal] = []
+
+        # 2. For each release type, fetch indicators and evaluate
+        for release_type, group in grouped.items():
+            readings = self.fetch_indicators(release_type)
+            model_prob = self._calculate_model_probability(readings)
+            if model_prob is None:
+                logger.debug(
+                    "No indicator data for %s; skipping %d markets",
+                    release_type,
+                    len(group),
+                )
+                continue
+
+            for market in group:
+                ob = orderbooks.get(market.ticker)
+                signal = self._evaluate_market(
+                    market, ob, model_prob, release_type,
+                )
+                if signal is not None:
+                    signals.append(signal)
+
+        return signals
