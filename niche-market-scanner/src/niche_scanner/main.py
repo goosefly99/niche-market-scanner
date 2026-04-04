@@ -7,7 +7,13 @@ import logging
 import signal
 import sys
 
-from niche_scanner.config import ICAOStations, KalshiConfig, ScannerSettings
+from niche_scanner.alerts.telegram import AlertManager
+from niche_scanner.config import (
+    ICAOStations,
+    KalshiConfig,
+    ScannerSettings,
+    TelegramConfig,
+)
 from niche_scanner.engines.base import EdgeEngine
 from niche_scanner.engines.economics import EconomicsEdgeEngine
 from niche_scanner.engines.weather import WeatherEdgeEngine
@@ -34,6 +40,7 @@ async def main() -> None:
     # 1. Load configuration
     settings = ScannerSettings()
     kalshi_cfg = KalshiConfig()
+    telegram_cfg = TelegramConfig()
     icao = ICAOStations()
 
     # 2. Create auth + client
@@ -62,6 +69,14 @@ async def main() -> None:
     )
     sizer = KellySizer(config=sizing_config)
     trader = PaperTrader(journal=journal)
+
+    # 4b. Create Telegram alert manager
+    paper_mode = sizing_data.get("paper_trade", True)
+    alert_manager = AlertManager(
+        bot_token=telegram_cfg.TELEGRAM_BOT_TOKEN,
+        chat_id=telegram_cfg.TELEGRAM_CHAT_ID,
+        paper_mode=paper_mode,
+    )
 
     # 5. Build engine list from enabled verticals
     engines: list[EdgeEngine] = []
@@ -98,10 +113,10 @@ async def main() -> None:
         sizer=sizer,
         trader=trader,
         icao_stations=icao,
+        alert_manager=alert_manager,
     )
 
     # 8. Determine bankroll
-    paper_mode = sizing_data.get("paper_trade", True)
     if paper_mode:
         bankroll_cents = _DEFAULT_PAPER_BANKROLL_CENTS
         logger.info("Paper trading mode: bankroll = %d cents", bankroll_cents)

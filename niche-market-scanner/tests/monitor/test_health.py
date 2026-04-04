@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import time
 
 from niche_scanner.monitor.health import HealthMonitor

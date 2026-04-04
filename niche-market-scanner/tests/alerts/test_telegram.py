@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock
 
 from niche_scanner.engines.base import EdgeSignal
 from niche_scanner.sizing.kelly import PositionSize

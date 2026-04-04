@@ -9,6 +9,7 @@ import pytest
 
 from unittest.mock import MagicMock
 
+from niche_scanner.alerts.telegram import AlertManager
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.journal.trade_journal import TradeJournal
@@ -226,3 +227,150 @@ async def test_scan_cycle_tracks_no_exposure(
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert len(signals) == 1
     assert signals[0].side == "no"
+
+
+# ---------------------------------------------------------------------------
+# AlertManager integration tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mock_alert_manager():
+    """AlertManager with all async methods mocked."""
+    mgr = AlertManager(bot_token="", chat_id="", paper_mode=True)
+    mgr.send_signal_alert = AsyncMock()
+    mgr.send_scan_summary = AsyncMock()
+    mgr.send_risk_warning = AsyncMock()
+    return mgr
+
+
+async def test_scanner_accepts_alert_manager(
+    mock_client, sizer, trader, mock_icao, mock_alert_manager,
+) -> None:
+    """MarketScanner accepts an optional AlertManager parameter."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        alert_manager=mock_alert_manager,
+    )
+    assert scanner._alert_manager is mock_alert_manager
+
+
+async def test_scanner_works_without_alert_manager(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """MarketScanner works fine when no AlertManager is provided."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    assert scanner._alert_manager is None
+    # Should not raise
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert signals == []
+
+
+async def test_scan_cycle_sends_signal_alerts(
+    mock_client, trader, mock_icao, mock_alert_manager,
+) -> None:
+    """When signals are sized and executed, AlertManager receives signal alerts."""
+    signal = _make_signal()
+    signal.edge_pp = 30.0  # high enough to clear fees + min_edge_pp
+    signal.fee_adjusted_edge = 22.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        alert_manager=mock_alert_manager,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    # The signal should produce a sized position and trigger an alert
+    assert mock_alert_manager.send_signal_alert.call_count == 1
+    call_args = mock_alert_manager.send_signal_alert.call_args
+    sent_signal = call_args[0][0]  # first positional arg
+    assert sent_signal.ticker == "TEST-MKT-1"
+
+
+async def test_scan_cycle_sends_scan_summary(
+    mock_client, trader, mock_icao, mock_alert_manager,
+) -> None:
+    """At the end of each scan cycle, a scan summary is sent."""
+    signal = _make_signal()
+    signal.edge_pp = 30.0
+    signal.fee_adjusted_edge = 22.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        alert_manager=mock_alert_manager,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    mock_alert_manager.send_scan_summary.assert_called_once()
+    call_kwargs = mock_alert_manager.send_scan_summary.call_args
+    # Verify it was called with the right market/signal counts
+    assert call_kwargs[1]["markets"] == 1
+    assert call_kwargs[1]["signals"] == 1
+
+
+async def test_scan_cycle_no_alert_on_skipped_signals(
+    mock_client, trader, mock_icao, mock_alert_manager,
+) -> None:
+    """Signals that are not sized (skipped) do not generate signal alerts."""
+    signal = _make_signal()
+    signal.edge_pp = 5.0  # Below min_edge_pp, will be skipped by sizer
+    signal.fee_adjusted_edge = 2.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        alert_manager=mock_alert_manager,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    # Signal was skipped, so no signal alert
+    mock_alert_manager.send_signal_alert.assert_not_called()
+    # But scan summary should still be sent
+    mock_alert_manager.send_scan_summary.assert_called_once()
+
+
+async def test_scan_cycle_alert_failure_does_not_crash(
+    mock_client, trader, mock_icao,
+) -> None:
+    """If AlertManager raises, the scan cycle does not crash."""
+    mgr = AlertManager(bot_token="", chat_id="", paper_mode=True)
+    mgr.send_signal_alert = AsyncMock(side_effect=RuntimeError("Telegram down"))
+    mgr.send_scan_summary = AsyncMock(side_effect=RuntimeError("Telegram down"))
+
+    signal = _make_signal()
+    signal.edge_pp = 30.0
+    signal.fee_adjusted_edge = 22.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        alert_manager=mgr,
+    )
+    # Should not raise
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert len(signals) == 1

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from niche_scanner.config import ICAOStations
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
@@ -10,6 +11,9 @@ from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.kalshi.client import KalshiClient
 from niche_scanner.kalshi.models import OrderBook
 from niche_scanner.sizing.kelly import KellySizer, PositionSize
+
+if TYPE_CHECKING:
+    from niche_scanner.alerts.telegram import AlertManager
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +35,9 @@ class MarketScanner:
         Paper (or live) trader that executes sized signals.
     icao_stations:
         ICAO station config providing series_tickers for weather scanning.
+    alert_manager:
+        Optional Telegram alert manager for sending signal and scan
+        summary notifications. When ``None``, alerting is silently skipped.
     """
 
     def __init__(
@@ -40,12 +47,14 @@ class MarketScanner:
         sizer: KellySizer,
         trader: PaperTrader,
         icao_stations: ICAOStations | None = None,
+        alert_manager: AlertManager | None = None,
     ) -> None:
         self._client = client
         self._engines = engines
         self._sizer = sizer
         self._trader = trader
         self._icao = icao_stations
+        self._alert_manager = alert_manager
 
     async def scan_cycle(self, bankroll_cents: int) -> list[EdgeSignal]:
         """Run one full scan cycle and return all detected signals.
@@ -117,6 +126,13 @@ class MarketScanner:
             await self._trader.execute(signal, size)
             executed_count += 1
 
+            # 4a. Send signal alert via Telegram (best-effort)
+            if self._alert_manager is not None:
+                try:
+                    await self._alert_manager.send_signal_alert(signal, size)
+                except Exception:
+                    logger.exception("Failed to send signal alert for %s", signal.ticker)
+
             # 5. Track NO exposure
             if signal.side == "no":
                 no_exposure_cents += size.cost_cents
@@ -131,5 +147,17 @@ class MarketScanner:
             skipped_count,
             no_exposure_cents,
         )
+
+        # 6a. Send scan summary via Telegram (best-effort)
+        if self._alert_manager is not None:
+            try:
+                await self._alert_manager.send_scan_summary(
+                    markets=len(markets),
+                    signals=len(all_signals),
+                    executed=executed_count,
+                    skipped=skipped_count,
+                )
+            except Exception:
+                logger.exception("Failed to send scan summary alert")
 
         return all_signals
