@@ -14,7 +14,20 @@ sizing:
   min_edge_pp: 12
   max_drawdown_daily: 0.05
   kill_switch_drawdown: 0.40
-  paper_trade: true
+  paper_trade: true  # Master mode switch: true=paper, false=live
+
+# Live trading config — only active when paper_trade is false.
+# All monetary values in cents. Percentages as decimals.
+live_trading:
+  enabled: false  # Must be explicitly true AND paper_trade must be false
+  starting_cash_cents: 100000  # $1,000 — initial capital for risk calculations
+  max_bet_size_cents: 1000  # $10 max per individual trade
+  max_portfolio_drawdown: 0.15  # 15% from peak balance triggers kill switch
+  max_daily_loss_cents: 5000  # $50/day loss limit triggers kill switch
+  position_stop_loss: 0.50  # 50% loss on a single position
+  max_open_positions: 10
+  max_daily_trades: 50
+  require_confirmation: true  # Not yet implemented — reserved for human-in-the-loop
 
 verticals:
   weather: { enabled: true }

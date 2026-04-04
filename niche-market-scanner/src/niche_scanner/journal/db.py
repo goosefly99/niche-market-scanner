@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS trades (
     ticker       TEXT    NOT NULL,
     engine       TEXT    NOT NULL,
     side         TEXT    NOT NULL CHECK (side IN ('yes', 'no')),
-    action       TEXT    NOT NULL CHECK (action IN ('buy', 'sell')),
+    action       TEXT    NOT NULL CHECK (action IN ('buy', 'sell', 'rejected', 'failed')),
     contracts    INTEGER NOT NULL CHECK (contracts > 0),
     price_cents  INTEGER NOT NULL CHECK (price_cents >= 0 AND price_cents <= 100),
     cost_cents   INTEGER GENERATED ALWAYS AS (
