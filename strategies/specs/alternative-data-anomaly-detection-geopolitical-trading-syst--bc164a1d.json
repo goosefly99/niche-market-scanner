@@ -1,0 +1,527 @@
+{
+  "spec_id": "bc164a1d-bfb6-4b23-b93b-6ff3175b26ae",
+  "title": "Alternative Data Anomaly Detection & Geopolitical Trading System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "3.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039282251159011513",
+      "title": "NASA FIRMS satellite thermal anomaly detection for geopolitical prediction markets. 10-source free data stack, 270-day backtest across Gaza/Kursk/Syria, $500 to $7,778 on 16 trades.",
+      "relevance": "Core system blueprint: NASA FIRMS satellite trading with 10-source data stack, anomaly detection algorithm (14-day rolling average, 3x threshold), detected Oct 7 at 11x anomaly, Kursk 4 days early, Assad 3 weeks early. Dynamic Kelly sizing with Claude decision engine. The satellite detection pipeline maps directly to Kalshi political/economics/geopolitical contracts."
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038608348958834926",
+      "title": "Soros-archetype geopolitical information edge: $800K deployed, 93% win rate, CNN investigation.",
+      "relevance": "Soros-style geopolitical information edge pattern: Magamyman wallet deploying $800K on military strike predictions with 93% win rate, investigated by CNN and Columbia Law School. The alternative data stack provides a legal, publicly available approximation of this information edge. Cascade detection across correlated markets applies directly to Kalshi political and economics event categories."
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039479380368408840",
+      "title": "Logic arbitrage via causal event chains: exploiting repricing delays between causally linked prediction market contracts.",
+      "relevance": "Logic arbitrage exploiting causal dependencies between events before markets reprice downstream consequences. Kalshi's structured event categories (politics, economics, geopolitical) naturally create causal chains across contract types. Speed advantage measured in minutes to hours, not milliseconds."
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039323712713810150",
+      "title": "17K wallet behavioral analysis pipeline: 11 strategy archetypes, edge decay quantification, $8 API cost.",
+      "relevance": "Wallet-level behavioral analysis revealing edge decay patterns (BTC lag compression 9.4s to 3.1s), 11 distinct strategies mapped from 17,000 wallets at $8 total cost. Edge decay quantification informs strategy lifecycle management and signal durability assessment on Kalshi."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039373347696328738",
+      "title": "Autonomous Claude agent: live news mapping, probabilistic inference on mispricing, cross-market arb, Kelly sizing. $25 to $4,237 overnight.",
+      "relevance": "Agent architecture reference: autonomous agent that reads live news, maps to open markets, runs probabilistic inference on crowd mispricing, detects cross-market arbitrage, sizes with Kelly. 94 trades autonomous overnight. Architecture pattern applies to Kalshi execution."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038622884642398503",
+      "title": "14K wallet analysis: 87% lose money, top 0.1% extracted $3.7B. 3 core formulas (EV/Kelly/Bayesian), 12-tool open-source toolkit.",
+      "relevance": "Mathematical foundation: EV filtering (skip below 5%), Kelly Criterion (quarter-Kelly always), Bayesian updating. These mathematical primitives are platform-agnostic and apply identically on Kalshi."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039308895290581254",
+      "title": "5 free GitHub scripts: trading terminal, data recorder, ML model.",
+      "relevance": "Infrastructure components: data recorder logging order books and trades simultaneously, trading terminal with Telegram alerts. Data recording methodology applies to Kalshi orderbook data."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039055805626937399",
+      "title": "Why prediction market bots fail: data completeness > strategy quality. 1,000+ bots built, 1% success rate.",
+      "relevance": "Critical design constraint: data completeness is more important than strategy quality. Must record full order book depth, real spreads, actual fill behavior. Minimum 1000 windows for statistical confidence. Perfect execution assumption is fatal."
+    }
+  ],
+  "overview": {
+    "description": "An end-to-end autonomous trading system that ingests free alternative data sources (satellite imagery, aircraft tracking, seismic data, financial indicators) to detect geopolitical and real-world anomalies before prediction markets price them in, executing on Kalshi, a CFTC-regulated US event contract exchange. The system is grounded in backtested results: $500 grew to $7,778 across 16 trades (11 wins, 5 losses) over a 270-day backtest period, detecting the Oct 7 Gaza attack as an 11.1x thermal anomaly, the Kursk offensive 4 days before official confirmation, and Assad's fall 3 weeks early via escalating thermal signals. v3.0 integrates four convergent intelligence layers: (1) a multi-source anomaly detection engine using NASA FIRMS thermal data as the primary signal with 9 confirming sources forming a $0/month 10-source free data stack, (2) a Kalshi orderbook intelligence pipeline analyzing order flow patterns and volume anomalies, (3) a logic arbitrage engine that exploits causal event chains across Kalshi's structured contract categories before markets reprice downstream consequences, and (4) a Claude-based decision engine that synthesizes all signals into trade decisions with dynamic Kelly sizing. The Soros-archetype pattern (Magamyman: $800K deployed, 93% win rate on military strike predictions, CNN/Columbia Law School investigated) demonstrates that geopolitical information edges produce outsized returns -- the alternative data stack provides a legal, publicly available approximation of this edge. Edge decay analysis (BTC latency arbitrage compressed from 9.4s to 3.1s) informs strategy lifecycle management: FIRMS satellite data is early in its exploitation lifecycle, but signal durability must be actively monitored. The 4-6 hour FIRMS NRT publication delay constrains execution to swing-style positioning (hours to days), not high-frequency trading, targeting Kalshi contracts with multi-day resolution windows across geopolitics, conflict, sanctions, and military event categories.",
+    "objectives": [
+      "Detect geopolitical anomalies 1-21 days before Kalshi markets price them in, using the 10-source free data stack anchored by NASA FIRMS satellite thermal data",
+      "Maintain a $0/month alternative data pipeline (9 of 10 sources require no API key) running a 40-second full scan cycle every 15 minutes, outperforming $24K/year Bloomberg Terminal for satellite-based conflict detection",
+      "Implement the anomaly detection statistical framework: 14-day rolling average baseline with 3x threshold, continuation bias filter (skip when 7-day baseline triples), and Fire Radiative Power (FRP in MW) severity grading",
+      "Execute logic arbitrage by mapping causal event chains across Kalshi's structured contract categories (politics -> economics -> geopolitical) and positioning on downstream contracts before market repricing",
+      "Map satellite and alternative data anomalies to specific Kalshi event categories: geopolitics (military action, regime change, conflict escalation), politics (sanctions, government policy), economics (CPI, GDP, Fed rate decisions influenced by conflict-driven commodity shocks)",
+      "Build a Claude-powered decision engine that cross-references all data sources, reasons about causal chains, estimates true probabilities, and outputs structured trade decisions with ~70% directional accuracy",
+      "Apply dynamic Kelly Criterion position sizing scaled by anomaly severity and confirmation count: quarter-Kelly ceiling, producing $41 losses on false alarms vs $470 gains on true signals through position size modulation",
+      "Analyze Kalshi orderbook data to detect institutional positioning patterns, volume anomalies, and price dislocations, compensating for the absence of on-chain wallet transparency",
+      "Monitor edge decay and signal compression: track exploitation lifecycle of FIRMS satellite edge, assess whether Kalshi's smaller US-only participant base compresses edges slower than larger retail platforms",
+      "Execute trades autonomously on Kalshi via REST API with configurable risk limits, achieving the backtested benchmark of positive EV across 16+ trades with 60%+ directional accuracy",
+      "Record complete market data (order books, fills, spreads) to enable statistically valid backtesting with minimum 1000 windows per strategy"
+    ],
+    "constraints": [
+      "All data sources must be free ($0/month total cost for the 10-source stack)",
+      "NASA FIRMS NRT data has ~3 hour processing delay; URT (Ultra Real-Time) available within ~60 seconds but with less coverage. The 4-6 hour publication delay means swing trading not HFT -- must target Kalshi contracts with multi-day resolution windows",
+      "Kalshi political/geopolitical markets may have variable liquidity; position sizes must be capped at 2% of market volume and respect Kalshi per-market position limits. Thinner order books than prior platforms may reduce strategy capacity",
+      "Claude API provides ~70% directional accuracy, which dynamic quarter-Kelly sizing must absorb. False alarm cost $41 (small position on weak signal); true signal made $470 (scaled position on strong signal)",
+      "Anomaly detection only works for FIRST spikes; continuation signals after baseline tripling must be filtered via the continuation bias mechanism (skip when 7-day baseline itself triples)",
+      "Sample size is inherently small for geopolitical events (7 major events over 16 months, 22 signals in the 270-day backtest); system must be treated as a proof of concept with real data until 50+ live signals accumulate",
+      "Data latency vs market speed mismatch is uncharacterized: if Kalshi geopolitical contracts fully reprice within 1-2 hours of news, FIRMS NRT signal may arrive too late. The window between FIRMS data availability and full market repricing on Kalshi requires empirical measurement",
+      "Kalshi does not expose individual trader positions or wallet data -- orderbook microstructure provides weaker signals than on-chain wallet analysis. Compensate by increasing weight on satellite/alternative data signals",
+      "System must operate on a 15-minute polling cycle with full pipeline executing in under 90-120 seconds",
+      "Full KYC required on Kalshi. CFTC regulation adds both legitimacy (legal US access) and scrutiny (regulatory sensitivity of geopolitical trading). Must stay clearly on the 'alternative data analysis' side of the legal boundary, not 'material non-public information'",
+      "Security: RSA-PSS per-request signing for Kalshi API, strong unique password, 2FA, secure PEM key storage. Start with minimal funds ($50-100). No blockchain wallets needed.",
+      "Edge decay is measurable and must be monitored: FIRMS satellite edge is early in lifecycle but the source material itself accelerates discovery. Counter-strategy is continuous discovery of new data sources and causal chains."
+    ],
+    "assumptions": [
+      "NASA FIRMS API will remain free and accessible with MAP_KEY registration at firms.modaps.eosdis.nasa.gov",
+      "OpenSky Network (free registered account, 4,000 credits/day), USGS, CoinGecko (free Demo API key), ExchangeRate API (free key), Alternative.me, and other free APIs will maintain current free-tier access",
+      "Kalshi will continue operating as a CFTC-regulated exchange with REST API access and USD cash settlement",
+      "Claude API (Anthropic) will remain available at current pricing (~$0.015/query for analysis)",
+      "Thermal anomaly patterns from satellite data correlate with geopolitical escalation events with sufficient lead time -- validated by 270-day backtest across Gaza (11x anomaly), Kursk (4 days early), Assad (3 weeks early)",
+      "Prediction markets are inefficient enough in pricing geopolitical events that a 3-6 hour NRT data delay still provides actionable edge, particularly on Kalshi contracts with multi-day resolution windows",
+      "Kalshi's structured contract categories (politics, economics, geopolitical) create exploitable causal chains where repricing delays in downstream contracts persist for minutes to hours",
+      "Kalshi's smaller, US-only participant base may produce more durable edges than larger platforms, though this is unvalidated",
+      "The $500 to $7,778 backtest result (16 trades, 270 days) is reproducible in live trading with realistic slippage, though the small trade count means high variance"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "DataIngestionLayer",
+        "description": "Centralized data collection service polling all 10 alternative data sources on a 15-minute cycle. Handles API key management (NASA FIRMS MAP_KEY, OpenSky credentials, CoinGecko Demo key, ExchangeRate key), rate limiting, retry logic, and data persistence. Total cost: $0/month. Full cycle executes in ~40 seconds via async parallel polling. 9 of 10 sources require no API key.",
+        "responsibilities": [
+          "Poll all 10 data sources every 15 minutes with async parallel requests",
+          "Normalize heterogeneous API responses into unified internal format",
+          "Handle rate limits, retries with exponential backoff, and graceful degradation on source failure",
+          "Persist all raw data to local storage for backtesting (DataRecorder integration)",
+          "Manage API credentials securely via .env (NASA MAP_KEY, OpenSky account, CoinGecko key, ExchangeRate key, Kalshi RSA key)"
+        ],
+        "inputs": ["NASA FIRMS API", "OpenSky Network API", "USGS Earthquake API", "ExchangeRate API", "yfinance/Alpha Vantage (VIX)", "Gold API", "CoinGecko API", "Alternative.me API", "Kalshi REST API", "Kalshi WebSocket"],
+        "outputs": ["Normalized regional thermal data", "Aircraft tracking data", "Seismic events", "Financial stress indicators", "Kalshi market and orderbook snapshots"],
+        "dependencies": ["NASA Earthdata registration", "OpenSky account", "CoinGecko Demo key", "ExchangeRate API key", "Kalshi API key pair"]
+      },
+      {
+        "name": "AnomalyDetectionEngine",
+        "description": "Statistical anomaly detection framework processing all data sources through a deliberately simple but robust methodology: 14-day rolling average baseline per region per source, with 3x threshold triggering anomaly flags. This caught every major geopolitical event in the 270-day backtest. Sophistication comes from multi-source confirmation, not complex single-source models. Implements continuation bias filter to suppress signals where the baseline itself has tripled in the last 7 days, preventing bets on the 'new normal'. Fire Radiative Power (FRP in MW) adds severity dimension beyond binary fire count: distinguishes brushfire from bombardment from industrial explosion.",
+        "responsibilities": [
+          "Compute 14-day rolling average baseline per region per data source",
+          "Flag anomalies exceeding configurable threshold (default 3x for FIRMS fire count)",
+          "Apply continuation bias filter: skip when 7-day baseline has tripled vs prior 7-day baseline",
+          "Grade severity using FRP (megawatts): brushfire vs bombardment vs industrial explosion",
+          "Generalize anomaly framework to all sources: seismic data, currency moves, flight pattern changes, volume spikes",
+          "Output structured anomaly records with magnitude ratio, peak FRP, coordinates, and timestamp"
+        ],
+        "inputs": ["Normalized data from DataIngestionLayer"],
+        "outputs": ["Anomaly records per region per source with magnitude, FRP, coordinates, timestamps, continuation flag"]
+      },
+      {
+        "name": "ConfirmationScorer",
+        "description": "Computes composite tension score (0-100) by weighting each confirming data source. Higher scores indicate multi-source convergence. Only anomalies with confirmation_count >= 2 are passed to the decision engine. The power of the 10-source stack comes from cross-correlation: a FIRMS thermal spike confirmed by OpenSky military traffic and a RUB crash is qualitatively different from FIRMS alone.",
+        "responsibilities": [
+          "Weight each triggered source according to configurable model (FIRMS 30, OpenSky 15, USGS 15, currency 10, VIX 10, gold 5, fear/greed 5, crypto 5, weather 5)",
+          "Compute normalized tension score 0-100",
+          "Enforce minimum 2-source confirmation before generating trade signals",
+          "Classify signal confidence: low (0-30), medium (31-50), high (51-75), critical (76-100)"
+        ],
+        "inputs": ["Anomaly records from AnomalyDetectionEngine"],
+        "outputs": ["Tension score (0-100)", "Confirmation count", "List of confirming sources", "Confidence classification"]
+      },
+      {
+        "name": "KalshiOrderFlowAnalyzer",
+        "description": "Extracts trading signals from Kalshi orderbook and market microstructure. Replaces the on-chain wallet intelligence from prior platform versions since Kalshi is not blockchain-based. Provides weaker but still useful signals via volume anomaly detection, price history analysis, spread dynamics, and cross-market correlation. Partially compensates for lack of individual trader position visibility.",
+        "responsibilities": [
+          "Record full orderbook snapshots (bid/ask depth) for all monitored markets via REST and WebSocket",
+          "Detect volume anomalies: 3x+ above 14-day average on geopolitical contracts",
+          "Identify concentrated buying/selling: 80%+ of volume on one side in 1-hour windows",
+          "Track spread compression (50%+ narrowing from baseline) indicating informed flow",
+          "Detect cross-market correlations: volume spikes on multiple related contracts simultaneously",
+          "Analyze price momentum: 5%+ directional moves without corresponding news as early-mover signals",
+          "Map cross-market price movements to predict related contract repricing"
+        ],
+        "inputs": ["Kalshi REST API orderbook data", "Kalshi WebSocket orderbook deltas and fills"],
+        "outputs": ["Volume anomaly flags", "Price momentum signals", "Spread compression alerts", "Cross-market correlation events"]
+      },
+      {
+        "name": "LogicArbitrageEngine",
+        "description": "Exploits causal dependencies between events before Kalshi markets reprice downstream consequences. When event A triggers event B with high probability, positions on event B contracts while market still prices them at pre-A levels. Kalshi's structured categories (politics, economics, geopolitical) naturally create causal chains across contract types. Speed advantage measured in minutes to hours, accessible without HFT infrastructure. Example chain: sanctions announced -> currency crash -> regime instability -> military action probability increases.",
+        "responsibilities": [
+          "Maintain a causal event graph mapping dependencies between Kalshi contract categories",
+          "Detect trigger events (upstream cause) and identify underpriced downstream consequence contracts",
+          "Estimate repricing delay between cause and consequence across Kalshi's fragmented markets",
+          "Integrate with Claude decision engine for causal chain reasoning that rule-based systems cannot express",
+          "Identify overpriced YES contracts on events that become impossible once prerequisite events resolve differently (Chinese dev NO bets pattern)",
+          "Track historical repricing timing data to build a systematic catalog of proven causal chains"
+        ],
+        "inputs": ["Anomaly signals from ConfirmationScorer", "Active Kalshi market data", "Claude causal reasoning output"],
+        "outputs": ["Logic arbitrage trade opportunities with causal chain descriptions", "Repricing delay estimates", "Downstream contract targets"]
+      },
+      {
+        "name": "KalshiEventCategoryMapper",
+        "description": "Maps geopolitical anomaly signals to specific Kalshi contract categories and active markets. This is the critical bridge between satellite data and tradeable contracts. Kalshi categories with alt-data mapping: geopolitics (military action, regime change, conflict escalation), politics (sanctions triggers, election consequences, policy cascades), economics (Fed response to crisis, GDP impacts, trade disruption, CPI overshoot from conflict-driven commodity shocks). Also feeds the LogicArbitrageEngine with cross-category causal chain targets.",
+        "responsibilities": [
+          "Map anomaly types to Kalshi categories: FIRMS thermal -> military action, conflict escalation; OpenSky aircraft -> military mobilization, evacuation; USGS seismic -> nuclear test, industrial catastrophe; Currency crashes -> sanctions, economic crisis; VIX + gold -> broad risk confirmation",
+          "Identify specific active markets matching each anomaly type with sufficient liquidity (>$5K open interest)",
+          "Verify contract resolution criteria match anomaly signal (Kalshi contracts may resolve on different criteria than expected)",
+          "Generate cross-category causal chain targets for logic arbitrage",
+          "Account for Kalshi's fee structure (1-7 cent settlement fees) in target market selection"
+        ],
+        "inputs": ["Anomaly records with type and region", "Active Kalshi market listings"],
+        "outputs": ["Ranked list of target Kalshi markets per anomaly", "Causal chain descriptions", "Liquidity assessments"]
+      },
+      {
+        "name": "ClaudeDecisionEngine",
+        "description": "Central trade decision brain receiving all signals and outputting structured JSON trade decisions. Replaces thousands of lines of rule-based correlation logic with natural language reasoning about causal relationships between heterogeneous signals. Approximately 70% directional accuracy on geopolitical signals -- sufficient for profitability with Kelly sizing. Critical for logic arbitrage: Claude reasons about causal chains (event A -> event B) that rule-based systems cannot express. Integration is 20-50 lines replacing 4,000+ lines of rule-based trading logic. Cost: ~$0.015/query via API.",
+        "responsibilities": [
+          "Ingest anomaly data, tension scores, orderbook signals, logic arbitrage opportunities, and active Kalshi market data",
+          "Cross-reference signals across modalities: FIRMS thermal spike + RUB crash + VIX spike + OpenSky military traffic = high-confidence geopolitical trade",
+          "Reason about causal chains: anomaly -> political event -> economic impact -> specific Kalshi contract",
+          "Estimate true probabilities for Kalshi contract outcomes",
+          "Calculate edge vs current Kalshi market price (minimum 5% edge to trade)",
+          "Output structured JSON: action, ticker, probability estimate, edge, confidence, reasoning, recommended Kelly fraction, causal chain",
+          "Map geopolitical signals to specific Kalshi categories and identify contracts with sufficient liquidity"
+        ],
+        "inputs": ["Anomaly data", "Tension score", "Financial indicators", "Orderbook signals", "Logic arbitrage opportunities", "Active Kalshi markets with prices", "Portfolio state"],
+        "outputs": ["Structured trade decision JSON with action, ticker, probability, edge, confidence, reasoning, Kelly fraction, causal chain"]
+      },
+      {
+        "name": "PositionSizingEngine",
+        "description": "Dynamic Kelly Criterion position sizing scaled by anomaly severity and confirmation count. Always uses quarter-Kelly (25% of full Kelly) as ceiling -- historical evidence shows full Kelly is emotionally destructive. Backtest results: 11x FIRMS anomaly + 6 confirming sources -> Kelly 50% of quarter allocation; random 3x blip + 1 source -> Kelly 3%. False alarm cost $41 (small position on weak signal); real signal made $470 (scaled position on strong signal). Asymmetry comes from position size modulation, not prediction accuracy.",
+        "responsibilities": [
+          "Calculate base Kelly fraction: f* = (p * b - q) / b where b = (1 - P_market) / P_market",
+          "Apply quarter-Kelly ceiling (25% of full Kelly)",
+          "Scale by anomaly magnitude (min(magnitude/10, 1.0)) and confirmation count ratio",
+          "Enforce risk limits: max 15% single position, 50% portfolio exposure, 2% of market volume",
+          "Apply Kalshi per-market position limits as hard ceiling",
+          "Filter out trades with EV < 5%",
+          "Account for Kalshi settlement fees (1-7 cents per contract) in EV calculations",
+          "Account for Kalshi contract-specific liquidity depth in position sizing"
+        ],
+        "inputs": ["Claude decision output", "Portfolio state (bankroll, open positions)", "Kalshi market liquidity data"],
+        "outputs": ["Position size in USD", "Contract count", "Scaled Kelly fraction"]
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles trade execution on Kalshi via REST API with RSA-PSS per-request signing authentication. Supports dry-run mode (demo-api.kalshi.co) and live mode (api.elections.kalshi.com). Implements limit orders with slippage protection, automatic exit rules. Stateless auth: each request signed with private key, no login endpoint, no tokens, no refresh.",
+        "responsibilities": [
+          "Authenticate via RSA-PSS per-request signing (KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE headers)",
+          "Place limit orders with 2% slippage tolerance",
+          "Monitor exit rules every 15-minute cycle: take-profit (+50%), stop-loss (-30%), time-stop (14 days)",
+          "Support batch operations (up to 20 orders per batch request)",
+          "Support order amendment (price/count changes without cancel+recreate)",
+          "Maintain dry-run and live mode separation",
+          "Connect to WebSocket for real-time fill and orderbook streaming"
+        ],
+        "inputs": ["Position sizing output", "Kalshi market tickers"],
+        "outputs": ["Order confirmations", "Fill records", "Exit events"]
+      },
+      {
+        "name": "EdgeDecayMonitor",
+        "description": "Tracks the exploitation lifecycle of each signal type to manage strategy durability. Edge decay is quantitatively measurable: BTC latency arbitrage compressed from 9.4 to 3.1 seconds (67% reduction), weather lag strategies show 83% win rate at 6-10 minutes that will inevitably compress, 73% of latency arb profits now go to sub-100ms bots. Every signal has a finite exploitable lifetime. FIRMS satellite data edge is early in lifecycle but source material itself accelerates discovery. Kalshi edges may be more durable than larger platforms due to smaller US-only participant base, but this is unvalidated.",
+        "responsibilities": [
+          "Track signal-to-fill timing for each anomaly type over time",
+          "Detect compression in lead time (time between signal generation and market repricing)",
+          "Monitor false positive rate trends per signal type",
+          "Alert when edge appears to be compressing (lead time reduction >30% over 30-day window)",
+          "Recommend strategy rotation when edge approaches death phase",
+          "Compare edge durability between Kalshi and other platforms if data available",
+          "Track number of competing participants using similar signals (monitoring social media mentions, academic publications)"
+        ],
+        "inputs": ["Historical signal timestamps", "Market repricing timestamps", "Trade outcome records"],
+        "outputs": ["Edge health reports per signal type", "Compression rate estimates", "Strategy rotation recommendations"]
+      },
+      {
+        "name": "DataRecorder",
+        "description": "Records complete market microstructure data for valid backtesting. Critical design lesson: data completeness > strategy quality. Must record full order book depth, real spreads, actual fill behavior. Minimum 1000 windows per strategy for statistical confidence. Perfect execution assumption is fatal.",
+        "responsibilities": [
+          "Record Kalshi orderbook snapshots at all price levels via REST and WebSocket",
+          "Record all trade fills with price, size, timestamp",
+          "Record all 10 alternative data source readings with timestamps",
+          "Record signal generation events with full context",
+          "Record execution records (order placed, fill price, slippage, partial fills)",
+          "Record Kalshi account balance and position snapshots",
+          "Maintain state recovery via last_run_state.json for crash resilience"
+        ],
+        "inputs": ["All system data streams"],
+        "outputs": ["Local JSON/Parquet files organized by date and market", "State recovery file"]
+      },
+      {
+        "name": "AlertSystem",
+        "description": "Real-time Telegram notification system covering anomaly detections, trade signals, executed trades, exit events, orderbook signals, edge decay warnings, and system health.",
+        "responsibilities": [
+          "Send ANOMALY_DETECTED alerts: region, magnitude, FRP, confirming sources, tension score",
+          "Send TRADE_SIGNAL alerts: Kalshi ticker, price, edge, size, Claude reasoning, causal chain",
+          "Send TRADE_EXECUTED alerts: ticker, direction, contract count, fill price, slippage, USD cost",
+          "Send EXIT_TRIGGERED alerts: ticker, reason (TP/SL/time/settlement), PnL, hold duration",
+          "Send ORDERBOOK_SIGNAL alerts: volume anomaly or price momentum details",
+          "Send EDGE_DECAY_WARNING alerts: signal type, compression rate, recommended action",
+          "Send SYSTEM_HEALTH alerts: API failures, data gaps, pipeline latency, RSA key access errors",
+          "Rate limit: max 1 alert per type per 5 minutes"
+        ],
+        "inputs": ["Events from all system components"],
+        "outputs": ["Telegram messages via python-telegram-bot"]
+      },
+      {
+        "name": "MonitoredRegions",
+        "description": "Configurable list of geopolitical regions monitored by the anomaly detection engine. Each region defined by a bounding box (lat/lon) and associated Kalshi market categories. Default regions: Israel/Gaza, Ukraine/Kursk, Syria, Iran, Korean Peninsula, Taiwan Strait. All validated against the 270-day backtest (Gaza detected Oct 7 at 11.1x, Kursk detected 4 days early with 0-to-16 fire spike, Syria showed 3 weeks of escalating signal).",
+        "responsibilities": [
+          "Define bounding boxes for all monitored geopolitical regions",
+          "Map each region to relevant Kalshi contract categories and example markets",
+          "Support dynamic region addition when new geopolitical hotspots emerge",
+          "Contextualize signal origin (e.g., Iran bbox western boundary captures Baghdad -- Claude must distinguish Iraqi vs Iranian activity)"
+        ],
+        "inputs": ["Configuration file with region definitions"],
+        "outputs": ["Region bounding boxes for FIRMS/OpenSky queries", "Region-to-Kalshi-category mappings"]
+      }
+    ],
+    "data_flow": "15-minute cycle: (1) DataIngestionLayer polls all 10 sources across all monitored regions in ~40 seconds via async parallel requests -> (2) AnomalyDetectionEngine computes 14-day rolling baselines, flags anomalies at 3x threshold, applies continuation bias filter, grades FRP severity -> (3) ConfirmationScorer computes composite tension score (0-100), filters for minimum 2 confirming sources -> (4) KalshiOrderFlowAnalyzer provides orderbook signals: volume anomalies, price momentum, spread compression from Kalshi market data -> (5) KalshiEventCategoryMapper identifies which Kalshi contract categories and specific active markets match the detected anomaly type -> (6) LogicArbitrageEngine identifies causal chain opportunities: upstream trigger events with underpriced downstream consequence contracts -> (7) ClaudeDecisionEngine receives anomalies + scores + orderbook signals + category mapping + logic arbitrage opportunities + active markets, outputs structured trade decision JSON with causal chain reasoning -> (8) PositionSizingEngine calculates dynamic quarter-Kelly position scaled by anomaly magnitude and confirmation count, capped by Kalshi position limits and liquidity -> (9) ExecutionEngine places limit order on Kalshi via REST API (or logs dry-run on demo API) -> (10) AlertSystem sends Telegram notification with full context -> (11) DataRecorder logs all inputs, decisions, and executions -> (12) EdgeDecayMonitor tracks signal-to-fill timing and compression trends. Exit monitoring runs every cycle checking open positions against TP/SL/time-stop rules.",
+    "integration_points": [
+      "NASA FIRMS API (REST, MAP_KEY auth, free, NRT ~3hr delay / URT ~60s): primary satellite thermal anomaly data at firms.modaps.eosdis.nasa.gov",
+      "OpenSky Network API (REST, registered account required for 4,000 credits/day, free, real-time): aircraft tracking for military transport patterns",
+      "USGS Earthquake API (REST/GeoJSON, no auth, free, minutes latency): seismic event detection for nuclear tests and explosions",
+      "ExchangeRate API (REST, free API key, free, daily refresh): currency stress indicators (RUB, IRR, TRY, CNY vs USD)",
+      "Yahoo Finance / Alpha Vantage (Python library/REST, no auth, free, 15-min delayed): VIX data during US market hours only",
+      "Gold API (REST, no auth, free, real-time): gold spot price as risk sentiment indicator",
+      "CoinGecko API (REST, free Demo key recommended for 30 calls/min, free, real-time): BTC/ETH as risk proxy",
+      "Alternative.me Fear & Greed API (REST, no auth, free, daily update): crypto sentiment indicator",
+      "Kalshi REST API (REST, RSA-PSS per-request signing, free API access with 1-7 cent settlement fees, real-time): order execution, market data, historical data, portfolio management at api.elections.kalshi.com/trade-api/v2",
+      "Kalshi WebSocket (WSS, RSA-PSS auth, free, real-time streaming): orderbook deltas, fills, tickers at wss://api.elections.kalshi.com/trade-api/ws/v2",
+      "Claude API / Anthropic (REST, API key, ~$0.015-0.10/call, 2-10s latency): trade decision engine and causal chain reasoning",
+      "Telegram Bot API (REST, bot token, free, real-time): alert delivery via python-telegram-bot"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Core Data Pipeline & Anomaly Detection",
+        "tasks": [
+          "Build all 10 data source collectors with async parallel polling, error handling, rate limiting, and local storage",
+          "Implement FIRMS anomaly detection algorithm: 14-day rolling baseline, 3x threshold, continuation bias filter",
+          "Implement FRP severity grading (MW) to distinguish brushfire vs bombardment vs industrial explosion",
+          "Establish Kalshi API connectivity with RSA-PSS per-request signing authentication",
+          "Set up DataRecorder to log all raw data from day 1 (critical: data accumulation must start immediately)",
+          "Validate anomaly detection against known historical events: Oct 7 (11.1x anomaly, 69 fires vs 6.4 baseline), Kursk (0 to 16 fires, 4 days early), Assad (3 weeks escalation)"
+        ],
+        "deliverables": [
+          "FIRMSCollector with NASA MAP_KEY authentication and region-based queries",
+          "OpenSkyCollector with bounding box aircraft queries (registered account, 4,000 credits/day)",
+          "USGSCollector with GeoJSON parsing and natural/non-natural seismic classification",
+          "FinancialIndicatorCollector aggregating 6 financial sources (ExchangeRate, yfinance, Gold, CoinGecko, Alternative.me, OpenMeteo)",
+          "KalshiMarketCollector with RSA-PSS request signing, event/market listing, and orderbook snapshot capture",
+          "Kalshi WebSocket connection for real-time orderbook and fill streaming",
+          "AnomalyDetectionEngine with configurable baseline window, threshold, continuation filter, and FRP grading",
+          "DataRecorder saving all raw data to local Parquet/JSON from day 1",
+          "Historical validation script reproducing 270-day backtest detections with <2 hour timing variance"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Confirmation Scoring, Logic Arbitrage & Claude Decision Engine",
+        "tasks": [
+          "Implement multi-source ConfirmationScorer with weighted scoring model (FIRMS 30, OpenSky 15, USGS 15, currency 10, VIX 10, gold 5, fear/greed 5, crypto 5, weather 5)",
+          "Build KalshiEventCategoryMapper linking anomaly types to Kalshi contract categories with resolution criteria verification",
+          "Build LogicArbitrageEngine with causal event graph and repricing delay estimation",
+          "Build ClaudeDecisionEngine with structured prompt template, causal chain reasoning, and JSON output parsing",
+          "Integrate PositionSizingEngine: dynamic quarter-Kelly with anomaly scaling, Kalshi position limits, fee-adjusted EV",
+          "Test end-to-end signal-to-decision pipeline on historical data"
+        ],
+        "deliverables": [
+          "ConfirmationScorer with configurable source weights and minimum 2-source confirmation threshold",
+          "KalshiEventCategoryMapper linking anomaly types to Kalshi categories with verified resolution criteria",
+          "LogicArbitrageEngine with initial causal event graph for 6 monitored regions",
+          "ClaudeDecisionEngine with prompt template, causal chain output, and JSON parsing",
+          "PositionSizingEngine with EV filter (5% min), quarter-Kelly, anomaly scaling, liquidity cap, and Kalshi fee adjustment",
+          "End-to-end pipeline test: raw data -> anomaly -> score -> category mapping -> logic arbitrage -> Claude decision -> position size",
+          "Dry-run mode producing detailed trade logs using Kalshi demo API (demo-api.kalshi.co)"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Kalshi Orderbook Intelligence & Edge Decay Monitoring",
+        "tasks": [
+          "Build orderbook analysis system replacing on-chain wallet intelligence",
+          "Implement volume anomaly detection, price history analysis, and cross-market correlation detection on Kalshi data",
+          "Build EdgeDecayMonitor tracking signal-to-fill timing and compression trends",
+          "Integrate orderbook signals and edge decay data into ClaudeDecisionEngine",
+          "Accumulate 14+ days of orderbook baseline data (started in Phase 1 via DataRecorder)"
+        ],
+        "deliverables": [
+          "OrderbookSnapshotRecorder with REST polling and WebSocket streaming",
+          "VolumeAnomalyDetector with 14-day baseline and 3x threshold per Kalshi market",
+          "PriceHistoryAnalyzer tracking price momentum, divergences, and mean reversion",
+          "Cross-market correlation detector linking related Kalshi contract movements",
+          "EdgeDecayMonitor with signal lifecycle tracking and compression rate alerts",
+          "Integration of orderbook signals and edge health into ClaudeDecisionEngine prompt"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Execution, Alerts & Live Deployment",
+        "tasks": [
+          "Build ExecutionEngine with Kalshi REST API order placement, RSA-PSS signing, batch operations, and order amendment",
+          "Implement exit rule monitoring: take-profit (+50%), stop-loss (-30%), time-stop (14 days)",
+          "Deploy AlertSystem via Telegram with all 7 alert types including edge decay warnings",
+          "Configure Windows Task Scheduler for 15-minute pipeline cycle",
+          "Run 2-week dry-run validation on Kalshi demo API before any live capital deployment",
+          "Security hardening: strong password, 2FA, .env protection, PEM key file permissions"
+        ],
+        "deliverables": [
+          "ExecutionEngine with Kalshi REST API integration: limit orders, RSA-PSS auth, batch/amend operations, dry-run and live modes",
+          "Exit rule monitor running every 15-minute cycle",
+          "Telegram AlertSystem with 7 alert types (anomaly, trade signal, executed, exit, orderbook, edge decay, system health) and rate limiting",
+          "Windows Task Scheduler configuration for 15-minute cycle",
+          "Security setup: strong Kalshi account password, 2FA, .env in .gitignore, PEM key restricted permissions",
+          "2-week dry-run validation report on Kalshi demo API",
+          "Performance dashboard: signals, decisions, simulated PnL, edge decay trends"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Backtesting, Cross-Validation & Optimization",
+        "tasks": [
+          "Build statistically valid backtesting framework with realistic fill simulation (no perfect execution assumption)",
+          "Calibrate slippage model from recorded orderbook depth data",
+          "Run minimum 1000-window backtests per strategy variant",
+          "Cross-validate satellite anomaly approach with orderbook behavioral analysis: test whether FIRMS-detected events also show unusual Kalshi order activity",
+          "Measure data latency vs market speed: empirically determine window between FIRMS availability and full Kalshi market repricing",
+          "Build systematic catalog of proven causal chains with historical repricing timing data",
+          "Calibrate tension score (0-100) against historical Kalshi contract resolutions for systematic entry/exit thresholds",
+          "Optimize anomaly thresholds, confirmation weights, and Kelly fractions using walk-forward validation",
+          "Analyze Kalshi fee impact on strategy profitability across contract types"
+        ],
+        "deliverables": [
+          "Backtesting engine with realistic fill simulation calibrated from recorded orderbook data",
+          "Slippage model per Kalshi contract type based on observed orderbook depth",
+          "Cross-validation report: satellite anomaly signals vs Kalshi orderbook activity (redundant vs complementary)",
+          "Empirical measurement of FIRMS-to-Kalshi repricing window per event type",
+          "Systematic causal chain catalog with historical repricing timing data for logic arbitrage",
+          "Calibrated tension score thresholds mapped to Kalshi contract resolutions",
+          "Parameter optimization via walk-forward validation (not static backtest): thresholds per region, confirmation weights, Kelly fractions",
+          "Performance report: Sharpe ratio, max drawdown, win rate by signal type, comparison of anomaly-only vs full-pipeline",
+          "Kalshi fee impact analysis per contract category"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+ (primary implementation language)",
+      "NASA FIRMS API (primary satellite thermal anomaly data)",
+      "OpenSky Network API (live aircraft tracking)",
+      "USGS Earthquake API (seismic event detection)",
+      "ExchangeRate API (currency stress indicators)",
+      "yfinance / Alpha Vantage (VIX and financial data; yfinance as fallback only due to unofficial scraper status)",
+      "CoinGecko API (crypto price data, free Demo tier)",
+      "Alternative.me API (crypto fear & greed index)",
+      "Gold API (gold spot price)",
+      "Claude API / Anthropic (trade decision engine, causal chain reasoning, market category mapping; claude-sonnet-4-5 or later)",
+      "Kalshi REST API / kalshi_python_sync or kalshi_python_async SDK (order execution, market data, historical data, portfolio management; RSA-PSS per-request signing via cryptography package)",
+      "Kalshi WebSocket (real-time orderbook deltas, fill streaming, price updates)",
+      "python-telegram-bot (Telegram alert delivery)",
+      "pandas + pyarrow / Parquet (efficient time-series data storage and analysis)",
+      "Windows Task Scheduler / cron (15-minute pipeline execution cycle)",
+      "python-dotenv (.env file management for API keys and credentials)",
+      "cryptography (RSA-PSS signature generation for Kalshi API authentication)",
+      "httpx / aiohttp (async HTTP client for parallel API polling)",
+      "websockets / aiohttp (Kalshi WebSocket connection for real-time streaming)"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "Small sample size for geopolitical events: 7 major events over 16 months, 22 signals in 270-day backtest, only 16 trades generating the $500-to-$7,778 result. High variance is inherent.",
+      "severity": "high",
+      "mitigation": "Treat system as proof-of-concept with real data until 50+ live signals accumulate. Run extended dry-run periods. Supplement with non-geopolitical anomaly markets (economic indicators, climate events) to increase signal count. Kalshi's broader contract categories (economics, climate) provide more trading opportunities beyond pure geopolitical events."
+    },
+    {
+      "description": "Data latency vs market speed mismatch: FIRMS NRT has ~3 hour delay, and no empirical data exists on how quickly Kalshi geopolitical contracts reprice after news breaks. If Kalshi markets fully reprice within 1-2 hours, FIRMS NRT signal arrives too late.",
+      "severity": "high",
+      "mitigation": "Evaluate FIRMS URT (Ultra Real-Time, ~60 second delay) for time-critical regions. Cross-reference with real-time sources (OpenSky, financial indicators) that update faster. Empirically measure FIRMS-to-Kalshi repricing window in Phase 5. Target contracts with multi-day resolution windows where 3-6 hour delays are acceptable. Accept that some events will be missed."
+    },
+    {
+      "description": "Edge decay and signal compression: FIRMS satellite edge is early in exploitation lifecycle but source material accelerates discovery. Every signal has finite exploitable lifetime (BTC arb compressed 9.4s to 3.1s, 67% reduction).",
+      "severity": "high",
+      "mitigation": "EdgeDecayMonitor tracks signal-to-fill timing compression. Kalshi's smaller US-only participant base may slow compression vs larger platforms. Counter-strategy: continuously discover new data sources and causal chains rather than defending a single edge. Monitor social media and academic publications for competing usage of FIRMS data."
+    },
+    {
+      "description": "Kalshi geopolitical/political market liquidity may be thin: Kalshi has lower liquidity than larger prediction market platforms, and $2K orders may move price 3-5% on thinly traded contracts.",
+      "severity": "medium",
+      "mitigation": "Hard cap position size at 2% of market volume. Respect Kalshi per-market position limits. Use limit orders with tight slippage tolerance. Prefer markets with meaningful open interest (>$5K). Consider economics contracts (CPI, Fed rate) as higher-liquidity alternatives still influenced by geopolitical events."
+    },
+    {
+      "description": "Regulatory sensitivity of geopolitical trading on Kalshi: CFTC regulation adds legitimacy but also scrutiny. CNN-style investigations of informed geopolitical trading could affect Kalshi participants. The legal boundary between 'alternative data analysis' and 'material non-public information' in the context of government satellite feeds is untested.",
+      "severity": "medium",
+      "mitigation": "All data sources are free, publicly available, and legal. NASA FIRMS is a public government feed -- using it is alternative data analysis, not insider trading. Maintain full audit trail of signal generation and decision process. Stay clearly on the public data side. Monitor CFTC regulatory filings and Kalshi announcements."
+    },
+    {
+      "description": "Kalshi category mapping gaps: which specific Kalshi event categories and contract types map best to satellite thermal anomaly signals has not been empirically validated. FIRMS detects conflict and catastrophe, but Kalshi's exact contract taxonomy, resolution criteria, and historical liquidity per category are uncharacterized.",
+      "severity": "medium",
+      "mitigation": "Phase 2 builds the KalshiEventCategoryMapper with explicit anomaly-to-category mapping rules. Phase 5 validates mappings against historical contract resolutions. Start with obvious mappings (FIRMS + Middle East -> military action contracts) and expand based on empirical results."
+    },
+    {
+      "description": "False positive anomaly signals: wildfires, agricultural burns, industrial activity, and seasonal patterns generate FIRMS detections that are not geopolitical events.",
+      "severity": "medium",
+      "mitigation": "Multi-source confirmation requirement (minimum 2 sources). Claude cross-references anomaly context with known seasonal patterns. Continuation bias filter suppresses signals in elevated regions. FRP severity grading helps distinguish military bombardment from brush fires. Conservative 3x threshold adjustable per region."
+    },
+    {
+      "description": "Claude directional accuracy degradation or API changes affecting the ~70% accuracy baseline.",
+      "severity": "medium",
+      "mitigation": "Quarter-Kelly sizing absorbs 30% wrong calls. Log all Claude decisions and outcomes. Monitor rolling accuracy. Pause live trading if accuracy drops below 55%. Keep prompt template versioned. The $41 loss on false alarms vs $470 gain on true signals shows the system is profitable even with significant error rate."
+    },
+    {
+      "description": "Reduced signal transparency vs on-chain platforms: Kalshi does not expose individual trader positions or wallet data, weakening the behavioral analysis intelligence layer.",
+      "severity": "medium",
+      "mitigation": "Accept KalshiOrderFlowAnalyzer provides weaker signals than on-chain wallet analysis. Compensate by: (1) increasing weight on satellite/alternative data which remains equally strong, (2) leveraging Kalshi's stronger geopolitical contract coverage for more direct market targets, (3) using orderbook microstructure as probabilistic not deterministic signals. The logic arbitrage and causal chain approaches are new edges that did not exist on prior platforms."
+    },
+    {
+      "description": "Cross-validation gap: no analysis exists of whether FIRMS-detected events also show unusual Kalshi order activity. Satellite signals and orderbook signals may be redundant rather than complementary.",
+      "severity": "medium",
+      "mitigation": "Phase 5 includes explicit cross-validation between satellite anomaly approach and orderbook behavioral analysis. Determine empirically whether signals are redundant or complementary. Adjust confirmation weights based on findings."
+    },
+    {
+      "description": "Overfitting anomaly thresholds and confirmation weights to the limited historical event set (Gaza, Kursk, Syria).",
+      "severity": "high",
+      "mitigation": "Use walk-forward validation, not static backtest optimization. Keep parameter count minimal (3x threshold is one number, not a curve-fitted model). Track performance on events not in training set. The deliberate simplicity of the anomaly detection framework (14-day rolling average, 3x threshold) is a feature that resists overfitting."
+    },
+    {
+      "description": "Kalshi API changes, rate limit adjustments, or fee structure changes affecting system operation.",
+      "severity": "medium",
+      "mitigation": "Pin API version (v2). Monitor Kalshi API changelog. Implement graceful degradation for API failures. Maintain abstraction layer between trading logic and API client. Account for settlement fees (1-7 cents) in EV calculations with buffer."
+    },
+    {
+      "description": "Logic arbitrage causal chain framework lacks systematic catalog: currently relies on ad-hoc reasoning rather than a validated database of proven political/geopolitical causal chains with historical repricing timing.",
+      "severity": "medium",
+      "mitigation": "Phase 5 builds the systematic catalog. Claude's causal reasoning capability partially compensates in the interim. Start with well-known chains (conflict -> oil -> CPI -> Fed rate) and expand as empirical data accumulates. Track repricing delays per chain type."
+    }
+  ],
+  "success_criteria": [
+    "Generates trade signal within 24 hours of market price moving >5 cents on a Kalshi geopolitical/political contract, on 80%+ of such movements exceeding 10 cents",
+    "Reproduces backtested results: detects Oct 7 (11.1x anomaly), Kursk (4 days early), Assad (3 weeks early) with <2 hour timing variance from original analysis and maps each to corresponding Kalshi contract price movements",
+    "False positive rate below 40% for multi-source confirmed signals (confirmation_count >= 3)",
+    "Live trading achieves positive expected value over a rolling 30-trade window with at least 60% directional accuracy on anomaly-triggered trades, benchmarked against the backtest $500-to-$7,778 trajectory",
+    "Position sizing prevents any single trade loss from exceeding 5% of total bankroll through quarter-Kelly, liquidity caps, and Kalshi position limits. False alarms cost ~$41 (weak signal, small position); true signals return ~$470 (strong signal, scaled position)",
+    "Full pipeline executes in under 90-120 seconds per 15-minute cycle (40-second data ingestion + anomaly detection + Claude decision at 2-10s + order placement)",
+    "Data recorder achieves 99%+ uptime capturing complete orderbook and trade data for all monitored Kalshi markets",
+    "KalshiEventCategoryMapper successfully links 90%+ of detected geopolitical anomalies to at least one active Kalshi market with >$5K open interest",
+    "Logic arbitrage engine identifies at least 3 causal chain opportunities per month across Kalshi contract categories with measurable repricing delays",
+    "EdgeDecayMonitor tracks signal compression and provides 30-day advance warning before an edge becomes unprofitable",
+    "Cross-validation in Phase 5 empirically determines whether satellite and orderbook signals are redundant or complementary, with documented findings",
+    "Data latency measurement in Phase 5 empirically characterizes the FIRMS-to-Kalshi repricing window for at least 5 event types",
+    "Telegram alerts deliver within 10 seconds of signal generation with complete decision context including causal chain",
+    "System runs 30+ consecutive days in dry-run mode (Kalshi demo API) without data gaps, crashes, or missed cycles before live capital deployment",
+    "Systematic causal chain catalog contains at least 20 validated political/geopolitical chains with historical repricing timing data by end of Phase 5"
+  ],
+  "notes": "v3.0 integrates insights from the knowledge overview (overview_id: 5ea2845d) synthesizing 4 additional research items covering NASA FIRMS thermal anomaly detection, Soros-archetype information edges, logic arbitrage via causal chains, wallet behavioral analysis, and edge decay quantification. Key changes from v2.1: (1) New LogicArbitrageEngine component exploiting causal event chain repricing delays across Kalshi's structured contract categories -- minutes-to-hours speed advantage accessible without HFT infrastructure. (2) New EdgeDecayMonitor component tracking signal lifecycle and compression, informed by quantified BTC lag decay (9.4s to 3.1s) and weather lag patterns (83% win rate, 6-10 minute leads). (3) Grounded backtest numbers throughout: $500 to $7,778 on 16 trades (11W/5L), 270-day period, Oct 7 detected as 11.1x anomaly (69 fires vs 6.4 baseline, 34 MW max FRP), Kursk 4 days early (0 to 16 fires), Assad 3 weeks early. (4) Soros-archetype context: Magamyman wallet pattern ($800K deployed, 93% win rate on military strikes, CNN/Columbia Law School investigated) demonstrates the magnitude of geopolitical information edges -- the alternative data stack provides a legal, publicly available approximation. (5) Knowledge gaps explicitly addressed as risks and Phase 5 deliverables: Kalshi category mapping validation, data latency vs market speed empirical measurement, cross-validation between satellite and orderbook approaches, systematic causal chain catalog construction. (6) All prior platform references replaced with Kalshi equivalents. Kalshi is a CFTC-regulated US exchange with USD cash settlement, RSA-PSS API authentication, and structured event categories that provide more direct correlation with geopolitical signals than prior platforms. (7) Regulatory considerations expanded: CFTC oversight, legal boundary between alternative data analysis and material non-public information, precedent from CNN investigations of geopolitical prediction market trading. (8) 4-6 hour FIRMS delay constraint explicitly positioned as swing trading not HFT throughout, targeting multi-day resolution contracts. (9) $0/month total data cost (9 of 10 sources keyless) positioned against $24K/year Bloomberg Terminal. The fundamental insight remains unchanged: the edge is not in strategy sophistication but in data sources nobody else is monitoring (satellite thermal anomalies) combined with mathematical discipline (dynamic quarter-Kelly) and automation (Claude decision engine with causal chain reasoning)."
+}

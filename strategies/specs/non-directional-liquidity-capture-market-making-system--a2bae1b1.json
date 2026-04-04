@@ -1,0 +1,563 @@
+{
+  "spec_id": "a2bae1b1-1b71-42aa-bcff-452155199b83",
+  "title": "Non-Directional Liquidity Capture & Market Making System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "3.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039777322077933879",
+      "title": "Stoikov pricing bot +654% ROI",
+      "relevance": "HF market-making with Stoikov pricing + Bayesian probability, $157K to $1.03M, Kelly criterion sizing. Core formula r = s - q*gamma*sigma^2*(T-t) and optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1 + gamma/kappa)"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039134585737400689",
+      "title": "Three competing liquidity capture bots",
+      "relevance": "3 competing bots: Ladder Larry (flat HF laddering, +$12,450), Curve Alchemist (non-linear curves, +$18,920, 52% outperformance), Merge Phantom (capital recycling, +$9,830). Non-linear distribution identified as single most important differentiator"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038654832819535895",
+      "title": "1000+ bots experience report",
+      "relevance": "1,000+ bot experience: liquidity capture beats prediction consistently. Bid laddering mechanics, inventory management, spread capture. Most failures from directional prediction attempts"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038903376453259756",
+      "title": "6 non-predictive structural edges",
+      "relevance": "Six non-predictive structural edge categories: base rate neglect, cross-market inconsistency, mechanical price moves, cross-platform comparison, certainty overpaying, time decay mispricing. Claude as non-emotional structural scanner"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039798489522053626",
+      "title": "Multi-strategy bot Sharpe 2.59",
+      "relevance": "Multi-strategy bot with spread farming module: 73% win rate, 1,672 trades, Sharpe 2.59, progressive context loading architecture"
+    },
+    {
+      "collection": "knowledge-overviews",
+      "item_id": "de188a4e",
+      "title": "Non-Directional Liquidity Capture & Market Making Overview",
+      "relevance": "Synthesized knowledge overview identifying critical Kalshi adaptation unknowns (FIFO vs pro-rata matching, fee structure, position merging equivalent), six structural edges, and non-linear curve as primary differentiator"
+    }
+  ],
+  "overview": {
+    "description": "A fully non-directional market-making system for Kalshi binary event contracts (crypto price threshold contracts such as BTC/ETH above/below strike prices) that profits exclusively from liquidity provision, spread capture, and structural order-book mechanics. The system places simultaneous bid ladders on both YES and NO sides of a contract, captures the bid-ask spread on every matched trade, manages inventory through offsetting position settlement (capital recycling), and uses Stoikov-Avellaneda optimal quoting with Bayesian probability updates and Kelly criterion position sizing. The system never takes a directional bet — all profit derives from being the liquidity layer that other participants trade against.\n\nNon-linear order curve distribution concentrates volume at high-fill-probability price levels, identified as the single most important differentiator among market-making bots (Curve Alchemist +$18,920 outperformed flat Ladder Larry +$12,450 by 52% and Merge Phantom +$9,830 by 92% in a 24-hour head-to-head under identical conditions).\n\nKalshi is a CFTC-regulated prediction market exchange legal for US residents, operating a central limit order book (CLOB) with YES/NO contracts priced 1-99 cents, cash-settled in USD. All Kalshi prices are in cents (not dollars). Kalshi's fee model charges on settlement (typically 1-7 cents per contract) rather than per-trade, which fundamentally changes spread calculation — the system must account for expected settlement cost amortized across the fill-to-settlement lifecycle. Kalshi's orderbook tends to be thinner than larger unregulated venues, which is advantageous for market making: wider natural spreads create more profit per fill.\n\nSix non-predictive structural edges complement the core spread capture: base rate neglect, cross-market inconsistency, mechanical price moves in thin liquidity, cross-platform comparison, certainty overpaying, and time decay mispricing. These inform adaptive spread width and position sizing without requiring outcome prediction.\n\nCritical Kalshi platform unknowns that must be resolved in Phase 0 before full implementation: (1) FIFO vs pro-rata matching engine — determines whether speed-based queue priority or capital-based sizing is the dominant competitive axis; (2) maker vs taker fee structure — whether maker rebates exist that subsidize liquidity provision; (3) position merging equivalent — whether YES+NO positions can be combined for early settlement or must be held to expiry; (4) API rate limits and WebSocket capabilities for HF order management.",
+    "objectives": [
+      "Capture bid-ask spread on both YES and NO contracts simultaneously without directional exposure",
+      "Implement Stoikov-Avellaneda reservation price model: r = s - q*gamma*sigma^2*(T-t) for inventory-aware quote centering, with optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1 + gamma/kappa) where kappa is estimated market order arrival rate",
+      "Use Bayesian probability updates P(H|D) = P(D|H)*P(H)/P(D) anchored to external CEX reference prices to maintain internal fair-value estimate before market reprices",
+      "Deploy non-linear order curve distribution (power-law or adaptive curve) that allocates more volume to high-fill-probability price levels near current mid — the primary differentiator identified across all source material",
+      "Implement capital recycling engine that tracks opposing YES+NO holdings and determines optimal exit strategy (hold-to-settle vs early-exit via opposing limit orders), accounting for Kalshi's settlement fee structure",
+      "Integrate six non-predictive structural edges (base rate neglect, cross-market inconsistency, mechanical price moves, cross-platform comparison, certainty overpaying, time decay mispricing) as a meta-layer informing spread width and position sizing",
+      "Maintain market-neutral inventory at all times with hard inventory skew limits, using Stoikov reservation price adjustment to skew quotes away from accumulated exposure",
+      "Achieve consistent 2-5% monthly return on deployed capital through spread capture and structural imbalance accumulation, accounting for Kalshi's settlement fee structure (1-7 cents per contract)",
+      "Operate autonomously across multiple concurrent Kalshi crypto price threshold contract windows",
+      "Resolve critical Kalshi platform unknowns (matching engine rules, fee structure, position merging equivalent, API capabilities) in Phase 0 before committing to full implementation"
+    ],
+    "constraints": [
+      "Zero directional bets — the system must never take a net directional position intentionally. All profit derives from spread capture, structural imbalance, and capital recycling",
+      "All ladder orders must be placed as limit orders only. The spread calculation must factor in the expected settlement fee (1-7 cents per contract) — only deploy on contracts where expected captured spread exceeds expected settlement cost",
+      "Requires low-latency infrastructure: order placement must complete within 200ms for competitive queue priority (assuming FIFO matching — if Kalshi uses pro-rata, latency requirement relaxes but capital requirement increases). US-based cloud instance (AWS us-east-1) recommended",
+      "Must operate within Kalshi REST API rate limits and order submission constraints. Batch operations (up to 20 orders per call) are essential for efficient ladder management",
+      "Minimum $500 deployed capital for meaningful fill frequency; optimal at $5,000-$50,000 for full ladder deployment. Subject to Kalshi's per-market position limits (typically $25K-$100K notional per market)",
+      "Cannot backtest accurately — fills depend on real-time counterparty interaction and queue position. All validation must occur through live paper-mode on Kalshi's demo environment",
+      "Must handle sudden market reversals that load inventory heavily on the losing side — this is the primary source of realized losses for market makers",
+      "Kalshi requires full KYC (SSN, ID verification) — account must be set up and verified before development begins",
+      "Position limits vary per market on Kalshi — the system must query and respect per-market position limits dynamically",
+      "Non-linear curve optimization requires iterative live testing and cannot be solved analytically — start with power-law exponent 1.5 and calibrate from fill rate data"
+    ],
+    "assumptions": [
+      "Kalshi crypto price threshold contracts maintain sufficient liquidity for bid ladder deployment. Thinner books relative to unregulated venues are expected and beneficial — wider natural spreads improve market-making profitability",
+      "Bid-ask spreads remain wide enough (minimum 3-5 cents after accounting for expected settlement fees) to generate positive expected value",
+      "Kalshi operates a CLOB with FIFO queue priority at each price level (to be confirmed in Phase 0 — if pro-rata, the architecture shifts from speed optimization to capital optimization)",
+      "Structural imbalance effect persists: trending price naturally fills more orders on the winning side than the losing side, creating mechanical directional edge without directional intent",
+      "Kalshi continues to offer crypto price contracts (BTC/ETH above/below threshold markets) with regular expiry windows",
+      "Settlement fees remain in the 1-7 cent per contract range and do not increase to levels that eliminate spread-capture profitability",
+      "Binance/Coinbase WebSocket feeds remain available for real-time reference price tracking to anchor Bayesian probability estimates",
+      "The six non-predictive structural edges (base rate neglect, cross-market inconsistency, mechanical price moves, cross-platform comparison, certainty overpaying, time decay mispricing) remain exploitable on Kalshi due to persistent cognitive biases in crowd-sourced pricing",
+      "Order amendment (POST /portfolio/orders/{order_id}/amend) preserves FIFO queue priority when price moves favorably for counterparty, enabling efficient ladder management without losing queue position"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "StoikovPricingEngine",
+        "description": "Core quoting engine implementing the Stoikov-Avellaneda optimal market-making model. Computes reservation price and optimal spread based on inventory position, volatility, and time to contract expiry. Reservation price formula: r = s - q*gamma*sigma^2*(T-t), where r=reservation price, s=mid price, q=inventory position, gamma=risk aversion parameter, sigma=volatility estimate, T=expiry time, t=current time. Optimal spread formula: delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1 + gamma/kappa), where kappa is the market order arrival rate estimated from trailing fill frequency. The reservation price determines quote center; the optimal spread determines quote width. The spread floor must account for expected Kalshi settlement cost: effective_min_spread = max(min_spread, expected_settlement_fee * 2). The model naturally becomes more aggressive (wider quotes) when inventory is low and more defensive (tighter, skewed away from exposure) when inventory accumulates. Time-to-expiry component (T-t) causes spreads to widen as expiry approaches and inventory risk increases — critical for short-duration Kalshi contracts. All values in cents (Kalshi's native unit). Outputs bid and ask prices for both YES and NO sides.",
+        "responsibilities": [
+          "Compute reservation price r = s - q*gamma*sigma^2*(T-t) using current inventory, volatility, and time to expiry",
+          "Compute optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1 + gamma/kappa) using estimated market order arrival rate",
+          "Apply settlement-fee-aware spread floor: effective_min_spread = max(min_spread, expected_settlement_fee * 2)",
+          "Output bid and ask prices for both YES and NO sides, ensuring YES_bid + NO_bid <= 100 - min_target_spread",
+          "Accept inventory state from InventoryManager (q parameter) and probability estimate from BayesianProbabilityUpdater",
+          "Recalibrate kappa (arrival rate) every 30 seconds from rolling fill count over trailing 60s — expected to be lower on Kalshi than higher-volume venues, which correctly widens optimal spread for thinner books",
+          "Enforce gamma tuning per market: 0.1 (conservative) to 0.5 (aggressive) — controls how aggressively quotes skew away from inventory"
+        ],
+        "inputs": ["mid_price from MarketDataFeed", "inventory_position from InventoryManager", "volatility from MarketDataFeed", "time_to_expiry from ContractWindowScheduler", "probability_estimate from BayesianProbabilityUpdater", "settlement_fee_estimate per market"],
+        "outputs": ["yes_bid_price", "yes_ask_price", "no_bid_price", "no_ask_price", "reservation_price", "optimal_spread"],
+        "dependencies": ["MarketDataFeed", "InventoryManager", "BayesianProbabilityUpdater", "ContractWindowScheduler"]
+      },
+      {
+        "name": "BayesianProbabilityUpdater",
+        "description": "Maintains internal fair-value probability estimate for each contract using Bayesian updates anchored to external CEX reference prices. Ingests signals from Binance and Coinbase WebSocket feeds, order flow imbalance, and historical base rates. Updates before the market has fully repriced. Formula: P(H|D) = P(D|H) * P(H) / P(D). Prior P(H) initialized from CEX-derived probability (distance between spot and strike using short-term log-normal model). Kalshi orderbook mid-price used only as sanity check (flag if divergence > 10%) to avoid reflexive feedback loop from quoting on the same market used for the prior. Likelihood P(D|H) computed from CEX price movement magnitude and direction relative to contract strike. Posterior blended toward uniform prior via forgetting factor for rapid adaptation. Can integrate structural edge signals from StructuralEdgeDetector as additional Bayesian evidence to shift probability estimates when non-predictive mispricings are detected.",
+        "responsibilities": [
+          "Maintain per-contract probability estimate using Bayesian update P(H|D) = P(D|H)*P(H)/P(D)",
+          "Initialize prior from CEX-derived probability (spot price vs strike distance via log-normal model)",
+          "Update on every CEX price tick or every 500ms, whichever is more frequent",
+          "Apply forgetting factor: posterior_adjusted = 0.95*posterior + 0.05*0.50 (half-life ~6.6s for rapid adaptation)",
+          "Flag divergence > 10% between internal estimate and Kalshi orderbook mid-price",
+          "Accept structural edge signals from StructuralEdgeDetector as additional evidence for probability revision",
+          "Compute minimum 3 percentage-point divergence threshold before adjusting quotes"
+        ],
+        "inputs": ["cex_price_ticks from MarketDataFeed", "contract_strike_price", "kalshi_mid_price from MarketDataFeed", "structural_edge_signals from StructuralEdgeDetector"],
+        "outputs": ["probability_estimate per contract", "divergence_from_market", "confidence_level"],
+        "dependencies": ["MarketDataFeed", "StructuralEdgeDetector"]
+      },
+      {
+        "name": "BidLadderManager",
+        "description": "Places and maintains laddered limit orders across multiple price levels on both YES and NO sides simultaneously via the Kalshi REST API. Deploys orders in 1-cent increments spanning a configurable range around the current mid-price. Manages order lifecycle: placement (POST /portfolio/orders), amendment (POST /portfolio/orders/{order_id}/amend for price and/or quantity), batch creation (POST /portfolio/orders/batched for up to 20 orders), batch cancellation (DELETE /portfolio/orders/batched for up to 20 orders), quantity decrease (POST /portfolio/orders/{order_id}/decrease), and fill tracking via WebSocket or polling GET /portfolio/fills. Uses order amendment instead of cancel-and-replace to preserve FIFO queue priority (queue position maintained when amending to a better price for counterparty). Uses batch operations to deploy/refresh entire ladders in a single API call. Monitors queue position via GET /portfolio/orders/queue_positions to estimate fill probability and optimize ladder placement. Supports up to 200,000 max open orders. Ladder deployment speed is critical if Kalshi uses FIFO matching — first orders at each price level get priority fills.",
+        "responsibilities": [
+          "Deploy 10-15 level deep bid ladders on both YES and NO sides with 1-cent spacing",
+          "Use batch creation (POST /portfolio/orders/batched, up to 20 per call) for efficient ladder deployment",
+          "Use order amendment (POST /portfolio/orders/{order_id}/amend) to modify price/count in-place, preserving FIFO queue priority",
+          "Use batch cancellation (DELETE /portfolio/orders/batched, up to 20 per call) for efficient ladder refresh",
+          "Refresh ladders every 3 seconds or on significant mid-price movement (>1 cent), whichever comes first",
+          "Enforce spread feasibility constraint: YES_bid_max + NO_bid_max <= 100 - min_target_spread at all times",
+          "Monitor FIFO queue positions (GET /portfolio/orders/queue_positions) to estimate fill probability per resting order",
+          "Feed queue position data to NonLinearCurveDistributor for capital allocation optimization",
+          "Receive volume allocation per level from NonLinearCurveDistributor and size caps from KellySizer"
+        ],
+        "inputs": ["bid_ask_prices from StoikovPricingEngine", "volume_allocation from NonLinearCurveDistributor", "size_caps from KellySizer", "position_limits from InventoryManager"],
+        "outputs": ["placed_orders", "fill_events", "queue_positions", "order_lifecycle_events"],
+        "dependencies": ["StoikovPricingEngine", "NonLinearCurveDistributor", "KellySizer", "InventoryManager", "KalshiRequestSigner"]
+      },
+      {
+        "name": "NonLinearCurveDistributor",
+        "description": "Computes non-linear order size distribution across the bid ladder. Allocates more capital to price levels near the current mid (high fill probability) and exponentially less to distant levels (low fill probability, high adverse selection). This is the single most important differentiator identified across all source material: the Curve Alchemist bot outperformed flat-ladder Ladder Larry by 52% ($18,920 vs $12,450 in 24h) and Merge Phantom by 92% ($18,920 vs $9,830). The exact optimal curve shapes are proprietary and require live testing — cannot be backtested. Possible shapes include power-law, quadratic, exponential decay from mid, sigmoid, or custom piecewise functions. The curve must adapt to current volatility: flatter in low-vol (more fills needed), steeper in high-vol (protect against adverse selection). Queue position data from BidLadderManager informs capital reallocation — levels where the bot has strong queue priority deserve more capital.",
+        "responsibilities": [
+          "Compute non-linear volume allocation across 10-15 ladder levels using power-law (default exponent 1.5) or adaptive curve",
+          "Allocate 15-20% of total ladder capital at the level closest to mid, tapering to 2-3% at most distant level",
+          "Adapt curve shape to current volatility regime: flatter in low-vol, steeper in high-vol",
+          "Incorporate queue position data: increase allocation at levels where bot has strong FIFO queue priority",
+          "Redistribute when mid-price moves >2 cents or on order fill",
+          "Maintain total ladder capital deployment at 60-80% of available capital",
+          "Support iterative curve calibration via parameterized exponent tuning based on live fill rate data"
+        ],
+        "inputs": ["mid_price from MarketDataFeed", "volatility from MarketDataFeed", "queue_positions from BidLadderManager", "available_capital from InventoryManager"],
+        "outputs": ["volume_allocation_per_level (array of contract counts per price level)"],
+        "dependencies": ["MarketDataFeed", "BidLadderManager", "InventoryManager"]
+      },
+      {
+        "name": "InventoryManager",
+        "description": "Tracks net inventory position across YES and NO contracts using Kalshi's portfolio API (GET /portfolio/positions). Enforces hard limits on directional skew. When inventory exceeds thresholds, skews quotes to attract fills that reduce exposure (widening spread on overweight side, tightening on underweight side). Feeds inventory state into StoikovPricingEngine via the q parameter. Must respect Kalshi's per-market position limits — query GET /markets/{ticker} for position_limit field and enforce as ceiling on total contracts held per side. Position merging (YES+NO=$1 at settlement) is the primary inventory reduction mechanism — the SettlementRecyclingEngine handles the execution, but InventoryManager signals when inventory justifies a merge/exit.",
+        "responsibilities": [
+          "Track per-market YES and NO positions via GET /portfolio/positions",
+          "Compute normalized inventory skew: (YES_position - NO_position) / total_capital",
+          "Apply soft warning threshold (0.15): begin skewing quotes to rebalance",
+          "Apply hard halt threshold (0.40): halt new order placement on overweight side entirely",
+          "Enforce Kalshi per-market position limits: reduce order sizes at 90% of limit, halt at limit",
+          "Feed inventory state (q parameter) to StoikovPricingEngine for reservation price adjustment",
+          "Signal SettlementRecyclingEngine when opposing positions should be exited or held to settlement",
+          "Target inventory skew reduction to below 0.10 within 60 seconds of breach via quote adjustment"
+        ],
+        "inputs": ["fill_events from BidLadderManager", "kalshi_position_data from Kalshi API", "market_position_limits from Kalshi API"],
+        "outputs": ["inventory_position (q) per market", "skew_level", "skew_adjustment_signal", "position_limit_status"],
+        "dependencies": ["KalshiRequestSigner"]
+      },
+      {
+        "name": "SettlementRecyclingEngine",
+        "description": "Manages capital recycling through Kalshi's settlement mechanics. Kalshi settles contracts at expiry — YES pays 100 cents if event occurs, NO pays 100 cents if not. Capital recycling works through two mechanisms: (1) Natural settlement at contract expiry: holding both YES and NO positions yields guaranteed combined value minus settlement fees. (2) Active exit via opposing limit orders: sell existing positions or buy opposing side to offset. The system tracks opposing positions and calculates when it is more capital-efficient to hold to settlement vs exit early. Settlement fees (1-7 cents per contract) reduce recycling efficiency compared to fee-free merging on other platforms. The Merge Phantom bot earned +$9,830 in 24h through capital recycling specialization — most merges intentionally take small losses to free capital for higher-EV new orders. Without recycling, capital locks in losing positions and the bot stalls. CRITICAL UNKNOWN: must determine in Phase 0 whether Kalshi supports any form of position merging/netting for early capital release, or if hold-to-settle is the only path.",
+        "responsibilities": [
+          "Track all opposing YES+NO positions per market and compute potential settlement value",
+          "Calculate hold-to-settle economics: combined acquisition cost + settlement fees vs guaranteed 100-cent payout",
+          "Calculate early-exit economics: opposing limit order fill price vs settlement path cost",
+          "Execute optimal strategy: hold-to-settle when combined cost + fees < 102 cents, else exit early if available",
+          "Track all settlements via GET /portfolio/settlements and reconcile expected vs actual proceeds",
+          "Immediately redeploy settled/exited capital to active ladders — no blockchain confirmation delays",
+          "Monitor fee structure changes via GET /series/fee_changes and adapt thresholds accordingly"
+        ],
+        "inputs": ["inventory_positions from InventoryManager", "settlement_fee_per_market from Kalshi API", "fill_events from BidLadderManager"],
+        "outputs": ["recycled_capital_amount", "settlement_tracking_data", "fee_totals", "early_exit_orders"],
+        "dependencies": ["InventoryManager", "BidLadderManager", "KalshiRequestSigner"]
+      },
+      {
+        "name": "StructuralEdgeDetector",
+        "description": "Implements six non-predictive structural edge detection categories that complement core spread capture without requiring outcome prediction. Uses Claude API for analysis where pattern recognition across historical data and cross-market comparisons is needed. These edges inform adaptive spread width and position sizing — when structural detection identifies mispricing, the bot adjusts parameters rather than taking directional bets. All six edges exploit persistent cognitive biases and structural inefficiencies rather than transient information advantages, making them durable over time.",
+        "responsibilities": [
+          "Base rate neglect detection: compare market-implied probability against historical frequency of similar outcomes (bills stall, scandals fade, campaigns recover) — flag when narrative-driven pricing diverges from base rates",
+          "Cross-market inconsistency detection: identify related contracts that contradict each other (e.g., candidate weak in state polls but strong nationally)",
+          "Mechanical vs real price move classification: distinguish information-driven moves from thin-orderbook noise in low-liquidity Kalshi markets",
+          "Cross-platform comparison: compare same event priced on Kalshi vs other platforms for structural arbitrage signals",
+          "Certainty overpaying detection: identify when crowds systematically overpay for high-confidence outcomes — known calibration bias",
+          "Time decay mispricing detection: flag markets staying too expensive as calendar narrows remaining possibilities",
+          "Output spread adjustment signals: widen quotes when structural edge is favorable (deploy more capital), narrow when edges are absent"
+        ],
+        "inputs": ["market_prices from MarketDataFeed", "historical_base_rates", "cross_platform_prices", "contract_metadata"],
+        "outputs": ["edge_signals per contract (array of detected edges with magnitude)", "spread_adjustment_recommendations", "position_sizing_adjustments"],
+        "dependencies": ["MarketDataFeed", "Claude API (anthropic SDK)"]
+      },
+      {
+        "name": "SpreadCaptureTracker",
+        "description": "Monitors and records every spread capture event. A spread capture occurs when the bot buys YES at P_buy_yes and NO at P_buy_no where P_buy_yes + P_buy_no < 100 cents, locking in guaranteed gross profit of (100 - P_buy_yes - P_buy_no) cents per contract. Net profit subtracts settlement fees on both sides. Tracks realized spread per trade, cumulative spread PnL (gross and net of fees), and effective spread width over time.",
+        "responsibilities": [
+          "Record every spread capture event with YES price, NO price, gross spread, and net spread after fees",
+          "Track rolling 1-hour and 24-hour cumulative spread capture metrics (gross and net)",
+          "Alert when average net realized spread drops below 1.0 cent (approaching unprofitable territory)",
+          "Maintain running total of settlement fees paid via GET /portfolio/settlements",
+          "Report settlement fees as percentage of gross spread PnL — alert if exceeding 60%",
+          "Compute minimum target spread: 3 cents gross, net must cover settlement fees on settling side(s)"
+        ],
+        "inputs": ["fill_events from BidLadderManager", "settlement_data from SettlementRecyclingEngine"],
+        "outputs": ["gross_spread_pnl", "net_spread_pnl", "settlement_fee_total", "effective_spread_metrics", "profitability_alerts"],
+        "dependencies": ["BidLadderManager", "SettlementRecyclingEngine"]
+      },
+      {
+        "name": "KellySizer",
+        "description": "Computes risk-budget cap for each ladder level using a Kelly-derived heuristic. Formula: f = (b*p - q) / b where b is expected spread payout net of settlement fees, p is estimated fill probability from BayesianProbabilityUpdater, and q = 1-p. Applied as upper bound on notional exposure per level, not as theoretically optimal directional wager. Uses fractional Kelly (0.25x full Kelly) for safety — reduces variance at cost of lower growth rate. Ensures no single position exceeds 8% of total portfolio. Additionally capped by Kalshi per-market position limits.",
+        "responsibilities": [
+          "Compute Kelly fraction f = (bp - q) / b for each ladder level using current probability estimate and net spread edge",
+          "Apply quarter-Kelly (0.25x) for conservative sizing that survives variance",
+          "Enforce hard 8% max single position cap regardless of Kelly output",
+          "Require minimum 3-cent net spread edge (after settlement fees) before sizing any position",
+          "Recalculate on every Bayesian probability update (every 500ms)",
+          "Cap Kelly output at Kalshi market-specific position limit from GET /markets/{ticker}",
+          "Feed size caps to BidLadderManager for order placement"
+        ],
+        "inputs": ["probability_estimate from BayesianProbabilityUpdater", "net_spread_edge from SpreadCaptureTracker", "position_limits from Kalshi API"],
+        "outputs": ["max_contracts_per_level", "total_exposure_budget"],
+        "dependencies": ["BayesianProbabilityUpdater", "SpreadCaptureTracker"]
+      },
+      {
+        "name": "RiskController",
+        "description": "Top-level risk management layer with kill switches and circuit breakers. Monitors portfolio-level drawdown, daily PnL, and per-market exposure. Automatically halts trading when thresholds are breached. Can trigger OrderGroupManager for fast-path kill switch. Queries Kalshi portfolio state via GET /portfolio/positions, GET /portfolio/fills, and GET /portfolio/balance (in cents).",
+        "responsibilities": [
+          "Monitor daily loss limit: halt all trading at -20% of starting daily capital",
+          "Monitor peak-to-trough drawdown: full system shutdown at -40%, require manual restart",
+          "Enforce per-market max exposure: 15% of total capital in any single contract",
+          "Limit max concurrent markets to 4 simultaneous active ladders",
+          "Trigger OrderGroupManager as fast-path kill switch on threshold breach",
+          "Send Telegram alerts on every threshold breach and daily summary",
+          "Poll GET /portfolio/balance to track available cash (cents), total portfolio value, and pending settlements"
+        ],
+        "inputs": ["portfolio_state from Kalshi API", "fill_events from BidLadderManager", "inventory_state from InventoryManager"],
+        "outputs": ["trading_halt_signals", "per_market_exposure_limits", "alert_notifications"],
+        "dependencies": ["InventoryManager", "BidLadderManager", "OrderGroupManager", "KalshiRequestSigner"]
+      },
+      {
+        "name": "MarketDataFeed",
+        "description": "Aggregates real-time data from multiple sources. Binance and Coinbase WebSocket feeds provide reference crypto prices for Bayesian updates. Kalshi REST API and WebSocket provide order book state, fill notifications, and contract metadata. Computes real-time mid-price, realized volatility (60-second rolling), order flow imbalance, and book depth metrics. Batch orderbook polling (GET /markets/orderbooks for up to 100 tickers) enables efficient multi-market monitoring.",
+        "responsibilities": [
+          "Ingest Binance WebSocket (btcusdt@trade, ethusdt@trade) with <50ms tick-to-state latency",
+          "Ingest Coinbase Advanced Trade WebSocket (BTC-USD, ETH-USD ticker channel) as secondary reference",
+          "Poll Kalshi orderbook via GET /markets/{ticker}/orderbook or batch via GET /markets/orderbooks (up to 100 tickers)",
+          "Subscribe to Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) for real-time orderbook and fill events",
+          "Compute 60-second rolling realized volatility (standard deviation of log returns) for Stoikov sigma parameter",
+          "Compute order flow imbalance and book depth metrics for market quality assessment",
+          "Provide full depth data from Kalshi orderbook — adapt spread calculations for thinner-than-typical books"
+        ],
+        "inputs": ["binance_ws_stream", "coinbase_ws_stream", "kalshi_rest_api", "kalshi_ws_stream"],
+        "outputs": ["mid_price", "volatility", "order_flow_imbalance", "book_depth", "cex_price_ticks"],
+        "dependencies": ["KalshiRequestSigner"]
+      },
+      {
+        "name": "ContractWindowScheduler",
+        "description": "Manages lifecycle of trading across multiple contract windows. Monitors upcoming Kalshi crypto price contracts via GET /events and GET /markets. Filters for crypto price threshold markets (BTC/ETH above/below X). Pre-computes initial ladder parameters and triggers prompt order placement when new contracts become available. Handles graceful wind-down as contracts approach expiry.",
+        "responsibilities": [
+          "Discover crypto price contracts via GET /events?category=crypto and GET /markets?series_ticker=<crypto_series>",
+          "Poll GET /markets every 60 seconds for newly opened contracts",
+          "Pre-compute ladder parameters 5 seconds before placing orders on new contracts",
+          "Cancel all open orders 30 seconds before contract expiry to avoid settlement risk",
+          "Manage up to 4 overlapping concurrent contract windows",
+          "Filter contracts: sufficient open interest, time to expiry > 2 minutes, current spread > 3 cents"
+        ],
+        "inputs": ["kalshi_market_listings from Kalshi API"],
+        "outputs": ["active_contract_windows", "expiry_signals", "new_contract_alerts"],
+        "dependencies": ["KalshiRequestSigner"]
+      },
+      {
+        "name": "KalshiRequestSigner",
+        "description": "Handles stateless per-request authentication with Kalshi API using RSA-PSS key-pair signing. Every outgoing HTTP request is signed by: (1) generating millisecond timestamp, (2) concatenating '{timestamp_ms}{HTTP_METHOD}{path_without_query_params}', (3) signing with RSA-PSS (SHA-256 hash, MGF1-SHA256, salt_length=DIGEST_LENGTH), (4) base64-encoding signature. Three headers: KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE. No login endpoint, no tokens, no session state — entirely stateless per-request auth.",
+        "responsibilities": [
+          "Load PEM private key from KALSHI_PRIVATE_KEY_PATH at startup",
+          "Sign every outgoing request with RSA-PSS (SHA-256, MGF1-SHA256, salt_length=DIGEST_LENGTH)",
+          "Attach KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE headers",
+          "Support both demo (https://demo-api.kalshi.co/trade-api/v2) and production (https://api.elections.kalshi.com/trade-api/v2) endpoints",
+          "Validate signing at startup with test API call (GET /portfolio/balance) — fail fast if broken"
+        ],
+        "inputs": ["http_request", "private_key", "api_key_id"],
+        "outputs": ["signed_http_request with auth headers"],
+        "dependencies": []
+      },
+      {
+        "name": "OrderGroupManager",
+        "description": "Manages Kalshi order groups for aggregate risk management of bid/ask ladders. Order groups allow assigning multiple orders to a group with a rolling 15-second contract fill limit shared across all orders. Separate groups for YES-side and NO-side ladders prevent runaway inventory from fill bursts. Groups can be triggered as a fast-path kill switch (cancel all + block new orders).",
+        "responsibilities": [
+          "Create separate order groups for YES-side and NO-side ladders (POST /portfolio/order_groups/create)",
+          "Set per-group fill limits (e.g., max 50 contracts per 15-second window per side)",
+          "Trigger groups as kill switch when inventory skew exceeds soft_warning_threshold",
+          "Reset matched contracts counter to resume trading after trigger investigation",
+          "Integrate with RiskController for fast-path emergency halt — faster than individual order cancellation"
+        ],
+        "inputs": ["risk_signals from RiskController", "inventory_skew from InventoryManager"],
+        "outputs": ["group_trigger_events", "fill_limit_status"],
+        "dependencies": ["KalshiRequestSigner"]
+      },
+      {
+        "name": "RFQMonitor",
+        "description": "Monitors Kalshi's Request for Quote (RFQ) system as an additional profit center. When other participants submit RFQs, the system responds with competitive quotes derived from StoikovPricingEngine. Provides additional flow beyond passive ladder orders. Maximum 100 open RFQs at any time. Enhancement priority — implement after core ladder strategy is validated.",
+        "responsibilities": [
+          "Poll GET /communications/rfqs for incoming RFQs on actively market-made contracts",
+          "Respond with competitive quotes (POST /communications/quotes) using Stoikov pricing output",
+          "Apply same spread and sizing logic as ladder orders",
+          "Respect max 100 concurrent open RFQs"
+        ],
+        "inputs": ["rfq_requests from Kalshi API", "pricing_output from StoikovPricingEngine"],
+        "outputs": ["rfq_responses", "rfq_fill_events"],
+        "dependencies": ["StoikovPricingEngine", "KalshiRequestSigner"]
+      },
+      {
+        "name": "StatePersistenceLayer",
+        "description": "Persists system state for fault recovery and graceful shutdown/restart. On shutdown (SIGTERM/SIGINT), triggers all order groups for fast-path cancel, persists full state, and exits cleanly. On restart, loads latest snapshot, reconciles with live Kalshi positions, and flags discrepancies before resuming.",
+        "responsibilities": [
+          "Persist open orders, inventory, running PnL, settlement fee totals, and settlement history after every fill event and every 10s heartbeat",
+          "Use SQLite for initial deployment given low write volume",
+          "On shutdown: trigger all order groups, batch-cancel remaining orders, persist final state snapshot",
+          "On startup: load latest snapshot, reconcile with live Kalshi positions (GET /portfolio/positions), flag discrepancies",
+          "Store curve calibration data (fill rates per exponent setting) for NonLinearCurveDistributor optimization"
+        ],
+        "inputs": ["all_component_state", "fill_events", "settlement_events"],
+        "outputs": ["persisted_state_snapshots", "reconciliation_reports"],
+        "dependencies": ["InventoryManager", "SpreadCaptureTracker", "BidLadderManager"]
+      }
+    ],
+    "data_flow": "KalshiRequestSigner signs every outgoing API request with RSA-PSS (stateless, no login/token step) -> MarketDataFeed ingests Binance/Coinbase WebSocket ticks and Kalshi orderbook state (REST polling + WebSocket) -> BayesianProbabilityUpdater computes internal fair-value probability from CEX reference price movement, optionally incorporating StructuralEdgeDetector signals (six non-predictive edges: base rate neglect, cross-market inconsistency, mechanical price moves, cross-platform comparison, certainty overpaying, time decay mispricing) -> StoikovPricingEngine uses Bayesian probability, current inventory (q from InventoryManager), volatility, settlement fee estimate, and kappa (arrival rate) to compute reservation price r = s - q*gamma*sigma^2*(T-t) and optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1+gamma/kappa), with spread floor accounting for settlement costs -> NonLinearCurveDistributor allocates capital across price levels using power-law or adaptive curve weighting (the primary differentiator, 52% outperformance vs flat ladders), informed by queue position data from BidLadderManager -> KellySizer caps individual level sizes via f = (bp-q)/b at quarter-Kelly with 8% hard cap and Kalshi position limits -> BidLadderManager deploys ladders via batch operations (up to 20 orders per call), amends existing orders in-place to preserve FIFO queue priority -> OrderGroupManager assigns ladder orders to groups with rolling 15-second fill limits -> Fill events update InventoryManager and SpreadCaptureTracker -> SettlementRecyclingEngine tracks opposing positions, determines hold-to-settle vs early-exit strategy factoring settlement fees (1-7 cents/contract) -> RiskController monitors portfolio metrics via GET /portfolio/positions and GET /portfolio/balance (cents), can halt pipeline or trigger order groups as kill switch -> ContractWindowScheduler orchestrates contract discovery and lifecycle -> RFQMonitor responds to incoming RFQs as additional flow source -> StatePersistenceLayer persists state for fault recovery.",
+    "integration_points": [
+      "Kalshi REST API (https://api.elections.kalshi.com/trade-api/v2) — RSA-PSS signed requests (stateless). Market discovery (GET /events, GET /markets, GET /markets/{ticker}). Order management: create (POST /portfolio/orders, 200K max open), amend (POST /portfolio/orders/{order_id}/amend), decrease (POST /portfolio/orders/{order_id}/decrease), batch create/cancel (up to 20 per call). Order groups: create, trigger, reset. Portfolio: positions, fills, balance (cents), queue positions. Orderbook: single ticker (depth 0=all), batch (up to 100 tickers). Market data: trades, candlesticks. Historical: candlesticks for parameter backtesting. Exchange: schedule, fee changes. RFQ: incoming RFQs and quote responses. Subaccounts: up to 32 for capital isolation",
+      "Kalshi WebSocket API (wss://api.elections.kalshi.com/trade-api/ws/v2) — real-time orderbook updates and fill notifications",
+      "Binance WebSocket API (wss://stream.binance.com:9443/ws/) — real-time BTC/ETH price ticks for Bayesian probability updates and volatility computation",
+      "Coinbase Advanced Trade WebSocket API (wss://advanced-trade-ws.coinbase.com/v1) — secondary reference price feed for cross-validation",
+      "Telegram Bot API — real-time alerts on risk threshold breaches, daily PnL summaries, settlement fee reports",
+      "Claude API (anthropic SDK) — structural edge detection: six non-predictive edge categories for spread/sizing adjustment signals and cross-market inconsistency analysis"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 0,
+        "name": "Kalshi Platform Discovery & Knowledge Gap Resolution",
+        "tasks": [
+          "Review Kalshi API documentation to determine matching engine rules: FIFO vs pro-rata vs hybrid. This is the most critical unknown — FIFO favors speed-based queue priority strategies, pro-rata favors capital-based sizing strategies, and the entire architecture depends on the answer",
+          "Document Kalshi fee structure for market makers: determine if maker rebates exist, per-trade fees vs settlement-only fees, fee tiers by volume, and exact settlement fee schedule per market category",
+          "Determine position merging or netting equivalent on Kalshi: can YES+NO positions be combined for early capital release, or must positions be held to settlement? If no merging, quantify the capital efficiency impact and design alternative recycling strategies",
+          "Catalog all available order types on Kalshi: confirm limit orders, check for post-only, IOC, GTC modifiers, and bulk order submission capabilities via API",
+          "Benchmark Kalshi API rate limits and WebSocket capabilities: measure actual latency from US-east-1, test order submission throughput, confirm WebSocket provides real-time orderbook and fill events",
+          "Set up Kalshi account (full KYC), generate RSA key pair, and validate authentication against demo API",
+          "Survey Kalshi crypto price contract availability: market depth, typical spreads, expiry frequencies, and liquidity patterns across different times of day"
+        ],
+        "deliverables": [
+          "Kalshi Platform Discovery Report documenting: matching engine rules (FIFO/pro-rata), complete fee structure, position merging capabilities, available order types, API rate limits, WebSocket capabilities, and crypto contract liquidity profile",
+          "Architecture Decision Record: if pro-rata matching confirmed, document required architecture changes (shift from speed optimization to capital optimization); if no position merging, document alternative capital recycling strategy",
+          "Working Kalshi demo API authentication with RSA-PSS signing validated",
+          "Go/no-go decision for proceeding with full implementation based on discovery findings"
+        ]
+      },
+      {
+        "phase": 1,
+        "name": "Core Pricing & Data Infrastructure",
+        "tasks": [
+          "Implement KalshiRequestSigner: RSA-PSS per-request signing with PEM key loading, KALSHI-ACCESS-KEY/TIMESTAMP/SIGNATURE headers, demo/production environment switching",
+          "Build MarketDataFeed: Binance WebSocket integration (<50ms tick-to-state), Coinbase WebSocket as secondary feed, Kalshi orderbook REST polling and WebSocket subscription, 60-second rolling volatility computation",
+          "Implement BayesianProbabilityUpdater: CEX-derived prior (spot vs strike via log-normal), Bayesian update P(H|D) on every tick/500ms, forgetting factor (half-life ~6.6s), Kalshi mid-price divergence flagging",
+          "Build StoikovPricingEngine: reservation price r = s - q*gamma*sigma^2*(T-t), optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1+gamma/kappa), settlement-fee-aware spread floor, kappa recalibration every 30s",
+          "Instrument per-component latency profiling to establish baseline latency budget"
+        ],
+        "deliverables": [
+          "KalshiRequestSigner with RSA-PSS signing validated against demo API",
+          "MarketDataFeed producing real-time mid-price, volatility, and CEX price ticks from both exchanges and Kalshi",
+          "BayesianProbabilityUpdater computing per-contract probability estimates at 500ms cadence",
+          "StoikovPricingEngine outputting computed bid/ask prices in real-time (log-only, no order placement)",
+          "Unit tests validating pricing output against known scenarios",
+          "Latency profiling report for data ingestion, Bayesian update, and Stoikov computation"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Order Management & Non-Linear Ladder Deployment",
+        "tasks": [
+          "Implement BidLadderManager: 1-cent spaced ladders (10-15 levels per side), batch creation (up to 20 per call), order amendment for FIFO preservation, batch cancellation, queue position monitoring",
+          "Build NonLinearCurveDistributor: power-law distribution (exponent 1.5 default), 15-20% allocation at mid tapering to 2-3% at edges, volatility-adaptive curve shape, queue-position-informed reallocation",
+          "Implement KellySizer: quarter-Kelly sizing, 8% max single position, 3-cent minimum net edge, Kalshi position limit cap, 500ms recalculation",
+          "Build OrderGroupManager: separate YES/NO ladder groups with rolling 15-second fill limits, trigger/reset capability for fast-path risk control",
+          "Validate complete order lifecycle on Kalshi demo API: place, amend, fill, cancel"
+        ],
+        "deliverables": [
+          "BidLadderManager deploying non-linear ladders on both YES and NO sides via Kalshi demo API",
+          "NonLinearCurveDistributor with power-law allocation and queue-position feedback loop",
+          "KellySizer with quarter-Kelly sizing, hard caps, and Kalshi position limit awareness",
+          "OrderGroupManager with per-side groups and rolling fill limits",
+          "Integration test: full ladder deployment, amendment, and cancellation cycle on demo API"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Inventory, Settlement Recycling & Spread Tracking",
+        "tasks": [
+          "Implement InventoryManager: per-market YES/NO tracking, normalized skew computation, soft (0.15) and hard (0.40) thresholds, Kalshi position limit enforcement, Stoikov q-parameter feed",
+          "Build SettlementRecyclingEngine: opposing position tracking, hold-to-settle vs early-exit economics (including settlement fees), execution via opposing limit orders, settlement reconciliation via GET /portfolio/settlements",
+          "Implement SpreadCaptureTracker: per-trade recording, rolling 1h/24h gross and net metrics, settlement fee tracking, profitability alerts (net spread < 1 cent)",
+          "Build StatePersistenceLayer: SQLite-based state persistence, fill-event-driven writes, 10s heartbeat, shutdown/startup reconciliation with live Kalshi positions"
+        ],
+        "deliverables": [
+          "InventoryManager with skew tracking, quote-skewing logic, and Kalshi position limit enforcement",
+          "SettlementRecyclingEngine executing optimal hold-to-settle vs early-exit strategy with fee awareness",
+          "SpreadCaptureTracker with rolling metrics (gross/net) and settlement fee reporting",
+          "StatePersistenceLayer with SQLite storage and live-position reconciliation",
+          "Integration test: full cycle of ladder placement -> fill -> inventory update -> settlement -> capital recycle on demo API"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Risk Management, Structural Edge Detection & Multi-Window Orchestration",
+        "tasks": [
+          "Implement RiskController: daily loss limit (-20%), drawdown kill switch (-40%), per-market caps (15%), max 4 concurrent markets, Kalshi balance monitoring (cents), order group trigger integration",
+          "Build StructuralEdgeDetector: implement six non-predictive edge categories using Claude API (base rate neglect, cross-market inconsistency, mechanical vs real price moves, cross-platform comparison, certainty overpaying, time decay mispricing), output spread/sizing adjustment signals",
+          "Implement ContractWindowScheduler: crypto contract discovery via GET /events and GET /markets, concurrent window management, pre-computation, graceful wind-down (cancel 30s before expiry)",
+          "Add Telegram Bot integration for real-time alerts, daily summaries, and settlement fee breakdowns",
+          "Implement graceful shutdown/restart: order group triggers, batch cancellation, state persistence, startup reconciliation",
+          "Build fault recovery: WebSocket reconnection, ladder state resume (no re-auth needed — RSA-PSS is stateless)"
+        ],
+        "deliverables": [
+          "RiskController with all circuit breakers, kill switches, and Kalshi balance monitoring",
+          "StructuralEdgeDetector computing six non-predictive edge signals integrated with BayesianProbabilityUpdater",
+          "ContractWindowScheduler discovering and managing concurrent crypto contract windows",
+          "Telegram Bot integration delivering alerts and daily summaries",
+          "Graceful shutdown handler: 5-second clean exit with full state persistence",
+          "Fault recovery: automatic WebSocket reconnection and ladder resume"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Paper Trading Validation & Non-Linear Curve Calibration",
+        "tasks": [
+          "Deploy complete system against Kalshi demo API for minimum 7 days targeting 200+ completed trades",
+          "Calibrate non-linear curve parameters through iterative testing: start with power-law exponent 1.5, adjust based on fill rate data per level, test alternative curve shapes (quadratic, exponential decay, sigmoid) and compare fill-rate-adjusted PnL",
+          "Tune Stoikov hyperparameters (gamma, sigma window, kappa calibration interval) per market regime",
+          "Validate spread capture metrics net of settlement fees against 2-5% monthly return target",
+          "Validate inventory neutrality (skew < 0.15 for 95%+ of time), settlement recycling efficiency (2.5x+ daily turnover), and settlement fee ratio (<50% of gross PnL)",
+          "Stress-test risk management: simulate rapid price moves, high-volume fill bursts, API disconnections"
+        ],
+        "deliverables": [
+          "7+ days paper trading data on Kalshi demo API with 200+ completed trade cycles",
+          "Non-linear curve calibration report: tested exponents/shapes, fill rates per configuration, optimal parameters by market type",
+          "Performance report: realized spread (gross/net), daily PnL, inventory skew history, settlement fees, capital recycling efficiency",
+          "Stoikov parameter sensitivity analysis: gamma, sigma window, kappa calibration interval ranges",
+          "Risk management stress-test results with edge case documentation"
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Live Deployment & Scaling",
+        "tasks": [
+          "Deploy to production Kalshi API with $1-5 initial trade sizing",
+          "Scale gradually over 2-4 weeks based on evidence: increase trade sizes toward full Kelly sizing",
+          "Build monitoring dashboard: real-time PnL, inventory state, spread capture rate (gross/net), settlement fee burn rate, system health, API rate limit utilization",
+          "Implement RFQMonitor as additional flow source once core ladder is validated",
+          "Write operational runbook: startup (RSA key loading, signing validation), shutdown (order group triggers, batch cancel), parameter tuning, emergency procedures, Kalshi troubleshooting (key issues, position limits, settlement reconciliation, order groups)",
+          "Monitor for competitive dynamics: track fill rate degradation as indicator of increased bot competition"
+        ],
+        "deliverables": [
+          "Live system running on Kalshi production with monitored $1-5 trade sizing",
+          "Monitoring dashboard with all key metrics",
+          "RFQMonitor capturing additional flow from RFQ system",
+          "Operational runbook covering all operational scenarios",
+          "Scaling plan with evidence-based gate criteria for each size increase"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+ — primary language for all system components",
+      "asyncio + aiohttp — async event loop for concurrent WebSocket feeds and API calls",
+      "websockets library — Binance/Coinbase/Kalshi real-time feed ingestion",
+      "httpx or aiohttp — HTTP client for Kalshi REST API (RSA-PSS signed requests)",
+      "kalshi_python_sync or kalshi_python_async (official SDK) or direct REST — Kalshi order management and market data. Do NOT use deprecated 'kalshi-python' package",
+      "cryptography — RSA-PSS request signing (hazmat.primitives.asymmetric.padding, hashes, serialization)",
+      "numpy/scipy — statistical computations (volatility, Bayesian updates, curve fitting, power-law distribution)",
+      "python-telegram-bot — alert and notification delivery",
+      "SQLite — local state persistence for inventory, orders, settlement tracking, curve calibration data",
+      "Docker — containerized deployment for 24/7 uptime on US-based cloud (AWS us-east-1 recommended)",
+      "anthropic SDK — Claude API for StructuralEdgeDetector (six non-predictive edge categories)"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "Kalshi matching engine may use pro-rata instead of FIFO: if Kalshi uses pro-rata matching, the entire speed-based queue priority strategy becomes irrelevant and the architecture must shift to capital-based sizing. This is the most critical unknown. FIFO rewards latency; pro-rata rewards capital deployed at each price level. The NonLinearCurveDistributor and queue position tracking are designed for FIFO — pro-rata would require fundamentally different capital allocation logic.",
+      "severity": "high",
+      "mitigation": "Resolve in Phase 0 before any implementation investment. If pro-rata confirmed: redesign NonLinearCurveDistributor to optimize for capital weight at each level rather than queue position, remove queue position tracking, relax latency requirements from 200ms to 1s, increase minimum capital requirement. Document architecture pivot in decision record."
+    },
+    {
+      "description": "No position merging on Kalshi — capital efficiency drops dramatically: if Kalshi does not support any form of position merging/netting before settlement, the Merge Phantom approach is invalid and capital recycling depends entirely on contract expiry timing or active exit via opposing limit orders. Capital could lock for hours in losing positions with no early release mechanism.",
+      "severity": "high",
+      "mitigation": "Resolve in Phase 0. If no merging: redesign SettlementRecyclingEngine to prioritize active exit (opposing limit orders) over hold-to-settle, increase minimum capital to cover locked-position periods, focus on shorter-duration contracts where expiry releases capital faster, reduce max_concurrent_markets to preserve capital for active ladders."
+    },
+    {
+      "description": "Spread compression below profitability threshold: as more bots enter Kalshi crypto markets, spreads narrow. Combined with settlement fees (1-7 cents/contract), net spread can become unprofitable. However, Kalshi's thinner orderbooks maintain wider natural spreads longer than high-volume venues — a structural advantage.",
+      "severity": "high",
+      "mitigation": "Monitor effective net spread (gross minus settlement fees) in real-time. Alert when trailing 1h average net spread < 1.0 cent. Pause quoting on markets with insufficient spread. Track settlement fees as percentage of gross PnL — if >60%, investigate fee-optimizing strategies. Diversify across contract types and durations."
+    },
+    {
+      "description": "Sudden market reversal causing inventory overload: a sharp, fast price move fills many ladder levels on one side while the opposing side gets no fills, creating heavy directional exposure. This is the primary source of realized losses for market makers.",
+      "severity": "high",
+      "mitigation": "Hard inventory skew limits (halt at 0.40). Stoikov pricing automatically widens overweight-side quotes. OrderGroupManager provides fast-path kill switch (15-second rolling fill limits). Exit via opposing limit orders or hold to settlement. Daily loss limit (-20%) prevents catastrophic accumulation."
+    },
+    {
+      "description": "Latency disadvantage and queue competition: if Kalshi uses FIFO matching, faster bots get priority fills at each price level. Consistently slower placement degrades fill rates and profitability. If Kalshi uses pro-rata, this risk is mitigated but capital requirements increase instead.",
+      "severity": "medium",
+      "mitigation": "Target <200ms order placement latency from US-east-1. Pre-compute ladder parameters before contract open. Use order amendment (preserves queue position) over cancel-and-replace. Monitor fill rate — if <30%, investigate latency. Kalshi's thinner books may mean less fierce queue competition."
+    },
+    {
+      "description": "Kalshi fee structure changes eliminating spread profitability: if settlement fees increase beyond 7 cents or new per-trade fees are introduced, spread capture profitability could be destroyed. Since fees are on settlement, increases affect the entire holding period retroactively.",
+      "severity": "medium",
+      "mitigation": "Parameterize settlement_fee_estimate so changes propagate immediately to spread calculations. Monitor GET /series/fee_changes. Maintain breakeven fee model — if actual fees approach breakeven, reduce positions or pause. Design system to operate across a range of fee assumptions."
+    },
+    {
+      "description": "Non-linear curve optimization is empirical and cannot be backtested: the primary differentiator (52% outperformance of Curve Alchemist over flat ladders) depends on curve shapes that require live calibration. No closed-form solution exists. Suboptimal curve during calibration period means leaving significant edge on the table.",
+      "severity": "medium",
+      "mitigation": "Start with power-law exponent 1.5 as baseline from source material. Implement A/B testing framework to compare curve shapes (power-law, quadratic, exponential, sigmoid) with small capital. Persist fill-rate-per-level data in StatePersistenceLayer for analysis. Allocate Phase 5 paper trading for systematic curve calibration before live deployment."
+    },
+    {
+      "description": "Risk management bug allowing oversized positions: a bug in Kelly sizing or inventory management allowing >50% portfolio in a single position could cause catastrophic loss. More dangerous than a bad strategy.",
+      "severity": "high",
+      "mitigation": "Multiple independent size checks: KellySizer cap (8%), RiskController per-market cap (15%), InventoryManager hard halt (0.40 skew), Kalshi per-market position limits, OrderGroupManager rolling fill limits. All must agree before order placement. Extensive unit/integration testing. Paper-mode validation of edge cases."
+    },
+    {
+      "description": "Kalshi platform changes or API breaking changes: as a regulated exchange, Kalshi may change contract mechanics, settlement rules, fee structure, API endpoints, or position limits. Regulatory changes are more likely to be announced in advance but still require rapid adaptation.",
+      "severity": "medium",
+      "mitigation": "Monitor Kalshi announcements and API changelog. Check API version via GET /exchange/status. Build abstraction layer between strategy logic and platform API. Maintain paper-mode capability for re-validation after changes."
+    },
+    {
+      "description": "RSA private key compromise or misconfiguration: Kalshi uses RSA-PSS per-request signing. Key compromise enables authenticated API calls by attacker. Key misconfiguration prevents all API calls.",
+      "severity": "medium",
+      "mitigation": "Restricted key file permissions (chmod 600). Never commit to version control. Validate signing at startup with test call (GET /portfolio/balance) — fail fast. Rotate keys periodically. Separate keys for demo vs production. Use subaccounts (up to 32) to isolate market-making capital."
+    }
+  ],
+  "success_criteria": [
+    "Monthly return on deployed capital: 2-5% net of all costs (settlement fees, infrastructure). Kalshi's settlement fee model (1-7 cents/contract) replaces per-trade fees — net return calculated after all settlement costs. Measured as trailing 30-day realized PnL / average deployed capital.",
+    "Inventory neutrality: net inventory skew (|YES - NO| / total_capital) stays below 0.15 for 95% of operating time. Measured as time-weighted average absolute inventory skew over trailing 24 hours.",
+    "Spread capture rate: average net realized spread >= 1.5 cents per completed trade cycle (buy YES + buy NO + settle or exit), after deducting settlement fees. Measured as total net spread PnL / total completed cycles over trailing 24h.",
+    "Fill rate: >= 40% of placed ladder orders result in fills before cancellation or expiry. Measured per contract window, averaged over trailing 24h.",
+    "Capital recycling efficiency: average capital turnover >= 2.5x per day (lower target than merge-based systems due to settlement-based recycling and fee drag). Measured as total settled/exited capital / average deployed capital over trailing 24h.",
+    "System uptime: >= 99% during active contract windows. Measured as minutes actively quoting / total minutes with available windows.",
+    "Maximum drawdown: never exceed -20% daily drawdown or -40% peak-to-trough drawdown. Continuous monitoring with automatic kill switch enforcement.",
+    "Order placement latency: P95 < 200ms from decision to Kalshi API acknowledgment. Latency histogram logged for every submission.",
+    "Settlement fee ratio: settlement fees < 50% of gross spread PnL (at least half of gross captured retained as net profit). Measured over trailing 7 days.",
+    "Non-linear curve outperformance: non-linear distribution must produce >= 30% higher net PnL than flat equal-size distribution in A/B testing during Phase 5 paper trading, confirming the Curve Alchemist vs Ladder Larry differential.",
+    "Structural edge signal accuracy: StructuralEdgeDetector signals (six categories) must correlate positively with subsequent spread capture profitability — contracts flagged with structural edges should produce higher net spread than unflagged contracts, measured over rolling 7-day windows.",
+    "Paper trading gate (all conditions required before live capital): (1) average net realized spread >= 1.0 cent/cycle after fees, (2) inventory skew < 0.15 for >= 90% of time, (3) no single-day loss > -10%, (4) capital recycling >= 2x/day, (5) settlement fee ratio < 60% of gross PnL. Minimum 7 days on Kalshi demo API with 200+ completed trades."
+  ],
+  "notes": "v3.0 upgrades from v2.1 by integrating knowledge overview findings (de188a4e) and restructuring to conform to design-spec schema.\n\nKey changes in v3.0:\n\n1. PHASE 0 ADDED — Kalshi Platform Discovery: The knowledge overview identified four critical unknowns that must be resolved before implementation: (a) FIFO vs pro-rata matching engine — determines entire competitive strategy axis, (b) maker/taker fee structure — whether maker rebates exist, (c) position merging equivalent — capital efficiency depends on this, (d) API rate limits and WebSocket capabilities. Phase 0 gates all subsequent phases with a go/no-go decision.\n\n2. SIX NON-PREDICTIVE STRUCTURAL EDGES INTEGRATED: The StructuralEdgeDetector component implements all six edge categories from source tweet_2038903376453259756 (base rate neglect, cross-market inconsistency, mechanical price moves, cross-platform comparison, certainty overpaying, time decay mispricing) as a meta-layer feeding into BayesianProbabilityUpdater and spread/sizing decisions. These exploit persistent cognitive biases and are durable over time.\n\n3. NON-LINEAR CURVE EMPHASIS ELEVATED: The NonLinearCurveDistributor is now explicitly identified as the single most important differentiator based on Curve Alchemist's 52% outperformance over flat ladders. Phase 5 includes dedicated curve calibration with A/B testing across power-law, quadratic, exponential, and sigmoid shapes. A new success criterion requires >= 30% outperformance vs flat distribution.\n\n4. POSITION MERGING REFRAMED FOR KALSHI: The SettlementRecyclingEngine now explicitly addresses the Kalshi-specific capital recycling challenge — no on-demand position merging like blockchain venues. Two paths: (a) hold-to-settle at expiry (guaranteed combined value minus fees), (b) active exit via opposing limit orders. Phase 0 must determine if any merging/netting mechanism exists.\n\n5. QUEUE PRIORITY/FIFO MECHANICS CONDITIONED ON DISCOVERY: All FIFO-dependent logic (queue position tracking, order amendment for priority preservation, latency targets) is now explicitly conditioned on Phase 0 confirmation of FIFO matching. Architecture pivot path documented for pro-rata matching.\n\n6. STOIKOV FORMULA SPECIFICS PRESERVED AND ENRICHED: Both formulas fully documented — reservation price r = s - q*gamma*sigma^2*(T-t) and optimal spread delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1+gamma/kappa). Kappa (arrival rate) calibration, gamma tuning per market, time-to-expiry spread widening behavior all specified.\n\n7. KALSHI-NATIVE THROUGHOUT: All references to other prediction market platforms replaced with Kalshi equivalents. All prices in cents (Kalshi native). Authentication via RSA-PSS per-request signing (stateless). Settlement-fee-aware spread floors. Per-market position limits. Order groups for aggregate risk. Batch operations. Subaccounts for capital isolation. Demo/production API switching.\n\n8. PHASE STRUCTURE: 7 phases (0-6) with Phase 0 as critical discovery gate. Phase 5 dedicated to non-linear curve calibration and paper validation. Phase 6 covers live deployment with gradual scaling.\n\nRemaining open questions: (1) Can RL automate non-linear curve optimization vs manual live-testing iteration? (2) What is the game-theoretic equilibrium for multiple market-making bots on the same Kalshi contract? (3) How do strategies perform during Kalshi-specific edge cases (low-volume, settlement windows, regulatory events)? (4) Can the six structural edges be integrated directly into Stoikov probability estimates as a unified system rather than separate modules?"
+}

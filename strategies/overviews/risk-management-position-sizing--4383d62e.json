@@ -1,0 +1,893 @@
+{
+  "overview_id": "4383d62e",
+  "title": "Risk Management & Position Sizing",
+  "created_date": "2026-04-03T08:21:37.670Z",
+  "status": "complete",
+  "sources": [
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039777322077933879",
+      "title": "HF market-making bot using Stoikov pricing + Bayesian probability for crypto UP/DOWN markets. $157K deposit to $1.03M PnL (+654% ROI). Kelly criterion for position sizing."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039427063812132866",
+      "title": "Cross-exchange latency arbitrage: Polymarket reprices slower than BTC on Binance (lag ~seconds). Bot on Binance WebSocket (<50ms), executes on Polymarket CLOB at stale price. $313 to $2.38M, 26,738 trades at 98% win rate, $4-5K/trade. Fractional Kelly + -40% kill switch."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039305824590246144",
+      "title": "MIT professor comparison: Claude vs OpenClaw, $1K each, 48h on Polymarket. Claude: +1,322% ($14,216) with Kelly sizing + kill switch. OpenClaw: liquidated. Lesson: risk management > strategy."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039134585737400689",
+      "title": "Three competing liquidity bots over 24h: Ladder Larry (HF laddering, +$12,450), Curve Alchemist (non-linear curves, +$18,920), Merge Phantom (capital recycling, +$9,830). Zero directional bets. Key: 1-cent ladders on YES+NO, structural imbalance, position merging."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039342946416283925",
+      "title": "Multi-agent parliament: 5 specialized AI agents (geopolitics, macro, science, sports, crypto) vote on each trade. 3+ agreement required. Beat single-agent by 23% ROI over 14 days. Solves overconfidence problem."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039055805626937399",
+      "title": "Why Polymarket bots fail: incomplete backtesting data. Author built 1,000+ bots, 1% success rate. Data completeness > strategy quality. Working bots print daily ($16K+ public PnL)."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2038622884642398503",
+      "title": "Analysis of 14,000 Polymarket wallets revealing that 87% lose money while the top 0.1% extracted $3.7B. Provides 3 core formulas (Expected Value, Kelly Criterion, Bayesian Updating), a 12-tool open-source toolkit, and security warnings."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039282251159011513",
+      "title": "Novel approach using NASA FIRMS satellite thermal anomaly data to trade geopolitical prediction markets. Dynamic Kelly sizing with Claude for trade decisions. $500 to $7,778 on 16 trades."
+    }
+  ],
+  "summary": "A comprehensive synthesis of risk management and position sizing techniques drawn from 8 Polymarket trading bot case studies. The central finding is that risk management infrastructure -- Kelly criterion sizing, kill switches, EV filtering, and multi-source confirmation -- consistently determines profitability more than strategy selection itself. Across all sources, the bots that survived and generated outsized returns (ranging from +654% to +760,000%) shared common risk architecture: fractional Kelly position sizing, hard drawdown limits, multi-signal confirmation before entry, and disciplined exit rules. Meanwhile, bots lacking these controls (OpenClaw, 99% of the 1,000+ bots built by Oracle Boar) were liquidated or failed. The material covers the full spectrum from mathematical foundations (EV, Kelly, Bayesian updating) through implementation-level details (kill switch thresholds, anomaly baselines, consensus voting) to operational concerns (backtesting data quality, fill simulation, liquidity constraints, security).",
+  "concepts": [
+    {
+      "name": "Kelly Criterion Position Sizing",
+      "category": "risk management",
+      "description": "The foundational position sizing formula used across 5 of 8 source items. Determines optimal bet size as a fraction of bankroll based on edge and odds. The formula f* = (bp - q) / b where b = payout odds, p = true probability, q = 1-p. Full Kelly is mathematically optimal for long-run growth but emotionally and practically destructive due to variance. Every successful implementation in the dataset uses fractional Kelly.",
+      "key_details": [
+        "Full Kelly formula: f* = (bp - q) / b",
+        "Quarter Kelly recommended as practical default ($83 on $1,000 bankroll for a 33% Full Kelly signal)",
+        "50 years of real trading evidence shows Full Kelly destroys traders emotionally before the math pays off",
+        "HF market-making bot (Daniro): f = (bp - q) / b used alongside Stoikov pricing, $157K to $1.03M",
+        "Latency arb bot: Fractional Kelly with fixed $4-5K per trade across 26,738 trades, $313 to $2.38M",
+        "Claude vs OpenClaw: Kelly sizing was the key differentiator -- Claude (+1,322%) vs OpenClaw (liquidated)",
+        "Satellite bot: Dynamic Kelly scaled by anomaly magnitude and number of confirming sources",
+        "Dynamic Kelly example: 11x anomaly + 6 confirming sources = 50% Kelly; 3x anomaly + 1 source = 3% Kelly",
+        "The formula adapts across strategies: market making, latency arb, directional geopolitical, multi-agent consensus"
+      ],
+      "source_items": [
+        "2039777322077933879",
+        "2039427063812132866",
+        "2039305824590246144",
+        "2038622884642398503",
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Expected Value Filter",
+        "Kill Switch / Hard Drawdown Limit",
+        "Bayesian Probability Updating",
+        "Dynamic Kelly Sizing",
+        "Confidence-Weighted Sizing"
+      ]
+    },
+    {
+      "name": "Expected Value Filter",
+      "category": "risk management",
+      "description": "Pre-trade filter that calculates expected value per dollar risked. The formula EV = P_true * (1 - P_market) - (1 - P_true) * P_market quantifies edge. Any trade with EV < 5% is skipped with no exceptions. This single filter reportedly eliminates 90% of losing trades. It is the first gate in a multi-stage risk pipeline: if EV is negative or marginal, no downstream sizing or execution logic is triggered.",
+      "key_details": [
+        "Formula: EV = P_true * (1 - P_market) - (1 - P_true) * P_market",
+        "Example: Market at 40%, true probability 60% = 20 cents edge per dollar",
+        "Hard rule: EV < 5% = SKIP, no exceptions",
+        "Eliminates 90% of losing trades as a standalone filter",
+        "In traditional finance, 2% edges build careers; Polymarket offers 20%+ edges daily",
+        "Requires accurate estimation of P_true, which is where Bayesian updating and multi-source data become critical",
+        "Acts as prerequisite gate before Kelly sizing is applied"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Bayesian Probability Updating",
+        "Multi-Source Signal Confirmation"
+      ]
+    },
+    {
+      "name": "Bayesian Probability Updating",
+      "category": "technique",
+      "description": "The mathematical framework for updating probability estimates as new data arrives. Formula: P(H|E) = P(E|H) * P(H) / P(E). Used in two distinct contexts across the sources: (1) as part of a market-making bot's internal pricing engine to update probability before the market reprices (Stoikov+Bayesian HF bot), and (2) as a general framework for updating trade theses when new information drops (e.g., inflation data shifting Fed rate cut probability from 55% to 88%).",
+      "key_details": [
+        "Formula: P(H|D) = P(D|H) * P(H) / P(D)",
+        "HF bot application: Updates internal probability faster than market consensus, creating temporary edge windows",
+        "General trading application: Prior 55% on Fed rate cut updated to 88% after inflation data",
+        "Key insight: 'Certainty is a bug, not a feature' -- traders who form opinions and defend them to death lose",
+        "Must be combined with Kelly to translate updated probabilities into correct position sizes",
+        "The Stoikov bot uses Bayesian updates as the probability input to Kelly sizing, creating a closed-loop system",
+        "Satellite bot implicitly uses Bayesian logic: anomaly magnitude updates prior probability of geopolitical event"
+      ],
+      "source_items": [
+        "2039777322077933879",
+        "2038622884642398503",
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Expected Value Filter",
+        "Stoikov Pricing Model",
+        "Dynamic Kelly Sizing"
+      ]
+    },
+    {
+      "name": "Kill Switch / Hard Drawdown Limit",
+      "category": "risk management",
+      "description": "An automated circuit breaker that halts all trading when cumulative losses hit a predefined threshold. The latency arb bot used a -40% kill switch (halt trading if portfolio drops 40% from peak). In the MIT professor comparison, the kill switch was one of two factors (alongside Kelly sizing) that differentiated Claude's +1,322% return from OpenClaw's total liquidation. The kill switch is a meta-risk control that protects against model failure, market regime changes, and black swan events that no sizing formula can anticipate.",
+      "key_details": [
+        "Latency arb bot: -40% kill switch threshold",
+        "Claude vs OpenClaw: Kill switch presence was decisive -- Claude survived, OpenClaw liquidated",
+        "Operates as a portfolio-level control above individual trade sizing",
+        "Protects against correlated failures where multiple positions lose simultaneously",
+        "Protects against model degradation (e.g., latency edge disappearing as Polymarket gets faster)",
+        "Should be based on drawdown from peak (high-water mark), not drawdown from initial capital",
+        "Complementary to per-trade stop losses -- kill switch is the system-level protection"
+      ],
+      "source_items": [
+        "2039427063812132866",
+        "2039305824590246144"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Per-Trade Exit Rules",
+        "Risk Management > Strategy Selection"
+      ]
+    },
+    {
+      "name": "Per-Trade Exit Rules",
+      "category": "risk management",
+      "description": "Predefined exit conditions applied to individual positions, independent of overall portfolio controls. The satellite bot uses three exit rules: take profit at +50%, stop loss at -30%, and time stop at 14 days. These rules prevent the common failure modes of holding losers hoping for recovery and holding winners until they reverse. The time stop is particularly important for prediction markets where thesis decay occurs if an event hasn't materialized within the expected window.",
+      "key_details": [
+        "Take profit: +50% (don't get greedy)",
+        "Stop loss: -30% (don't hold losers hoping)",
+        "Time stop: 14 days maximum (if thesis hasn't played out, it's dead)",
+        "Automated checking and closing -- bot handles exits without human intervention",
+        "Key insight: 'entering is easy, exiting is where people blow up'",
+        "Time stops are critical in prediction markets where contracts have deadlines",
+        "Must be set before entry, not adjusted after the fact based on emotions"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Kill Switch / Hard Drawdown Limit",
+        "Kelly Criterion Position Sizing",
+        "Continuation Bias"
+      ]
+    },
+    {
+      "name": "Dynamic Kelly Sizing",
+      "category": "technique",
+      "description": "An adaptation of Kelly criterion where the fraction varies based on signal strength and multi-source confirmation. Rather than applying a fixed fractional Kelly, the position size scales with the quality and redundancy of the signal. This approach was explicitly implemented in the satellite trading bot where anomaly magnitude and number of confirming data sources determine the Kelly fraction.",
+      "key_details": [
+        "Satellite bot formula: Kelly fraction scales with (anomaly_ratio / max_expected_ratio) * (confirming_sources / total_sources)",
+        "11x anomaly + 6 confirming sources = 50% of bankroll (high conviction)",
+        "3x anomaly + 1 source = 3% of bankroll (low conviction, near-minimum bet)",
+        "False alarm cost $41 (tiny Kelly), real signal made $470 (large Kelly) -- asymmetry by design",
+        "Philosophy: 'bet big when everything confirms, bet tiny when it's one source alone'",
+        "The math protects you from your own confidence",
+        "Effectively combines Kelly sizing with multi-source signal confirmation into a single unified framework"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Multi-Source Signal Confirmation",
+        "Anomaly Detection"
+      ]
+    },
+    {
+      "name": "Risk Management > Strategy Selection",
+      "category": "principle",
+      "description": "The overarching thesis across the entire dataset: the quality of risk management infrastructure matters more than the quality of the trading strategy itself. This is demonstrated most starkly by the Claude vs OpenClaw comparison (same market, same timeframe, same starting capital -- one returned +1,322%, the other was liquidated), but is echoed across all sources. The 14K wallet analysis shows 87% of wallets lose money despite having access to the same markets and information. The 1,000+ bots experiment shows a 1% success rate where data quality and risk controls -- not strategy sophistication -- determined survival.",
+      "key_details": [
+        "Claude vs OpenClaw: Same market, same timeframe, $1K each -- Claude +1,322% with Kelly+kill switch, OpenClaw liquidated going all-in",
+        "87% of 14,000 Polymarket wallets are in the red; top 20 wallets captured more than bottom 13,000 combined",
+        "1,000+ bots built, 99% failed -- the 1% that work share proper risk infrastructure, not better strategies",
+        "The top wallets share 'mathematical edge + automation', not insider info or luck",
+        "OpenClaw's failure was not a strategy failure -- it was an all-in sizing failure",
+        "'Risk management isn't boring' -- it's the entire differentiator",
+        "This principle applies across all strategy types: market making, arb, directional, ensemble"
+      ],
+      "source_items": [
+        "2039305824590246144",
+        "2039055805626937399",
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Kill Switch / Hard Drawdown Limit",
+        "Backtesting Data Quality",
+        "Expected Value Filter"
+      ]
+    },
+    {
+      "name": "Stoikov Pricing Model",
+      "category": "technique",
+      "description": "A market-making pricing rule that determines optimal quote placement while managing inventory risk. Formula: r = s - q * gamma * sigma^2 * (T - t), where s is mid-price, q is inventory, gamma is risk aversion parameter, sigma is volatility, T is terminal time, and t is current time. The model automatically adjusts quotes to reduce inventory risk as time progresses or as inventory becomes imbalanced. Used by the HF bot that turned $157K into $1.03M.",
+      "key_details": [
+        "Formula: r = s - q*gamma*sigma^2*(T-t)",
+        "s = mid-price, q = current inventory position",
+        "gamma = risk aversion parameter (higher = tighter quotes, less inventory risk)",
+        "sigma^2 = variance of price (volatility measure)",
+        "(T-t) = time remaining until market resolution",
+        "As T-t shrinks, the inventory penalty increases, forcing more aggressive inventory reduction",
+        "Combined with Bayesian probability updates: Bayesian provides the probability, Stoikov handles the quote placement",
+        "The model handles quote placement and inventory risk simultaneously -- two aspects of risk management in one formula",
+        "Applied specifically to short-duration crypto UP/DOWN prediction markets on Polymarket"
+      ],
+      "source_items": [
+        "2039777322077933879"
+      ],
+      "relationships": [
+        "Bayesian Probability Updating",
+        "Kelly Criterion Position Sizing",
+        "Inventory Risk Management"
+      ]
+    },
+    {
+      "name": "Inventory Risk Management",
+      "category": "risk management",
+      "description": "The practice of controlling and reducing directional exposure that accumulates from market-making activity. Market makers who quote both sides of the book inevitably accumulate inventory on one side as prices move. Without inventory management, a market maker becomes an unintentional directional trader. Multiple approaches appear in the sources: Stoikov's gamma parameter penalizes inventory buildup, position merging recycles opposing positions, and structural imbalance naturally loads the maker heavier on the winning side.",
+      "key_details": [
+        "Stoikov model: gamma parameter directly penalizes inventory in quote pricing",
+        "Position merging (Merge Phantom bot): Merging opposing YES+NO positions is 'genius capital recycling', not a loss",
+        "Structural imbalance: Tight ladders on both YES and NO automatically load heavier on winning side as price moves",
+        "Merge Phantom generated +$9,830 in 24h purely through position merging and capital recycling",
+        "Non-linear volume curves outperform flat ladders -- 'flat ladders get eaten alive'",
+        "The goal is to collect spread without accumulating net directional risk",
+        "Key insight: These bots 'didn't try to predict the winner -- they simply became the house'"
+      ],
+      "source_items": [
+        "2039777322077933879",
+        "2039134585737400689"
+      ],
+      "relationships": [
+        "Stoikov Pricing Model",
+        "Position Merging and Capital Recycling",
+        "Market Making as Risk-Neutral Strategy"
+      ]
+    },
+    {
+      "name": "Position Merging and Capital Recycling",
+      "category": "technique",
+      "description": "The practice of combining opposing YES and NO positions to free up locked capital without taking directional risk. When a market maker holds both YES and NO contracts, merging them cancels out the positions and returns the capital to be redeployed. This is not a loss -- it is an efficiency mechanism that keeps capital working. The Merge Phantom bot was dedicated entirely to this technique.",
+      "key_details": [
+        "Merge Phantom bot: +$9,830 PnL in 24 hours from pure position merging",
+        "Merging opposing positions frees locked capital for redeployment",
+        "Enables higher capital efficiency without increasing risk",
+        "Works because YES + NO contracts sum to $1 at resolution -- holding both is equivalent to holding cash minus the spread captured",
+        "Essential for high-frequency market makers who accumulate large positions on both sides",
+        "Combined with laddering strategies to create a full capital recycling loop"
+      ],
+      "source_items": [
+        "2039134585737400689"
+      ],
+      "relationships": [
+        "Inventory Risk Management",
+        "Market Making as Risk-Neutral Strategy",
+        "Liquidity Capture Strategy"
+      ]
+    },
+    {
+      "name": "Market Making as Risk-Neutral Strategy",
+      "category": "strategy",
+      "description": "The approach of profiting from bid-ask spreads without taking directional positions. Multiple sources demonstrate that the most consistently profitable Polymarket strategies avoid predicting outcomes entirely. Instead, they provide liquidity on both sides and profit from the structural spread. This approach transfers directional risk to other participants while the maker captures a small edge per fill across thousands of trades.",
+      "key_details": [
+        "Ladder Larry: +$12,450 from aggressive high-frequency laddering",
+        "Curve Alchemist: +$18,920 from non-linear order curves (best performer)",
+        "Merge Phantom: +$9,830 from capital recycling",
+        "All three bots: 'zero directional bets' -- pure order-book exploitation",
+        "CemeterySun wallet: $36.6M volume, 'tiny edge per trade, thousands of trades, market making on steroids'",
+        "poly-maker tool: Config through Google Sheets, includes gas optimization, both sides of book",
+        "1-cent ladders on YES and NO simultaneously -- the structural core of the approach",
+        "Key risk: FIFO queue priority and latency determine who gets best fills",
+        "'This isn't trading. This is structurally owning the platform.'"
+      ],
+      "source_items": [
+        "2039134585737400689",
+        "2039777322077933879",
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Inventory Risk Management",
+        "Position Merging and Capital Recycling",
+        "Stoikov Pricing Model",
+        "Latency and Execution Speed"
+      ]
+    },
+    {
+      "name": "Multi-Agent Consensus as Risk Control",
+      "category": "risk management",
+      "description": "Using multiple specialized AI agents that must agree before a trade is placed, functioning as a built-in doubt mechanism. The parliament system requires 3 of 5 agents to agree, with each agent analyzing through a different lens (geopolitics, macro, science, sports, crypto). This is not an ensemble for better prediction -- it is a risk filter that prevents overconfident single-model failures. The system reduced losses by refusing to enter markets where agents disagreed.",
+      "key_details": [
+        "5 agents, each with isolated context and specialized data sources",
+        "Minimum 3/5 consensus required to enter any position",
+        "Each agent returns confidence score (0-100) and detailed reasoning",
+        "Minority agents must produce dissent reports with specific sources",
+        "Results: Win rate 60% -> 74%, average loss size cut in half, +23% ROI improvement over single agent",
+        "47 markets over 14 days: single agent +$640, parliament +$1,120 with fewer bets",
+        "Science agent was most contrarian -- voted against 19/47 markets, was right 4/5 times when sole dissenter",
+        "Those 4 correct dissents saved $890 -- 'One dissenting agent was worth more than the entire rest of the system'",
+        "Data isolation is fundamental: if agents share the same information, they reach the same conclusion and the benefit disappears",
+        "Solves 'the classic single-agent overconfidence problem'",
+        "Inspired by observing that the 5 most profitable wallets 'almost never bet on the same thing at the same time'"
+      ],
+      "source_items": [
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Risk Management > Strategy Selection",
+        "Multi-Source Signal Confirmation",
+        "Overconfidence Bias"
+      ]
+    },
+    {
+      "name": "Multi-Source Signal Confirmation",
+      "category": "technique",
+      "description": "Requiring multiple independent data sources to confirm a signal before trading, as opposed to acting on a single indicator. The satellite bot uses 10 data sources where the number of confirming sources directly scales position size via dynamic Kelly. The parliament system uses 5 agents with different data feeds. The principle is identical: redundancy in signal detection reduces false positive rate and provides a natural confidence measure for sizing.",
+      "key_details": [
+        "Satellite bot: 10 sources (NASA FIRMS, OpenSky, USGS, exchange rates, VIX, gold, crypto fear/greed, weather, CoinGecko, Polymarket Gamma)",
+        "Signal quality scored by number of confirming sources out of total",
+        "1 source confirming = minimal position; 6+ sources = maximum conviction",
+        "Parliament system: 5 agents with isolated data feeds (diplomatic briefings, Fed minutes, whale alerts, etc.)",
+        "HF bot: Bayesian updates combine multiple price signals into one probability estimate",
+        "Latency arb: Cross-exchange confirmation (Binance price action confirms Polymarket mispricing)",
+        "Key insight: single-source signals produce the largest false positive rates and the worst risk-adjusted returns"
+      ],
+      "source_items": [
+        "2039282251159011513",
+        "2039342946416283925",
+        "2039777322077933879",
+        "2039427063812132866"
+      ],
+      "relationships": [
+        "Dynamic Kelly Sizing",
+        "Multi-Agent Consensus as Risk Control",
+        "Anomaly Detection"
+      ]
+    },
+    {
+      "name": "Backtesting Data Quality",
+      "category": "risk management",
+      "description": "The principle that backtesting infrastructure quality determines bot survival more than strategy quality. Out of 1,000+ bots built, 99% failed, with incomplete backtesting data identified as the primary cause. Most builders test with simplified price feeds and assume perfect execution, producing backtests that look profitable but fail immediately in live trading. The gap between simulated and actual fill behavior is the #1 cause of bot failure.",
+      "key_details": [
+        "1,000+ bots built, 99% failure rate -- data completeness was the differentiator, not strategy",
+        "Common mistake: using APIs, Binance data, or simplified price feeds and assuming that's enough",
+        "Missing critical data: order book depth, real spreads, actual fill behavior",
+        "Perfect execution assumption is already wrong -- leads to '40% fills live' complaints",
+        "Solution: Build a recorder that tracks every tick, price change, and full order book depth",
+        "Must record pre-window and post-window data because 'timing is where most of the edge comes from'",
+        "Need at least 1,000 windows for statistical confidence (~10 days on 15-minute markets)",
+        "Must record every external data source relied upon (NOAA, ESPN, Binance, Coinbase)",
+        "Satellite bot validation: 270 days of NASA data across 3 conflict zones, blind testing with no labels",
+        "Satellite bot caveat: 22 signals over 16 months is 'statistically proves nothing -- it's a proof of concept'",
+        "'No real data means no real edge. Just a strategy that works only in your imagination.'"
+      ],
+      "source_items": [
+        "2039055805626937399",
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Risk Management > Strategy Selection",
+        "Fill Simulation Accuracy",
+        "Continuation Bias"
+      ]
+    },
+    {
+      "name": "Fill Simulation Accuracy",
+      "category": "risk management",
+      "description": "The specific backtesting problem of accurately modeling order execution. Most bots assume every order fills at the displayed price, which never happens in practice. Real fills depend on order book depth, queue position (FIFO), latency, and slippage from own order impact. The gap between simulated and actual fills is the proximate cause of most bot failures.",
+      "key_details": [
+        "Biggest backtesting mistake: assuming perfect execution",
+        "Live bots commonly get only 40% fills vs 100% in backtest",
+        "Must simulate order book depth, not just price",
+        "FIFO queue position determines who gets the juiciest fills",
+        "Latency arb bot: sub-50ms latency on Binance WebSocket was critical for fill quality",
+        "Geopolitical markets: $2,000 order can move price 3-5% in thin liquidity",
+        "Satellite bot learned to cap position size at 2% of market volume to avoid slippage",
+        "Market makers: latency + FIFO queue decides fill quality -- this is an infrastructure competition"
+      ],
+      "source_items": [
+        "2039055805626937399",
+        "2039134585737400689",
+        "2039282251159011513",
+        "2039427063812132866"
+      ],
+      "relationships": [
+        "Backtesting Data Quality",
+        "Latency and Execution Speed",
+        "Liquidity Constraints"
+      ]
+    },
+    {
+      "name": "Latency and Execution Speed",
+      "category": "technique",
+      "description": "The role of execution speed as both a competitive advantage and a risk factor. The latency arb bot exploits the fact that Polymarket reprices slower than Binance (lag of seconds, down from 12+ seconds in 2024). It sits on Binance WebSocket with sub-50ms latency and executes against stale Polymarket prices. For market makers, FIFO queue position is determined by latency. As the latency gap closes, the edge degrades -- this is itself a risk that requires monitoring.",
+      "key_details": [
+        "Polymarket-Binance repricing lag: seconds (was 12+ in 2024, compressing over time)",
+        "Bot latency requirement: sub-50ms on Binance WebSocket",
+        "26,738 trades at $4-5K each, 98% win rate -- the edge is structural, not predictive",
+        "Edge degradation risk: as Polymarket improves, the latency window shrinks",
+        "Market makers: 'Latency + FIFO queue decides who gets the juiciest fills'",
+        "Satellite data: 4-6 hour delay from FIRMS means it's swing trading, not HFT",
+        "Different strategies have different latency requirements -- market making needs sub-second, satellite trading needs sub-hour"
+      ],
+      "source_items": [
+        "2039427063812132866",
+        "2039134585737400689",
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Fill Simulation Accuracy",
+        "Cross-Exchange Arbitrage",
+        "Market Making as Risk-Neutral Strategy"
+      ]
+    },
+    {
+      "name": "Liquidity Constraints",
+      "category": "risk management",
+      "description": "The risk that position size relative to market volume causes adverse price impact, turning a profitable signal into a losing trade. Geopolitical prediction markets on Polymarket often have only $10K-$100K total volume. A $2,000 order in these thin markets can move the price 3-5%, destroying the expected edge. This is a risk management concern that must be addressed at the sizing level.",
+      "key_details": [
+        "Geopolitical markets: $10K-$100K total volume common",
+        "$2,000 order can move price 3-5% in thin markets",
+        "Rule: Cap position size at 2% of market volume",
+        "Must check liquidity before every entry",
+        "Non-linear order curves outperform flat ladders specifically because they adapt to depth",
+        "Top wallets trade high-volume markets or use strategies (market making) that add liquidity rather than take it",
+        "Liquidity is a constraint on Kelly sizing -- the mathematically optimal size may be larger than the market can absorb"
+      ],
+      "source_items": [
+        "2039282251159011513",
+        "2039134585737400689"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Fill Simulation Accuracy",
+        "Dynamic Kelly Sizing"
+      ]
+    },
+    {
+      "name": "Anomaly Detection",
+      "category": "technique",
+      "description": "Statistical technique for identifying unusual patterns that may signal tradeable events. The satellite bot uses a 14-day rolling average baseline with a 3x threshold: if today's fire count exceeds 3x the 14-day average, it flags an anomaly. The technique detected October 7 (11x anomaly), the Kursk offensive 4 days early, and Assad's fall 3 weeks early. However, it has a critical failure mode: continuation bias, where the anomaly becomes the new baseline.",
+      "key_details": [
+        "Baseline: 14-day rolling average per region",
+        "Threshold: 3x baseline = anomaly flag",
+        "Gaza Oct 7: 6.4 fires/day baseline -> 69 fires = 11.1x anomaly",
+        "Kursk: 0 fires/day baseline -> 16 fires = infinite anomaly (flagged 4 days before official offensive)",
+        "Syria: Subtle 2.1-2.4x signals over 3 weeks before Assad's fall",
+        "22 total signals detected blind across 270 days and 3 conflict zones",
+        "Critical failure: Continuation bias -- 5 losses came from buying Kursk after baseline caught up to permanently elevated fire counts",
+        "Fix: Skip signals where baseline itself has tripled in last 7 days",
+        "Anomaly detection works for the FIRST spike, not continuation",
+        "Fire Radiative Power (FRP) in megawatts provides intensity confirmation beyond raw count"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Dynamic Kelly Sizing",
+        "Multi-Source Signal Confirmation",
+        "Continuation Bias",
+        "Backtesting Data Quality"
+      ]
+    },
+    {
+      "name": "Continuation Bias",
+      "category": "risk management",
+      "description": "The specific failure mode where a system keeps trading a signal after the edge has disappeared because the anomalous condition has become the new normal. All 5 losses in the satellite bot came from this single mistake: buying Kursk signals after the region became permanently on fire. The anomaly detection still triggered (fires were above 3x original baseline) but the baseline itself had shifted -- the market had already priced in the conflict.",
+      "key_details": [
+        "All 5 satellite bot losses traced to this single cause",
+        "Mechanism: Region goes from 0 fires/day to permanently elevated -- 3x original baseline still triggers but edge is gone",
+        "Market has already repriced the ongoing conflict -- no information advantage remains",
+        "Fix: If baseline itself has tripled in last 7 days, skip the signal",
+        "General principle: First spike = tradeable edge; continuation = priced in",
+        "Analogous to trend-following decay in traditional markets",
+        "Must be addressed at the signal level, not the sizing level -- no amount of Kelly adjustment fixes a fundamentally priced-in signal"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Anomaly Detection",
+        "Per-Trade Exit Rules",
+        "Backtesting Data Quality"
+      ]
+    },
+    {
+      "name": "Cognitive Biases in Trading",
+      "category": "risk management",
+      "description": "A catalog of psychological failure modes that destroy trading performance regardless of strategy quality. These are mental risk factors that require systematic controls (automation, formulas, consensus mechanisms) to mitigate because human judgment reliably fails under these conditions.",
+      "key_details": [
+        "Base Rate Neglect: 99% accurate test on 0.1% event = only 9% true positive. 'Looks likely' != 'is likely'",
+        "Sunk Cost Fallacy: Bought at 70c, dropped to 40c. Only question: would you buy at 40c right now with cash?",
+        "Survivorship Bias: 87% of wallets are red, but you never see their screenshots. When someone posts +$50K, ask where the other 13,000 went",
+        "Copying Without Filtering: Wallet with 91% win rate on crypto and 15% on politics -- copying everything = net negative. Filter by category",
+        "Overfitting: 'Every time X happens, market goes up' based on 3 examples is noise, not signal",
+        "Overconfidence: Single-agent AI models don't know how to doubt -- 'wrong with the same confidence as when right'",
+        "Parliament system specifically designed to counter overconfidence through mandatory dissent",
+        "Automation via Kelly/kill switch/exit rules removes human judgment from execution"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Multi-Agent Consensus as Risk Control",
+        "Risk Management > Strategy Selection",
+        "Kelly Criterion Position Sizing"
+      ]
+    },
+    {
+      "name": "Overconfidence Bias",
+      "category": "risk management",
+      "description": "The specific cognitive bias where a trading agent (human or AI) assigns high confidence to both correct and incorrect predictions indiscriminately. This was identified as 'the classic single-agent overconfidence problem' -- a single AI model produces answers with uniform confidence regardless of actual accuracy. The parliament system was designed specifically to counter this by introducing mandatory adversarial validation.",
+      "key_details": [
+        "Single agent: right 60% of the time, but the 40% wrong ate all profit because of equal-confidence wrong calls",
+        "AI models 'do not know how to doubt if nobody argues with them'",
+        "Solution: Multi-agent parliament with mandatory dissent reports",
+        "The science agent's contrarian behavior (voting against 19/47 markets) was the most valuable risk signal",
+        "Data isolation between agents is critical -- shared information produces shared blind spots",
+        "Human equivalent: 'Most traders form an opinion and defend it to the death'",
+        "Kelly sizing partially addresses this (lower confidence = smaller bet) but doesn't prevent consistently miscalibrated confidence"
+      ],
+      "source_items": [
+        "2039342946416283925",
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Multi-Agent Consensus as Risk Control",
+        "Cognitive Biases in Trading",
+        "Dynamic Kelly Sizing"
+      ]
+    },
+    {
+      "name": "Security as Risk Management",
+      "category": "risk management",
+      "description": "Operational security controls for automated trading systems. In December 2025, a malicious GitHub repo (polymarket-copy-trading-bot) contained working code with a hidden dependency that exfiltrated private keys from .env files. 664 malicious repos existed on GitHub at time of writing, with 14,285 downloads before detection. Security failures can result in total loss of capital -- a risk orthogonal to market risk but equally destructive.",
+      "key_details": [
+        "December 2025: Malicious repo with professional README, working code, real API connections -- exfiltrated private keys",
+        "664 malicious repos on GitHub at time of reporting",
+        "14,285 people downloaded malware before it was flagged",
+        "Rule: NEVER use main wallet -- dedicated wallet with minimal funds",
+        "Rule: Audit every dependency -- pip list, Google suspicious packages",
+        "Rule: Repos created after Feb 2026 with 500+ stars are likely star-farmed",
+        "Rule: Use Revoke.cash to limit USDC approvals -- never unlimited",
+        "Rule: Start with $100-300, scale only after 2 weeks of verified operation",
+        "Private key management is the single point of failure in automated trading"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Risk Management > Strategy Selection",
+        "Gradual Scaling Protocol"
+      ]
+    },
+    {
+      "name": "Gradual Scaling Protocol",
+      "category": "risk management",
+      "description": "The practice of starting with minimal capital and scaling up only after sustained verified performance. Every source that discusses deployment recommends starting small. The satellite bot started at $500. The 14K wallet guide recommends $100-300. The general principle is paper trade first, then minimal live capital, then scale after statistical significance is established.",
+      "key_details": [
+        "Satellite bot: Started at $500, grew to $7,778 across 16 trades",
+        "General recommendation: Start with $100-300",
+        "Paper trade / dry-run mode first -- satellite bot has --dry-run flag by default",
+        "Scale after 2 weeks of verified live operation",
+        "200+ trades before considering strategy validated (from wallet analysis guide)",
+        "1,000+ windows for statistical confidence in backtesting",
+        "Latency arb started at $313 -- small enough that total loss was survivable",
+        "Scaling should follow demonstrated edge, not projected returns"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2039282251159011513",
+        "2039427063812132866"
+      ],
+      "relationships": [
+        "Security as Risk Management",
+        "Backtesting Data Quality",
+        "Risk Management > Strategy Selection"
+      ]
+    },
+    {
+      "name": "Cross-Exchange Arbitrage",
+      "category": "strategy",
+      "description": "Exploiting price discrepancies between venues where one reprices faster than another. The latency arb bot watches BTC on Binance and trades crypto UP/DOWN contracts on Polymarket. When BTC drops 0.6% on Binance, the DOWN contract should be ~78% but Polymarket still shows 54%. The bot buys at 54c and the orderbook catches up seconds later. This is a structural edge rather than a predictive one, but it degrades as the slower venue improves its pricing speed.",
+      "key_details": [
+        "Mechanism: Read confirmed price action on fast venue, execute against stale pricing on slow venue",
+        "Example: BTC drops 0.6% on Binance, DOWN should be ~78%, Polymarket still shows 54% -> buy at 54c",
+        "Binance WebSocket: sub-50ms latency for price detection",
+        "Polymarket CLOB API: Execution against stale orderbook",
+        "Lag was 12+ seconds in 2024, now compressed to 'a few seconds'",
+        "Results: $313 to $2.38M, 26,738 trades, 98% win rate",
+        "Fixed position size: $4-5K per trade (not dynamic Kelly -- constant size with fractional Kelly cap)",
+        "Risk: Edge degrades as Polymarket infrastructure improves",
+        "Risk managed by: Fractional Kelly sizing + -40% kill switch"
+      ],
+      "source_items": [
+        "2039427063812132866"
+      ],
+      "relationships": [
+        "Kill Switch / Hard Drawdown Limit",
+        "Kelly Criterion Position Sizing",
+        "Latency and Execution Speed",
+        "Fill Simulation Accuracy"
+      ]
+    },
+    {
+      "name": "Liquidity Capture Strategy",
+      "category": "strategy",
+      "description": "A family of market-making approaches focused on capturing structural edges from orderbook mechanics rather than directional prediction. Includes laddering (1-cent increments on both sides), non-linear volume curves (heavier at certain price levels), and position merging. The key insight is that price movement itself creates the edge -- as price moves, the maker is automatically loaded heavier on the winning side through structural imbalance.",
+      "key_details": [
+        "Three bot variants tested head-to-head over 24 hours",
+        "Ladder Larry: Aggressive high-frequency 1-cent ladders on YES+NO simultaneously, +$12,450",
+        "Curve Alchemist: Non-linear order curves (heavier volume at certain levels), +$18,920 (best performer)",
+        "Merge Phantom: Position merging and capital recycling, +$9,830",
+        "Non-linear curves beat flat ladders: 'flat ladders get eaten alive'",
+        "Structural imbalance: Price moves automatically load maker heavier on winning side",
+        "YES + NO < 100c = the structural edge (always true on Polymarket due to bid-ask spreads)",
+        "Reference: One BTC bot did +$2.3M in 4 months using similar approach",
+        "'They didn't try to predict the winner. They simply became the house.'"
+      ],
+      "source_items": [
+        "2039134585737400689"
+      ],
+      "relationships": [
+        "Market Making as Risk-Neutral Strategy",
+        "Inventory Risk Management",
+        "Position Merging and Capital Recycling",
+        "Latency and Execution Speed"
+      ]
+    },
+    {
+      "name": "Confidence-Weighted Sizing",
+      "category": "technique",
+      "description": "The practice of varying position size based on the quality of the signal, not just the mathematical edge. This appears in multiple forms: the parliament's confidence scores (0-100 per agent), the satellite bot's dynamic Kelly (scaling with anomaly magnitude and confirmation count), and the wallet analysis guide's EV threshold (skip anything under 5%). The unifying principle is that not all edges deserve equal capital allocation.",
+      "key_details": [
+        "Parliament: Each agent returns 0-100 confidence score alongside vote",
+        "Satellite: Kelly fraction = f(anomaly_ratio, confirming_sources)",
+        "EV filter: Hard 5% minimum edge before any capital deployed",
+        "Quarter Kelly as default even when edge appears large",
+        "Wallet analysis: Filter copied strategies by category-specific win rate (91% crypto vs 15% politics)",
+        "False positives are cheap (satellite: $41 loss) because low-confidence signals get tiny sizing",
+        "True positives are maximized because high-confidence signals get large sizing",
+        "The asymmetry between cheap false positives and large true positives IS the edge"
+      ],
+      "source_items": [
+        "2039342946416283925",
+        "2039282251159011513",
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Dynamic Kelly Sizing",
+        "Kelly Criterion Position Sizing",
+        "Multi-Agent Consensus as Risk Control",
+        "Expected Value Filter"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Position Sizing Mathematics",
+      "description": "The mathematical foundations for determining how much capital to allocate per trade. This theme encompasses the Kelly Criterion and its variants (fractional, quarter, dynamic), Expected Value calculation as a prerequisite filter, and Bayesian updating as the probability estimation method that feeds into sizing formulas. The core tension is between mathematically optimal sizing (Full Kelly) and practically survivable sizing (Quarter Kelly or dynamic fractions).",
+      "concept_names": [
+        "Kelly Criterion Position Sizing",
+        "Expected Value Filter",
+        "Bayesian Probability Updating",
+        "Dynamic Kelly Sizing",
+        "Confidence-Weighted Sizing"
+      ]
+    },
+    {
+      "name": "Portfolio-Level Safety Controls",
+      "description": "Meta-risk controls that operate above individual trade decisions. Kill switches halt all trading at a drawdown threshold. Per-trade exit rules (take profit, stop loss, time stop) prevent individual positions from causing outsized damage. Multi-agent consensus prevents entry into low-conviction trades. Together these form a layered defense: EV filter -> consensus gate -> Kelly sizing -> per-trade stops -> portfolio kill switch.",
+      "concept_names": [
+        "Kill Switch / Hard Drawdown Limit",
+        "Per-Trade Exit Rules",
+        "Multi-Agent Consensus as Risk Control",
+        "Risk Management > Strategy Selection",
+        "Gradual Scaling Protocol"
+      ]
+    },
+    {
+      "name": "Market Making Risk Architecture",
+      "description": "Risk management techniques specific to market-making strategies where the goal is spread capture rather than directional prediction. Stoikov pricing manages inventory risk through a mathematical penalty. Position merging recycles locked capital. Non-linear order curves adapt to orderbook depth. Structural imbalance naturally hedges directional exposure. These techniques transform what could be dangerous inventory accumulation into systematic profit extraction.",
+      "concept_names": [
+        "Stoikov Pricing Model",
+        "Inventory Risk Management",
+        "Position Merging and Capital Recycling",
+        "Market Making as Risk-Neutral Strategy",
+        "Liquidity Capture Strategy"
+      ]
+    },
+    {
+      "name": "Signal Quality and Confirmation",
+      "description": "Methods for assessing signal reliability before committing capital. Multi-source confirmation (10 data feeds in satellite bot, 5 agents in parliament) reduces false positive rate. Anomaly detection with baseline comparison identifies genuine departures from normal. Continuation bias represents the failure mode where signal quality degrades but the system doesn't recognize it. The number of confirming sources directly drives position size through dynamic Kelly.",
+      "concept_names": [
+        "Multi-Source Signal Confirmation",
+        "Anomaly Detection",
+        "Continuation Bias",
+        "Overconfidence Bias",
+        "Backtesting Data Quality"
+      ]
+    },
+    {
+      "name": "Execution and Operational Risk",
+      "description": "Risk factors that exist between signal generation and profit realization. Latency determines fill quality and whether the edge even exists. Liquidity constraints limit maximum position size. Fill simulation accuracy determines whether backtests predict live performance. Security vulnerabilities (malicious repos, private key exfiltration) can cause total capital loss. These operational concerns are often more important than strategy sophistication.",
+      "concept_names": [
+        "Latency and Execution Speed",
+        "Liquidity Constraints",
+        "Fill Simulation Accuracy",
+        "Security as Risk Management",
+        "Cross-Exchange Arbitrage"
+      ]
+    },
+    {
+      "name": "Psychological and Behavioral Risk",
+      "description": "Human cognitive biases that systematically degrade trading performance. Base rate neglect, sunk cost fallacy, survivorship bias, overfitting, and overconfidence all appear in the source material. The multi-agent parliament and automated Kelly/kill switch systems are explicitly designed as engineering solutions to human psychological failures. The principle is that risk management must be systematic and automated because human judgment reliably fails under the conditions trading creates.",
+      "concept_names": [
+        "Cognitive Biases in Trading",
+        "Overconfidence Bias",
+        "Risk Management > Strategy Selection"
+      ]
+    }
+  ],
+  "key_findings": [
+    {
+      "finding": "Risk management infrastructure is the primary determinant of trading bot survival and profitability, not strategy sophistication. The Claude vs OpenClaw comparison proves this definitively: same market, same timeframe, same starting capital -- the bot with Kelly sizing and a kill switch returned +1,322% while the bot without risk controls was liquidated to zero.",
+      "supporting_items": [
+        "2039305824590246144",
+        "2039055805626937399",
+        "2038622884642398503"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Fractional Kelly (Quarter Kelly or dynamic Kelly) is universally preferred over Full Kelly across all 5 sources that use Kelly sizing. Full Kelly is mathematically optimal for long-run growth but '50 years of real trading proves Full Kelly destroys you emotionally before the math pays off.' Every profitable implementation uses a fraction, typically 25% or a dynamic fraction scaled by signal quality.",
+      "supporting_items": [
+        "2038622884642398503",
+        "2039282251159011513",
+        "2039427063812132866",
+        "2039777322077933879",
+        "2039305824590246144"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Dynamic Kelly sizing that scales with signal quality produces better risk-adjusted returns than fixed fractional Kelly. The satellite bot's approach of scaling Kelly fraction by (anomaly_ratio * confirming_sources) created a natural asymmetry: false alarms cost $41 while true signals returned $470. This asymmetry IS the edge -- cheap wrong bets and expensive right bets.",
+      "supporting_items": [
+        "2039282251159011513"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "finding": "Backtesting data quality -- not strategy quality -- determines the 99% failure rate of trading bots. The most common failure is assuming perfect execution (100% fills at displayed price) when live bots get only 40% fills. Missing order book depth, real spreads, and actual fill behavior makes backtests useless. The fix is building a comprehensive market data recorder.",
+      "supporting_items": [
+        "2039055805626937399"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Multi-agent consensus voting (parliament model) acts as a powerful risk filter that improved win rate from 60% to 74% and cut average loss size in half. The most valuable signal was not majority agreement but minority dissent: the science agent's contrarian votes (correct 4 out of 5 times when sole dissenter) saved $890, worth more than the rest of the system combined.",
+      "supporting_items": [
+        "2039342946416283925"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "finding": "Market-making strategies that avoid directional bets and instead capture structural spreads (YES + NO < 100c) produce consistently profitable results with inherently lower risk than directional strategies. All three competing liquidity bots were profitable over 24 hours with zero directional exposure, and the approach is described as 'structurally owning the platform' rather than trading.",
+      "supporting_items": [
+        "2039134585737400689",
+        "2039777322077933879"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "A layered risk architecture with multiple independent controls outperforms any single risk measure. The most successful bots combine: EV filter (skip < 5% edge) -> multi-source confirmation -> Kelly sizing -> per-trade stops (take profit, stop loss, time stop) -> portfolio kill switch. Each layer catches failures that other layers miss.",
+      "supporting_items": [
+        "2039305824590246144",
+        "2039282251159011513",
+        "2038622884642398503",
+        "2039427063812132866"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "87% of Polymarket wallets are in the red, with the top 20 wallets capturing more profit than the bottom 13,000 combined. The differentiator is 'mathematical edge + automation' -- not insider information or luck. The top 0.1% extracted $3.7B, demonstrating extreme concentration of returns that favors systematic approaches.",
+      "supporting_items": [
+        "2038622884642398503"
+      ],
+      "confidence": "high"
+    },
+    {
+      "finding": "Anomaly detection is effective for first-spike signals but has a critical failure mode (continuation bias) where the anomaly becomes the new normal. All 5 losses in the satellite bot came from this single cause. The fix is a meta-filter: skip signals where the baseline itself has tripled in the last 7 days.",
+      "supporting_items": [
+        "2039282251159011513"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "finding": "Operational security is an underappreciated risk dimension: 664 malicious GitHub repos targeting crypto traders existed at the time of writing, with 14,285 downloads before detection. A single malicious dependency can exfiltrate private keys and cause total capital loss, making security controls a risk management necessity, not an optional precaution.",
+      "supporting_items": [
+        "2038622884642398503"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "knowledge_gaps": [
+    {
+      "gap": "No rigorous statistical comparison of fractional Kelly percentages (Quarter Kelly vs Half Kelly vs Third Kelly) across different strategy types. The Quarter Kelly recommendation is stated as conventional wisdom but not empirically justified within the source material.",
+      "potential_sources": "Academic papers on Kelly criterion variants (Thorp, MacLean, Ziemba); simulation studies comparing fractional Kelly percentages across different win rate / payoff ratio combinations."
+    },
+    {
+      "gap": "Kill switch threshold selection lacks quantitative guidance. The -40% threshold used by the latency arb bot is the only concrete number. How should the threshold vary by strategy type, volatility regime, or bankroll size? No systematic framework is provided.",
+      "potential_sources": "Max drawdown analysis from quantitative finance; Monte Carlo simulations of drawdown distributions for different strategy types; hedge fund risk management literature on drawdown-based portfolio insurance."
+    },
+    {
+      "gap": "Sample sizes across all sources are insufficient for statistical confidence. The satellite bot has 16 trades, the parliament has 47 markets over 14 days, the MIT comparison is a single 48-hour experiment. None of these constitute statistically significant validation of the risk management techniques.",
+      "potential_sources": "Extended live trading records from the same wallets; Monte Carlo forward-testing of the strategies; academic prediction market datasets with larger sample sizes (e.g., PredictIt, Metaculus historical data)."
+    },
+    {
+      "gap": "No discussion of correlation risk -- what happens when multiple positions fail simultaneously. The kill switch addresses this at the portfolio level, but there is no analysis of how correlated Polymarket positions are, especially within categories (e.g., multiple crypto markets all moving with BTC).",
+      "potential_sources": "Correlation analysis of Polymarket contract returns; portfolio theory applied to prediction market positions; analysis of how platform-wide events (e.g., USDC depeg, platform outage) affect all positions simultaneously."
+    },
+    {
+      "gap": "The interaction between Kelly sizing and liquidity constraints is not formally modeled. Kelly might prescribe a 30% bankroll position, but if that exceeds 2% of market volume, the resulting slippage destroys the edge. No unified framework combines sizing with market impact.",
+      "potential_sources": "Almgren-Chriss optimal execution model adapted to prediction markets; market impact studies on CLOB-style orderbooks; Polymarket-specific depth and slippage analysis."
+    },
+    {
+      "gap": "No analysis of regime change detection -- how to recognize when a strategy's edge has structurally disappeared (beyond the specific continuation bias fix for anomaly detection). The latency arb bot's edge is explicitly compressing over time, but no framework exists for detecting when to shut down.",
+      "potential_sources": "Change point detection algorithms; CUSUM or Page-Hinkley tests on rolling performance metrics; adaptive Kelly methods that incorporate regime uncertainty."
+    }
+  ],
+  "open_questions": [
+    {
+      "question": "What is the optimal kill switch threshold for different strategy types? Should a market-making bot (low per-trade risk, high frequency) use a different threshold than a directional geopolitical bot (high per-trade risk, low frequency)?",
+      "relevance": "The -40% threshold is the only data point. Too tight and the bot stops during normal drawdowns; too loose and it fails to prevent catastrophic loss. Strategy-specific calibration could significantly improve risk-adjusted returns."
+    },
+    {
+      "question": "How should the number of multi-agent parliament members and the consensus threshold be optimized? Is 3/5 the right ratio, or would 4/7 or 2/3 produce better results? What is the relationship between consensus threshold and win rate vs. number of trades taken?",
+      "relevance": "Higher thresholds increase win rate but reduce the number of trades entered. There is likely an optimal point where risk-adjusted return (not just win rate) is maximized, but it's not explored."
+    },
+    {
+      "question": "Can the dynamic Kelly approach (scaling with signal quality) be formally unified with the parliament consensus approach? Could confidence scores from multiple agents feed directly into a Kelly formula that adjusts both for edge estimate uncertainty and signal quality?",
+      "relevance": "Currently these are separate systems (satellite bot uses dynamic Kelly on source count; parliament uses vote threshold as a binary gate). Unifying them could produce a more principled sizing framework."
+    },
+    {
+      "question": "What is the minimum number of trades required to distinguish genuine edge from luck for each strategy type? The satellite bot acknowledges 16 trades 'proves nothing statistically.' What sample size would be required for each strategy's win rate and payoff distribution?",
+      "relevance": "Without this answer, it's impossible to know whether any of these risk management approaches are genuinely validated or merely surviving on insufficient sample sizes."
+    },
+    {
+      "question": "How should risk management adapt as Polymarket's infrastructure matures and latency gaps close? The latency arb edge was 12+ seconds in 2024, now 'a few seconds.' At what point does the edge fall below the threshold where even fractional Kelly can't produce positive returns?",
+      "relevance": "Edge degradation over time is an existential risk for structural strategies. A framework for detecting and responding to this degradation is critical for long-term survival."
+    },
+    {
+      "question": "Is there a systematic way to detect and handle correlated risk across multiple prediction market positions? If BTC crashes and all crypto UP/DOWN markets move simultaneously, how should position limits be set across correlated contracts?",
+      "relevance": "Most risk management in the sources is at the individual position level. Portfolio-level correlation risk could cause simultaneous losses that exceed individual position controls."
+    },
+    {
+      "question": "What is the real-world fill rate distribution on Polymarket's CLOB, and how does it vary by market category, time of day, and order size? The claim that live bots get only 40% fills needs quantification.",
+      "relevance": "Fill rate directly determines whether backtested edges survive in production. Without accurate fill rate data by category and size, all backtest results are unreliable."
+    },
+    {
+      "question": "Could the parliament's dissent mechanism be quantified as a risk metric? The science agent's contrarian accuracy (4/5 when sole dissenter) suggests minority opinion has outsized predictive value. Could dissent strength be incorporated into Kelly sizing?",
+      "relevance": "Currently dissent is binary (read it or don't). If dissent intensity or dissenter track record were quantified, it could serve as a risk adjustment factor in the sizing formula."
+    }
+  ]
+}

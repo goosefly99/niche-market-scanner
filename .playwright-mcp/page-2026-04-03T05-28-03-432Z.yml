@@ -1,0 +1,22 @@
+- generic [ref=e2]:
+  - generic:
+    - generic:
+      - heading "To view keyboard shortcuts, press question mark View keyboard shortcuts" [level=2] [ref=e3]:
+        - generic [ref=e4]: To view keyboard shortcuts, press question mark
+        - link "View keyboard shortcuts" [ref=e5] [cursor=pointer]:
+          - /url: /i/keyboard_shortcuts
+      - generic:
+        - generic:
+          - button [ref=e8] [cursor=pointer]:
+            - img [ref=e9]
+          - img [ref=e16] [cursor=pointer]
+      - generic [ref=e18]:
+        - banner [ref=e19]:
+          - generic [ref=e21]:
+            - button "Exit" [ref=e23] [cursor=pointer]:
+              - img [ref=e25]
+            - button "Bookmark" [ref=e29] [cursor=pointer]:
+              - img [ref=e31]
+        - main [ref=e34]:
+          - progressbar [ref=e40]:
+            - img [ref=e42]

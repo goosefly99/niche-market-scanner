@@ -1,0 +1,690 @@
+{
+  "spec_id": "95de804a-178d-4927-9805-401029974c4b",
+  "title": "Cross-Exchange Latency Arbitrage Bot",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-04",
+  "version": "3.1",
+  "status": "validated",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039427063812132866",
+      "title": "Cross-exchange latency arb ($313 to $2.38M)",
+      "relevance": "Primary source: the 0x8dxd bot mechanics -- $313 to $2.38M, 98% win rate, cross-exchange latency exploitation, fractional Kelly + kill switch"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2037604599398322682",
+      "title": "0x8dxd bot comprehensive guide",
+      "relevance": "Comprehensive guide covering all 4 bot strategy tiers, pricing lag mechanism, Kelly risk management, step-by-step build guide"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039776473687494784",
+      "title": "PHANTOM X multi-strategy bot",
+      "relevance": "PHANTOM X: $1.18 to $3.3M across 37K trades, three complementary strategies (pairs+sentiment+calendar), cross-platform Kalshi+Polymarket -- the only documented bot with confirmed Kalshi execution"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039640437057564810",
+      "title": "Short-term mispricing extraction (stargate5)",
+      "relevance": "Stargate5: $165K profit from 16,279 micro-trades on 5-15min windows with >6% mispricing threshold -- simpler variant not requiring sub-50ms infrastructure"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039373347696328738",
+      "title": "Autonomous agent with wallet analysis + Kelly",
+      "relevance": "Autonomous agent pipeline: 10K wallet analysis, multi-signal synthesis, $25 to $4,237 overnight -- validates end-to-end automation with Claude"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038608348958834926",
+      "title": "Taleb/Simons/Soros wallet archetypes",
+      "relevance": "Strategy archetype taxonomy: Taleb (barbell), Simons (statistical arb), Soros (information edge) -- maps latency arb to Simons, news-driven to Soros"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2018453276279070952",
+      "title": "HFT bot tutorial with Claude prompt",
+      "relevance": "Personal build account with exact Claude prompt, async WebSocket architecture, risk parameters (0.5% per trade, 2% daily loss)"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039305824590246144",
+      "title": "MIT professor comparison: Claude vs OpenClaw, $1K each, 48h on prediction markets.",
+      "relevance": "Claude vs OpenClaw head-to-head proving risk management > strategy -- Kelly sizing + kill switch was the differentiator (+1,322% vs liquidation)"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039746395100377447",
+      "title": "Bot trading crypto UP/DOWN options on 5/15-min timeframes.",
+      "relevance": "Cost averaging and break-even exit mechanics for when arb fails -- complementary risk approach"
+    },
+    {
+      "collection": "overviews",
+      "item_id": "e4733c0f",
+      "title": "Cross-Exchange Latency Arbitrage & Price Lag Exploitation (Knowledge Overview)",
+      "relevance": "v3.0 upgrade source: synthesizes 7 primary sources into structured concepts, themes, key findings, and knowledge gaps covering edge compression dynamics, multi-strategy diversification, autonomous agent pipelines, and Kalshi platform adaptation requirements"
+    }
+  ],
+  "overview": {
+    "description": "A multi-strategy Python trading bot that exploits structural pricing lags between centralized exchange spot prices (Binance BTC/ETH WebSocket feeds) and CFTC-regulated Kalshi event contract odds, designed for progressive strategy evolution as individual edges compress. The primary strategy is CEX-to-prediction-market latency arbitrage (Simons archetype: win rate to be empirically determined during Phase 1; historical Polymarket data suggests 85-98% under 2024 conditions, but Kalshi's regulated market structure with institutional market makers may produce significantly lower rates), complemented by two secondary strategies drawn from the PHANTOM X model: YES/NO pairs spread arbitrage and news/sentiment-driven positioning (Soros archetype: 60-75% win rate). This multi-strategy architecture is motivated by the irreversible edge compression documented across all sources: the repricing lag compressed from ~12 seconds in 2024 to ~2.7 seconds by Q1 2026, and single-strategy systems dependent on one compressing edge face existential risk. PHANTOM X ($1.18 to $3.3M, 37K trades, 71% win rate) demonstrated that multi-strategy diversification across uncorrelated edges produces more sustainable returns than any single strategy. Kalshi is a CFTC-regulated event contract exchange fully legal for US residents, offering binary YES/NO contracts priced 1-99 cents (API uses integer cents 0-10000) on a central limit order book. Contract categories span crypto price thresholds, weather, economics, politics, and more. Settlement is in USD cash (no crypto wallets, no blockchain, no gas fees). Authentication uses RSA-PSS key-pair signing on every request (stateless, no login endpoint, no tokens). An API key is generated at Kalshi Settings, returning a key ID and a private key PEM file. Every request is signed by concatenating the timestamp in milliseconds, HTTP method, and path (without query params), then signing with RSA-PSS (SHA-256, MGF1-SHA256, salt_length=DIGEST_LENGTH) and Base64-encoding the result. Three headers are required: KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE. Critical Kalshi knowledge gaps to resolve during Phase 1 include: exact cancel lag characteristics for crypto contracts -- defined as the time stale limit orders remain on Kalshi's book after a CEX price move before market makers cancel them, which determines the exploitable window (unknown whether comparable to historical 2-12s repricing window on other platforms), fee structure impact on minimum viable edge thresholds (Kalshi uses taker/maker fee formulas, not settlement fees), orderbook liquidity depth across contract categories, WebSocket update frequency and batching behavior, and CFTC compliance assessment for automated trading on a DCM. The architecture is informed by the autonomous agent pipeline (wallet analysis of 10K wallets to reverse-engineer strategies, multi-signal synthesis, autonomous execution) and incorporates its methodology as a Kalshi-specific research phase before live deployment. Based on the documented 0x8dxd strategy ($313 to $2.38M, 26,738 trades, 98% win rate), PHANTOM X ($1.18 to $3.3M, 37K trades, 71% win rate across three strategies), Stargate5 ($165K from 16,279 micro-trades), and the autonomous agent ($25 to $4,237 overnight), all adapted for Kalshi's regulated infrastructure. Risk management uses the universal three-primitive framework shared across all documented profitable systems: fractional Kelly position sizing, -40% drawdown kill switch, and configurable edge threshold filtering.",
+    "objectives": [
+      "Maintain persistent async WebSocket connections to Binance for BTC and ETH real-time price streams with sub-50ms message receipt latency",
+      "Continuously monitor Kalshi crypto-price event contracts (BTC/ETH above/below threshold markets) via REST API polling and WebSocket orderbook streaming",
+      "Compute implied fair probability from CEX price movements using a momentum-persistence model calibrated to short-duration contract windows",
+      "Detect divergence between implied fair probability and current Kalshi contract odds exceeding configurable threshold (default: 3% for latency arb, 6% for mispricing extraction)",
+      "Size positions using fractional Kelly criterion (f* = (bp - q) / b, applied at 25-50% fraction) capped at 8% of total portfolio per single trade",
+      "Execute limit orders via Kalshi REST API at stale pricing within 100ms of divergence detection",
+      "Enforce hard risk limits: 0.5% max capital per trade (conservative mode), 2% daily loss limit, -40% total drawdown kill switch with immediate position flattening",
+      "Support paper trading mode via Kalshi demo environment (demo-api.kalshi.co) with identical logic path for validation before live deployment",
+      "Log all trades, signals, risk events, and latency metrics for post-session analysis and strategy calibration",
+      "Send real-time alerts via Telegram on trade execution, risk threshold breaches, and kill switch activation",
+      "Implement YES/NO pairs spread arbitrage (PHANTOM X Strategy 1): detect when combined YES+NO contract cost is below $1.00, capturing guaranteed spread profit",
+      "Implement news/sentiment-driven positioning module (PHANTOM X Strategy 2 / Soros archetype): ingest real-time news feeds, map breaking information to open Kalshi event contracts across all categories (crypto, weather, economics, politics), and execute when sentiment-implied probability diverges from market odds by >5%",
+      "Conduct Kalshi-specific wallet/market analysis (autonomous agent methodology): analyze top Kalshi traders, order flow patterns, and repricing lag characteristics to calibrate strategy parameters empirically before live deployment",
+      "Monitor and report edge compression metrics: track repricing lag duration, fill competition, and edge profitability over time to trigger strategy tier transitions (latency arb -> mispricing extraction -> pairs arb -> news-driven) as individual edges decay"
+    ],
+    "constraints": [
+      "Sub-100ms end-to-end latency from Binance price update receipt to Kalshi order submission for the latency arbitrage strategy",
+      "Must handle Binance WebSocket reconnection gracefully without missing price updates during reconnect window",
+      "Kalshi API rate limits must be respected -- order submission rate must stay within platform limits (exact limits to be determined during Phase 1 API exploration)",
+      "Only trade contracts with sufficient orderbook depth to ensure clean entry and exit without excessive slippage",
+      "Kalshi API key ID and private key PEM path must never be hardcoded -- loaded exclusively from environment variables (KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PATH)",
+      "Kalshi is CFTC-regulated and requires full KYC (SSN, government ID verification) before trading with real capital. Demo environment available for development and testing without KYC",
+      "The arbitrage window between CEX price movements and Kalshi repricing is unknown and must be empirically measured during Phase 1. Historical Polymarket data shows compression from 12s (2024) to ~2.7s (Q1 2026) but Kalshi's market structure may produce different lag profiles",
+      "Must support graceful shutdown: no orphaned orders, all positions tracked, state persisted to disk",
+      "Kalshi per-market position limits (typically $25K-$100K notional) must be queried and enforced per contract",
+      "Settlement fees (typically 1-7 cents per contract) must be factored into edge calculations to avoid unprofitable trades -- fee structure differences from other platforms directly affect minimum viable edge thresholds",
+      "Kalshi regulatory compliance constraints apply: position limits, potential reporting requirements, KYC/AML -- these may cap position sizes, require different Kelly fraction calculations, or impose operational overhead",
+      "News/sentiment strategy must handle interpretation uncertainty (documented 60-75% win rate vs 85-98% for latency arb) -- AI can misread headline implications, so this strategy tier requires wider edge thresholds and more conservative Kelly fractions",
+      "Multi-strategy execution must maintain strategy isolation -- a loss in one strategy tier must not cascade risk into others. Kalshi subaccounts (up to 32 per user) can enforce this at the exchange level"
+    ],
+    "assumptions": [
+      "Binance WebSocket API provides reliable sub-50ms BTC/ETH price stream via wss://stream.binance.com with miniTicker or aggTrade streams",
+      "Kalshi REST API accepts programmatic order submission with RSA-PSS signed request authentication using API key ID and private key PEM file",
+      "Kalshi crypto-price event contracts (BTC/ETH above/below specific thresholds) continue to be listed with sufficient liquidity and frequency",
+      "Kalshi repricing lag for crypto contracts is measurable and at least partially exploitable -- this is the single most critical assumption and must be validated empirically in Phase 1 before committing to full implementation",
+      "Python asyncio with aiohttp/websockets library provides sufficient performance for the latency target without requiring C/Rust components",
+      "USD cash is available in the Kalshi account for trading (deposited via ACH, wire, or supported payment method)",
+      "The operator has a stable, low-latency internet connection (ideally <20ms to Binance and Kalshi API endpoints)",
+      "Kelly criterion with fractional sizing (25-50% of full Kelly) provides adequate risk-adjusted returns as demonstrated across all documented profitable systems (0x8dxd, PHANTOM X, Stargate5, autonomous agent)",
+      "The operator has completed Kalshi KYC verification (SSN, government ID) for live trading, or uses the demo environment for development",
+      "Kalshi orderbook liquidity is sufficient for automated trading at target frequencies (50-200 trades/day initially, scaling to 200-500) and sizes ($500-$5K/trade) -- this must be validated during Phase 1 as it is currently uncharacterized",
+      "News/sentiment signals can be generated from publicly available feeds (RSS, social media APIs, news APIs) with sufficient speed to exploit information asymmetry against manual Kalshi traders",
+      "PHANTOM X's demonstrated success on Kalshi (the only documented bot with confirmed Kalshi execution) provides a valid reference architecture for multi-strategy Kalshi automation"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "BinancePriceFeed",
+        "description": "Async WebSocket client that maintains a persistent connection to Binance's real-time price stream for BTC/USDT and ETH/USDT. For sub-100ms detection latency, uses btcusdt@aggTrade / ethusdt@aggTrade streams which emit per-trade events (miniTicker updates at ~1000ms intervals and is insufficient for latency arbitrage). Maintains a rolling price window (last 60 seconds of ticks) for momentum calculation. Also supports Coinbase as a redundant secondary CEX data source for signal validation.",
+        "responsibilities": [
+          "Establish and maintain WebSocket connection to wss://stream.binance.com:9443/ws/btcusdt@aggTrade and ethusdt@aggTrade for per-trade price events",
+          "Parse incoming JSON messages for trade price, quantity, and timestamp fields",
+          "Maintain rolling deque of (timestamp_ms, price) tuples for last 60 seconds",
+          "Calculate real-time momentum: percentage change over configurable lookback windows (30s, 60s, 120s, 300s)",
+          "Emit PriceUpdate events to the StrategyRouter via async queue with <5ms internal latency",
+          "Handle reconnection with exponential backoff (1s, 2s, 4s, max 30s) and emit ConnectionLost/ConnectionRestored events",
+          "Track and report WebSocket message latency (time between server timestamp and local receipt)",
+          "Optionally consume Coinbase WebSocket as secondary price source for cross-CEX validation and redundancy"
+        ],
+        "interfaces": [
+          "async start() -> None: Initialize WebSocket connection and begin streaming",
+          "async stop() -> None: Gracefully close WebSocket connection",
+          "get_current_price(symbol: str) -> PriceSnapshot: Return latest price with timestamp",
+          "get_momentum(symbol: str, window_seconds: int) -> float: Return percentage price change over window",
+          "on_price_update: AsyncQueue[PriceUpdate] -- consumers read from this queue",
+          "PriceUpdate dataclass: {symbol: str, price: Decimal, timestamp_ms: int, momentum_30s: float, momentum_60s: float, source: Literal['binance', 'coinbase']}"
+        ]
+      },
+      {
+        "name": "KalshiMarketScanner",
+        "description": "Monitors active Kalshi event contracts across multiple categories. Uses the Kalshi REST API for market discovery via GET /events (with status, series_ticker, with_nested_markets filtering) and GET /events/{event_ticker} for single events, and the Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) for live orderbook streaming. Tracks current orderbook state (best bid/ask on both YES and NO sides) and contract metadata (expiry time, settlement criteria, current implied probability). Discovers new contracts as they open and drops expired ones. For multi-strategy support, scans across crypto price thresholds (latency arb), YES/NO spread opportunities (pairs arb), and event contracts in all categories (news-driven).",
+        "responsibilities": [
+          "Discover active contracts via Kalshi REST API: GET /events with status, series_ticker, and with_nested_markets filtering. Prioritize crypto-price threshold contracts (BTC/ETH above/below) for latency arb, but also scan weather, economics, and political categories for news-driven and pairs strategies",
+          "Subscribe to orderbook updates for tracked contracts via Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2). REST polling of GET /markets/{ticker}/orderbook (depth param: 0=all, 1-100) for initial snapshots. Use GET /markets/orderbooks for batch snapshots of up to 100 tickers",
+          "Calculate current implied probability from best bid/ask midpoint: p_implied = (best_bid_yes + (1 - best_ask_no)) / 2",
+          "Detect YES/NO pairs spread opportunities: flag contracts where best_ask_yes + best_ask_no < 100 cents (guaranteed profit available)",
+          "Track contract lifecycle: opening, active, approaching_expiry (last 60s), expired, settled",
+          "Detect new contract listings and automatically begin tracking",
+          "Assess orderbook depth and liquidity -- flag contracts with insufficient depth as untradeable",
+          "Query per-market position limits via market details endpoint and enforce them",
+          "Measure and log cancel lag: timestamp between significant CEX price movement and when stale limit orders on Kalshi's orderbook are cancelled or updated by market makers. Also measure repricing lag (when the best bid/ask visually updates). Cancel lag, not repricing lag, determines latency arb viability -- the exploitable window is defined by how long you can trade against stale orders",
+          "Emit ContractUpdate events to StrategyRouter with current odds, spread, liquidity metrics, and strategy eligibility flags"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin polling/streaming contract data",
+          "async stop() -> None: Stop all contract monitoring",
+          "get_active_contracts(category: Optional[str] = None) -> List[ContractState]: Return all currently tradeable contracts, optionally filtered by category",
+          "get_contract(ticker: str) -> ContractState: Return specific contract state",
+          "get_pairs_opportunities() -> List[PairsOpportunity]: Return contracts where YES+NO spread is profitable",
+          "on_contract_update: AsyncQueue[ContractUpdate] -- consumers read contract state changes",
+          "ContractState dataclass: {ticker: str, event_ticker: str, symbol: str, category: str, strike_price: Optional[Decimal], expiry_ts: int, implied_prob: float, best_bid_yes: int, best_ask_yes: int, best_bid_no: int, best_ask_no: int, yes_plus_no_cost: int, depth_usd: float, time_remaining_s: int, position_limit: int, measured_reprice_lag_ms: Optional[int], strategy_eligible: List[str]}",
+          "PairsOpportunity dataclass: {ticker: str, yes_ask: int, no_ask: int, combined_cost_cents: int, guaranteed_profit_cents: int, depth_usd: float}"
+        ]
+      },
+      {
+        "name": "StrategyRouter",
+        "description": "Multi-strategy signal dispatcher that routes market data to the appropriate strategy engines based on contract characteristics and strategy eligibility. Implements the PHANTOM X model of running three complementary strategies simultaneously: (1) CEX-to-Kalshi latency arbitrage on crypto contracts, (2) YES/NO pairs spread arbitrage across all categories, (3) news/sentiment-driven positioning on event contracts. Each strategy produces TradeSignals independently, and the router merges, deduplicates, and prioritizes them before forwarding to position sizing. Manages strategy-level performance tracking to enable automatic tier transitions as individual edges compress.",
+        "responsibilities": [
+          "Consume PriceUpdate events from BinancePriceFeed and ContractUpdate events from KalshiMarketScanner",
+          "Route crypto-price contracts with measurable repricing lag to LatencyArbEngine",
+          "Route contracts with YES+NO spread < 100 cents to PairsArbEngine",
+          "Route event contracts across all categories to NewsSignalEngine when news signals are active",
+          "Merge TradeSignals from all active strategy engines, deduplicating signals on the same contract",
+          "Prioritize signals: latency arb (highest priority, time-critical) > pairs arb (guaranteed profit) > news-driven (lowest priority, wider edge requirement)",
+          "Track per-strategy performance: win rate, average edge, PnL contribution, fill rate",
+          "Implement strategy tier transition logic: if latency arb average edge drops below 2% over 7-day rolling window, shift capital allocation toward pairs and news-driven strategies",
+          "Emit prioritized TradeSignal stream to KellyPositionSizer",
+          "Support configuration of strategy weights and enable/disable flags per strategy"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin consuming feeds and routing to strategies",
+          "async stop() -> None: Stop all strategy routing",
+          "set_strategy_enabled(strategy: str, enabled: bool) -> None: Enable/disable individual strategies",
+          "set_strategy_weights(weights: Dict[str, float]) -> None: Set capital allocation weights across strategies",
+          "get_strategy_performance() -> Dict[str, StrategyMetrics]: Per-strategy performance summary",
+          "on_trade_signal: AsyncQueue[TradeSignal] -- downstream consumers read merged/prioritized signals",
+          "StrategyMetrics dataclass: {strategy: str, trades: int, win_rate: float, avg_edge: float, total_pnl: Decimal, avg_latency_ms: float, fill_rate: float, last_signal_ts: Optional[int]}"
+        ]
+      },
+      {
+        "name": "LatencyArbEngine",
+        "description": "Core latency arbitrage signal engine (Simons archetype) that continuously compares CEX-derived fair probability against Kalshi implied probability for crypto-price threshold contracts. When divergence exceeds the configured threshold, emits a TradeSignal with edge magnitude, direction, and confidence score. Uses a momentum-persistence model: if BTC drops X% in the last 30-60 seconds, the probability that BTC remains below its threshold strike price at contract expiry is derived from historical momentum autocorrelation. Operates on the cancel lag -- the window during which stale limit orders remain on Kalshi's book after a CEX price move before market makers cancel them. Historical Polymarket repricing lag was ~2.7 seconds by Q1 2026, but Kalshi's cancel lag must be empirically measured in Phase 1 as it may differ significantly due to regulated market maker infrastructure. Sub-100ms execution target.",
+        "responsibilities": [
+          "Consume PriceUpdate events (crypto only) and ContractUpdate events (crypto-price threshold contracts only)",
+          "Staleness check: verify ContractUpdate timestamp is within 500ms of current time; suppress stale signals",
+          "For each active crypto contract, compute fair probability: p_fair = probability_model(current_price, strike_price, momentum, time_remaining)",
+          "Probability model uses calibrated logistic function: p = 1 / (1 + exp(-k * normalized_distance * sqrt(time_remaining / 60))), where normalized_distance accounts for spot-to-strike gap and recent momentum",
+          "Calculate edge: edge = abs(p_fair - p_implied). If edge > threshold (default 0.03 = 3%), emit TradeSignal",
+          "Determine direction: if p_fair > p_implied, buy YES side; if p_fair < p_implied, buy NO side",
+          "Compute confidence score based on: momentum magnitude, distance from strike, time remaining, orderbook liquidity",
+          "Apply signal cooldown: do not re-signal the same contract within 2 seconds to avoid duplicate trades",
+          "Log all divergence calculations including sub-threshold for model calibration",
+          "Track and report measured repricing lag per signal for edge compression monitoring"
+        ],
+        "interfaces": [
+          "async process_price_update(update: PriceUpdate) -> Optional[TradeSignal]",
+          "async process_contract_update(update: ContractUpdate) -> Optional[TradeSignal]",
+          "set_threshold(threshold: float) -> None: Update divergence threshold (default 0.03)",
+          "set_model_k(asset: str, k: float) -> None: Update logistic model k parameter per asset",
+          "TradeSignal dataclass: {ticker: str, strategy: Literal['latency_arb', 'pairs_arb', 'news_driven'], direction: Literal['YES', 'NO'], entry_price_cents: int, fair_price: float, edge: float, confidence: float, timestamp_ms: int, momentum_pct: float, strike_price: Optional[Decimal], spot_price: Optional[Decimal], time_remaining_s: int, reprice_lag_ms: Optional[int]}"
+        ]
+      },
+      {
+        "name": "PairsArbEngine",
+        "description": "YES/NO pairs spread arbitrage engine (PHANTOM X Strategy 1) that detects when the combined cost of buying YES and NO contracts on the same market is less than $1.00 (100 cents). Since one side must win and pay $1.00, buying both at a combined cost below $1.00 guarantees a profit. This is a risk-free arbitrage (minus fees) that does not depend on probability estimation, making it immune to edge compression dynamics. However, opportunities are rare and fleeting.",
+        "responsibilities": [
+          "Consume PairsOpportunity events from KalshiMarketScanner",
+          "Validate spread: combined YES ask + NO ask < 100 cents, after accounting for taker fee on the winning side only (fee applies once, not twice, since losing side settles at 0)",
+          "Calculate guaranteed profit: 100 - (yes_ask_cents + no_ask_cents) - estimated_taker_fee_cents, where taker fee = round_up(0.07 * contracts * P * (1-P))",
+          "Only emit signal if guaranteed profit after fees exceeds minimum threshold (default: 2 cents)",
+          "Verify sufficient depth on both sides of the orderbook to fill the intended size",
+          "Emit TradeSignal with strategy='pairs_arb', direction indicating which side to buy first (smaller ask goes first for faster fill probability)",
+          "Track spread duration: how long the opportunity persists before closing, for calibration of execution speed requirements",
+          "Log all near-miss opportunities (spread < 102 cents) for market microstructure analysis"
+        ],
+        "interfaces": [
+          "async process_pairs_opportunity(opp: PairsOpportunity) -> Optional[Tuple[TradeSignal, TradeSignal]]",
+          "set_min_profit_cents(cents: int) -> None: Minimum guaranteed profit after fees (default 2)",
+          "get_opportunity_stats() -> PairsStats: Historical opportunity frequency and duration stats",
+          "PairsStats dataclass: {opportunities_detected: int, opportunities_traded: int, avg_profit_cents: float, avg_duration_ms: float, total_pnl: Decimal}"
+        ]
+      },
+      {
+        "name": "NewsSignalEngine",
+        "description": "News and sentiment-driven positioning engine (Soros archetype / PHANTOM X Strategy 2) that ingests real-time news feeds and social sentiment data, assesses probability impact on open Kalshi event contracts, and generates signals when the news-implied probability diverges from market odds by more than a configurable threshold. Win rate is 60-75% (lower than latency arb due to interpretation uncertainty) but applicable across all Kalshi market categories (not limited to crypto) and more durable against edge compression. This strategy becomes increasingly important as latency arb edges compress.",
+        "responsibilities": [
+          "Ingest real-time news from configurable sources: RSS feeds, news APIs, social media APIs (X/Twitter via MCP server)",
+          "Map breaking news events to relevant open Kalshi contracts across all categories (crypto, weather, economics, politics, sports)",
+          "Estimate probability impact: use LLM-based assessment (Claude API) to evaluate how a news event shifts the true probability of a contract outcome",
+          "Calculate edge: divergence between news-implied probability and current Kalshi market odds",
+          "Apply wider edge threshold than latency arb (default: 5% minimum divergence) to account for interpretation uncertainty",
+          "Cross-validate news signals against multiple sources before emitting TradeSignal to reduce false positive rate",
+          "Emit TradeSignal with strategy='news_driven', confidence score reflecting source agreement and magnitude of information asymmetry",
+          "Rate-limit signal generation: max 1 signal per contract per 5 minutes to avoid overtrading on ambiguous news",
+          "Track signal accuracy over time to calibrate LLM prompt and threshold parameters"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin ingesting news feeds",
+          "async stop() -> None: Stop news ingestion",
+          "async process_news_event(event: NewsEvent) -> List[TradeSignal]: Assess impact on all relevant contracts",
+          "set_threshold(threshold: float) -> None: Update minimum edge for news signals (default 0.05)",
+          "NewsEvent dataclass: {source: str, headline: str, body: str, timestamp_ms: int, categories: List[str], entities: List[str]}",
+          "get_signal_accuracy() -> NewsAccuracyStats: Historical accuracy of news-driven signals"
+        ]
+      },
+      {
+        "name": "KellyPositionSizer",
+        "description": "Computes optimal position size for each trade signal using fractional Kelly criterion, with strategy-specific Kelly fractions. The full Kelly formula for a binary outcome is f* = (bp - q) / b, where b is the odds ratio (payout / risk), p is the estimated win probability, and q = 1 - p. For Kalshi's binary contracts priced 1-99 cents (API uses integer cents), winning pays 100 cents per contract minus the entry price. Different strategy tiers use different fractional multipliers: latency arb (0.25-0.50), pairs arb (0.75 -- higher because profit is guaranteed), news-driven (0.15-0.25 -- lower due to interpretation uncertainty). Settlement fees (1-7 cents per contract) are deducted from edge calculations. All prices and balances from the Kalshi API are in cents (integer).",
+        "responsibilities": [
+          "Receive TradeSignal from StrategyRouter and current portfolio state from RiskManager",
+          "Calculate Kelly fraction: b = (100 / entry_price_cents) - 1 (binary contract payout at 100 cents settlement), p = fair_price (estimated win probability), q = 1 - p, f_full = (b*p - q) / b",
+          "Apply strategy-specific fractional Kelly multiplier: latency_arb: 0.25-0.50, pairs_arb: 0.75, news_driven: 0.15-0.25",
+          "Deduct estimated settlement fee from edge calculation: effective_edge = edge - (settlement_fee / contract_price) to ensure only genuinely profitable trades are sized",
+          "For pairs arb: size based on minimum depth available on both YES and NO sides, not Kelly (profit is guaranteed minus fees)",
+          "Compute position size in USD: size_usd = f_trade * available_capital_for_strategy (respecting per-strategy capital allocation weights)",
+          "Compute number of contracts: num_contracts = floor(size_usd / entry_price_cents)",
+          "Enforce hard caps: max single position = min(8% of portfolio, position_limit_for_market, $5000 default), min position = 1 contract",
+          "Enforce Kalshi per-market position limits: reject or reduce size if num_contracts would exceed the market's position limit",
+          "Adjust size for orderbook depth: if num_contracts > 50% of available depth at target price, reduce to 50% of available depth",
+          "In conservative mode, cap at 0.5% of capital per trade",
+          "Return PositionSize with exact USD amount, number of contracts, effective Kelly fraction, and strategy attribution"
+        ],
+        "interfaces": [
+          "compute_size(signal: TradeSignal, portfolio: PortfolioState) -> PositionSize",
+          "set_kelly_fraction(strategy: str, fraction: float) -> None: Update Kelly multiplier per strategy",
+          "set_max_position_pct(pct: float) -> None: Update max single position as % of portfolio",
+          "PositionSize dataclass: {size_usd: Decimal, num_contracts: int, kelly_fraction_used: float, strategy: str, capped: bool, cap_reason: Optional[str]}"
+        ]
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles order construction, authentication, submission, and fill tracking via the Kalshi REST API. Uses stateless RSA-PSS key-pair signing on every request: each request is signed by concatenating {timestamp_ms}{HTTP_METHOD}{path_without_query_params}, signing with RSA-PSS (SHA-256, MGF1-SHA256, salt_length=DIGEST_LENGTH), and Base64-encoding the result. Three headers are sent on every request: KALSHI-ACCESS-KEY (API key ID), KALSHI-ACCESS-TIMESTAMP (Unix ms string), KALSHI-ACCESS-SIGNATURE (Base64 signature). No login endpoint, no tokens, no session state. Supports limit orders at the target stale price, order amendment (change price/count without cancel-and-replace), and batch order operations (up to 20 orders). For pairs arb, executes simultaneous YES+NO orders as a batch. Tracks order lifecycle from submission through fill or cancellation.",
+        "responsibilities": [
+          "Receive (TradeSignal, PositionSize) pairs from the pipeline and construct Kalshi order payloads",
+          "Build order payload for POST /portfolio/orders: {action: 'buy', ticker: '<market_ticker>', side: 'yes'|'no', type: 'limit', count: <num_contracts>, yes_price: <price_cents> or no_price: <price_cents>, expiration_ts: <unix_timestamp>}. All prices are in integer cents (0-10000). Max 200,000 open orders per account",
+          "On startup, initialize KalshiRequestSigner: load API key ID from KALSHI_API_KEY_ID env var and private key PEM from file path in KALSHI_PRIVATE_KEY_PATH env var using cryptography.hazmat.primitives.serialization.load_pem_private_key. Sign every request by concatenating {timestamp_ms}{HTTP_METHOD}{path_without_query_params}, signing with RSA-PSS (SHA-256, MGF1-SHA256, salt_length=DIGEST_LENGTH), and Base64-encoding the result",
+          "Include three authentication headers on every API request: KALSHI-ACCESS-KEY (API key ID), KALSHI-ACCESS-TIMESTAMP (Unix timestamp in milliseconds as string), KALSHI-ACCESS-SIGNATURE (Base64-encoded RSA-PSS signature). No login endpoint, no tokens, no session management needed",
+          "Submit orders to Kalshi REST API endpoint POST /portfolio/orders. Use POST /portfolio/orders/{order_id}/amend to change price and/or count on existing orders. Use POST /portfolio/orders/{order_id}/decrease to reduce quantity. Use POST /portfolio/orders/batched to create up to 20 orders at once, DELETE /portfolio/orders/batched to cancel up to 20 at once",
+          "For pairs arb: submit YES and NO orders as a batch (POST /portfolio/orders/batched) to maximize fill probability on both legs",
+          "Track order status by polling GET /portfolio/orders (filter by status: resting|canceled|executed, ticker, event_ticker) or GET /portfolio/orders/{order_id} for single order, or via WebSocket fill notifications: PENDING -> RESTING -> EXECUTED/PARTIALLY_FILLED/CANCELLED. Use GET /portfolio/fills (filter by ticker, order_id, min/max_ts) for fill details",
+          "Strategy-specific timeout: latency arb orders not filled within 2 seconds are cancelled (stale window); pairs arb orders not filled within 5 seconds; news-driven orders use 30-second timeout",
+          "Handle API errors: rate limiting (429 -> backoff), server errors (5xx -> retry with exponential backoff max 3 attempts), invalid order (400 -> log and skip)",
+          "Maintain a local order book of all active/pending orders to prevent duplicate submissions for the same contract",
+          "Report fill events to RiskManager and TradeLogger with exact fill price, size, fees, latency metrics, and strategy attribution"
+        ],
+        "interfaces": [
+          "async execute(signal: TradeSignal, size: PositionSize) -> OrderResult",
+          "async execute_pairs(yes_signal: TradeSignal, no_signal: TradeSignal, size: PositionSize) -> Tuple[OrderResult, OrderResult]: Execute both legs of a pairs arb as batch",
+          "async cancel_order(order_id: str) -> bool",
+          "async amend_order(order_id: str, price_cents: Optional[int], count: Optional[int]) -> OrderResult",
+          "async cancel_all() -> int: Cancel all open orders via batch cancel, return count cancelled",
+          "get_open_orders() -> List[Order]",
+          "on_fill: AsyncQueue[FillEvent] -- downstream consumers notified of fills",
+          "OrderResult dataclass: {order_id: str, status: str, fill_price: Optional[Decimal], fill_size: Optional[int], latency_ms: int, strategy: str, error: Optional[str]}",
+          "FillEvent dataclass: {order_id: str, ticker: str, direction: str, fill_price_cents: int, num_contracts: int, cost_usd: Decimal, fee_usd: Decimal, strategy: str, timestamp_ms: int}"
+        ]
+      },
+      {
+        "name": "RiskManager",
+        "description": "Central risk control module that enforces position-level, daily, strategy-level, and portfolio-level risk limits. Implements the -40% drawdown kill switch that halts all trading and flattens positions. Tracks running PnL, daily loss, open exposure, win rate, and per-strategy performance. Monitors Kalshi per-market position limits. Manages strategy-level capital isolation using Kalshi subaccounts. The kill switch was the single most important differentiator between Claude (+1,322%) and OpenClaw (liquidated) in the documented head-to-head comparison. All documented profitable systems share this three-primitive risk framework: fractional Kelly sizing, -40% kill switch, and edge threshold filtering.",
+        "responsibilities": [
+          "Track portfolio state: starting_capital, current_capital, open_positions, realized_pnl, unrealized_pnl, per_strategy_pnl",
+          "Track current positions via Kalshi GET /portfolio/positions (filter by count_filter, ticker, event_ticker) to reconcile local state with exchange state. Track balance via GET /portfolio/balance (returns cents)",
+          "Calculate running drawdown from high-water mark: drawdown_pct = (high_water_mark - current_value) / high_water_mark",
+          "Enforce kill switch: if drawdown_pct >= 0.40 (-40%), immediately cancel all open orders across all strategies, prevent new order submission, emit KillSwitchActivated alert",
+          "Enforce daily loss limit: if daily_realized_loss >= daily_loss_limit (default -2% of starting capital for conservative, -20% for aggressive), halt trading until next UTC midnight",
+          "Enforce per-trade risk limit: reject any PositionSize where size_usd > max_per_trade_pct * current_capital",
+          "Enforce per-strategy loss limits: if a single strategy's daily loss exceeds its allocation weight * daily loss limit, disable that strategy only (partial halt rather than full stop)",
+          "Enforce Kalshi per-market position limits: before order submission, check that current position + new order size does not exceed the market's position limit",
+          "Track concurrent open positions: max 5 simultaneous open positions for latency arb, max 3 for pairs arb, max 3 for news-driven (configurable)",
+          "Monitor contract settlement: use GET /portfolio/settlements to track settled contracts, update realized PnL and win/loss counters per strategy",
+          "Manage Kalshi subaccounts: optionally use POST /portfolio/subaccounts (up to 32) to isolate strategy capital. Use POST /portfolio/subaccounts/transfer to rebalance between strategies",
+          "Optionally use Kalshi Order Groups (POST /portfolio/order_groups/create) to enforce rolling fill limits, providing exchange-side risk management complementing local kill switch",
+          "Emit risk alerts at threshold levels: 50% of daily limit consumed, 75% of daily limit, kill switch warning at -30%, kill switch triggered at -40%",
+          "Persist portfolio state to disk (JSON) every 60 seconds for crash recovery"
+        ],
+        "interfaces": [
+          "check_trade_allowed(signal: TradeSignal, size: PositionSize) -> RiskDecision",
+          "record_fill(fill: FillEvent) -> None",
+          "record_settlement(ticker: str, payout_usd: Decimal, strategy: str) -> None",
+          "get_portfolio_state() -> PortfolioState",
+          "get_strategy_state(strategy: str) -> StrategyState",
+          "is_killed() -> bool: Check if kill switch is active",
+          "reset_daily_limits() -> None: Called at UTC midnight",
+          "RiskDecision dataclass: {allowed: bool, reason: Optional[str], adjusted_size: Optional[PositionSize]}",
+          "PortfolioState dataclass: {capital_usd: Decimal, high_water_mark: Decimal, drawdown_pct: float, daily_pnl: Decimal, open_positions: int, total_trades: int, win_rate: float, is_killed: bool, strategy_states: Dict[str, StrategyState]}",
+          "StrategyState dataclass: {strategy: str, allocated_capital: Decimal, daily_pnl: Decimal, open_positions: int, trades: int, win_rate: float, avg_edge: float, enabled: bool}"
+        ]
+      },
+      {
+        "name": "EdgeCompressionMonitor",
+        "description": "Dedicated monitoring component that tracks the irreversible compression of arbitrage windows over time. The repricing lag compressed from ~12 seconds in 2024 to ~2.7 seconds by Q1 2026 on Polymarket; Kalshi's compression trajectory is unknown and must be measured independently. This component provides the data to trigger strategic tier transitions: when latency arb becomes uneconomical, capital shifts to pairs arb and news-driven strategies. Without explicit compression monitoring, the bot risks continuing to trade a dead edge.",
+        "responsibilities": [
+          "Measure repricing lag: time between significant CEX price movement (>0.3% in 30s) and corresponding Kalshi orderbook price update",
+          "Maintain rolling statistics: mean, median, p10, p90 of repricing lag over 1h/24h/7d windows",
+          "Track fill competition: ratio of submitted orders that fill vs. are beaten by faster bots",
+          "Track edge profitability: average net profit per latency arb trade over rolling 7-day window",
+          "Emit alerts at compression thresholds: lag drops below 2.0s (warning), below 1.5s (critical), below 1.0s (latency arb nonviable for retail)",
+          "Track FIFO queue position: on Kalshi's FIFO order matching, monitor how often the bot is first vs. second or worse at a price level",
+          "Generate weekly compression report with trend projection for strategy planning",
+          "Recommend strategy tier transitions based on compression data: when latency arb 7d average edge < 2%, recommend shifting capital to other strategy tiers"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin compression monitoring",
+          "async stop() -> None: Stop monitoring",
+          "get_compression_stats(window_hours: int) -> CompressionStats",
+          "get_tier_recommendation() -> TierRecommendation: Current strategy tier recommendation based on compression data",
+          "on_compression_alert: AsyncQueue[CompressionAlert] -- emitted when thresholds breached",
+          "CompressionStats dataclass: {window_hours: int, mean_lag_ms: float, median_lag_ms: float, p10_lag_ms: float, p90_lag_ms: float, fill_competition_ratio: float, avg_net_edge_pct: float, sample_count: int}",
+          "TierRecommendation dataclass: {primary_strategy: str, recommended_weights: Dict[str, float], reason: str, confidence: float}"
+        ]
+      },
+      {
+        "name": "AlertService",
+        "description": "Sends real-time notifications via Telegram Bot API for trade executions, risk threshold breaches, kill switch activation, connection issues, edge compression alerts, strategy tier transitions, and daily summary reports.",
+        "responsibilities": [
+          "Send Telegram messages via Bot API (POST https://api.telegram.org/bot<TOKEN>/sendMessage)",
+          "Alert on: trade fills (with strategy attribution), daily PnL summary, per-strategy PnL breakdown, risk threshold breaches (50%/75% daily limit), kill switch activation, WebSocket disconnection/reconnection, edge compression threshold breaches, strategy tier transition recommendations, errors",
+          "Rate-limit outgoing messages to avoid Telegram API throttling (max 30 messages/minute)",
+          "Format messages with key metrics: trade direction, strategy, size, price, edge, running PnL, win rate per strategy",
+          "Queue alerts asynchronously so alerting never blocks the trading pipeline"
+        ],
+        "interfaces": [
+          "async send_alert(level: Literal['INFO', 'WARNING', 'CRITICAL'], message: str) -> None",
+          "async send_trade_alert(fill: FillEvent, portfolio: PortfolioState) -> None",
+          "async send_daily_summary(portfolio: PortfolioState, compression: CompressionStats) -> None",
+          "async send_compression_alert(alert: CompressionAlert) -> None",
+          "configure(bot_token: str, chat_id: str) -> None"
+        ]
+      },
+      {
+        "name": "TradeLogger",
+        "description": "Structured logging system that records all signals, trades, risk events, strategy performance, and edge compression metrics to both file (JSON lines) and in-memory data structures for real-time dashboard queries.",
+        "responsibilities": [
+          "Log every TradeSignal with full context: timestamp, strategy, divergence, momentum, contract state, edge, confidence",
+          "Log every OrderResult with latency breakdown: signal_to_order_ms, order_to_fill_ms, total_latency_ms, strategy",
+          "Log every RiskDecision including rejections with reasons",
+          "Log every settlement with PnL attribution per strategy",
+          "Log edge compression measurements: repricing lag, fill competition ratio, FIFO queue position",
+          "Maintain rolling performance metrics: 1h/4h/24h win rate per strategy, avg edge per strategy, avg latency, sharpe ratio",
+          "Write to rotating log files: trades.jsonl, signals.jsonl, risk.jsonl, performance.jsonl, compression.jsonl",
+          "Support CSV export for backtesting and analysis"
+        ],
+        "interfaces": [
+          "log_signal(signal: TradeSignal) -> None",
+          "log_order(result: OrderResult) -> None",
+          "log_risk_event(decision: RiskDecision) -> None",
+          "log_settlement(ticker: str, pnl: Decimal, strategy: str) -> None",
+          "log_compression(stats: CompressionStats) -> None",
+          "get_performance(window_hours: int, strategy: Optional[str] = None) -> PerformanceMetrics",
+          "export_csv(filepath: str, start_date: str, end_date: str) -> None"
+        ]
+      },
+      {
+        "name": "BotOrchestrator",
+        "description": "Top-level coordinator that initializes all components, manages the async event loop, wires together the multi-strategy pipeline (PriceFeed -> StrategyRouter -> [LatencyArb|PairsArb|NewsSignal] -> KellySizer -> ExecutionEngine), handles graceful startup/shutdown, and manages the paper-trading mode toggle. Paper mode uses Kalshi's demo environment (demo-api.kalshi.co) while live mode uses the production API (api.elections.kalshi.com). Manages the strategy tier lifecycle including progressive activation of strategies.",
+        "responsibilities": [
+          "Load configuration from config.yaml and environment variables",
+          "Initialize all components in dependency order: AlertService, TradeLogger, RiskManager, EdgeCompressionMonitor, BinancePriceFeed, KalshiMarketScanner, LatencyArbEngine, PairsArbEngine, NewsSignalEngine, StrategyRouter, KellyPositionSizer, ExecutionEngine",
+          "Wire the async pipeline: PriceFeed.on_price_update -> StrategyRouter, MarketScanner.on_contract_update -> StrategyRouter, StrategyRouter -> [LatencyArbEngine, PairsArbEngine, NewsSignalEngine] -> StrategyRouter.on_trade_signal -> pipeline(KellySizer -> RiskManager.check -> ExecutionEngine)",
+          "Support paper mode: when enabled, ExecutionEngine targets Kalshi demo API (https://demo-api.kalshi.co/trade-api/v2) instead of production API, allowing full end-to-end testing without real capital",
+          "Support strategy-level enable/disable: start with latency arb only, progressively enable pairs arb and news-driven as validated",
+          "Handle SIGINT/SIGTERM: cancel all open orders across all strategies, persist state, close WebSocket connections, log final summary",
+          "Schedule daily tasks: reset daily risk limits at UTC midnight, send daily summary alert with per-strategy breakdown and compression stats",
+          "Monitor component health: restart WebSocket connections if heartbeat missed for >30 seconds",
+          "Process edge compression alerts: when EdgeCompressionMonitor recommends tier transition, adjust strategy weights and alert operator"
+        ],
+        "interfaces": [
+          "async run(mode: Literal['paper', 'live'], strategies: List[str] = ['latency_arb']) -> None: Main entry point with configurable initial strategy set",
+          "async shutdown() -> None: Graceful shutdown sequence",
+          "get_status() -> BotStatus: Return current operational status of all components",
+          "BotStatus dataclass: {mode: Literal['paper', 'live'], uptime_seconds: int, binance_connected: bool, kalshi_connected: bool, kalshi_signer_ready: bool, active_strategies: List[str], strategy_metrics: Dict[str, StrategyMetrics], risk_manager_killed: bool, open_orders: int, open_positions: int, total_trades: int, overall_win_rate: float, daily_pnl: Decimal, drawdown_pct: float, compression_stats: Optional[CompressionStats], last_signal_ts: Optional[int], last_fill_ts: Optional[int]}"
+        ]
+      }
+    ],
+    "data_flow": "1. BinancePriceFeed receives real-time BTC/ETH price via WebSocket (btcusdt@aggTrade / ethusdt@aggTrade for per-trade events, not miniTicker which only updates at ~1000ms intervals). Feed calculates rolling momentum (30s/60s/300s % change) and pushes PriceUpdate to StrategyRouter async queue. 2. KalshiMarketScanner discovers active event contracts across categories via Kalshi REST API (GET /events with filtering). Initial orderbook snapshot from GET /markets/{ticker}/orderbook or GET /markets/orderbooks for batch (up to 100 tickers). Live updates via Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2). Scanner identifies strategy eligibility per contract: crypto-price threshold contracts are eligible for latency arb, contracts with YES+NO spread < 100 cents for pairs arb, all event contracts for news-driven. Scanner also measures repricing lag by timestamping CEX moves vs. Kalshi orderbook updates. Pushes ContractUpdate (with strategy eligibility flags) and PairsOpportunity events to StrategyRouter. 3. StrategyRouter dispatches to active strategy engines: LatencyArbEngine receives crypto PriceUpdate + crypto ContractUpdate; PairsArbEngine receives PairsOpportunity; NewsSignalEngine receives NewsEvent from external feeds mapped to contract tickers. 4. LatencyArbEngine computes p_fair using calibrated logistic model for threshold contracts. Divergence computed only when ContractUpdate is within 500ms staleness. Edge = |p_fair - p_implied|; if > 3% threshold, emits TradeSignal(strategy='latency_arb'). 5. PairsArbEngine validates YES+NO combined cost < 100 cents after fees, emits paired TradeSignals(strategy='pairs_arb'). 6. NewsSignalEngine assesses breaking news impact on contract probabilities using LLM-based inference, emits TradeSignal(strategy='news_driven') when divergence > 5%. 7. StrategyRouter merges, deduplicates, and prioritizes signals (latency_arb > pairs_arb > news_driven), forwarding to KellyPositionSizer. 8. KellyPositionSizer applies strategy-specific fractional Kelly (latency: 0.25-0.50, pairs: 0.75, news: 0.15-0.25) with settlement fee deduction. Size capped at min(Kelly, 8% portfolio, depth*0.5, Kalshi position limit, strategy allocation). 9. RiskManager.check_trade_allowed validates: not killed, daily loss not exceeded (overall and per-strategy), position count < max per strategy, size within per-trade limit, Kalshi position limit not exceeded. Returns RiskDecision. 10. If allowed, ExecutionEngine constructs Kalshi order with RSA-PSS signed authentication. Strategy-specific timeouts: latency arb 2s, pairs arb 5s, news-driven 30s. Pairs arb uses batch order submission for simultaneous YES+NO legs. 11. FillEvent flows to RiskManager (update portfolio and strategy state), TradeLogger (record with strategy attribution), AlertService (Telegram notification), and EdgeCompressionMonitor (update fill competition data). 12. EdgeCompressionMonitor continuously tracks repricing lag, fill competition, and per-strategy edge profitability. When latency arb 7d average edge drops below 2%, recommends tier transition to StrategyRouter. Full latency arb pipeline target: <100ms from PriceUpdate to order submission. Latency budget breakdown: price feed processing (<5ms), strategy computation including logistic model (<10ms), position sizing and Kelly calculation (<5ms), risk check and limit validation (<5ms), order construction and RSA-PSS signing (<10ms), leaving ~65ms for network round-trip to Kalshi API. Each stage must be profiled independently to identify bottlenecks.",
+    "integration_points": [
+      "Binance WebSocket API: wss://stream.binance.com:9443/ws/<symbol>@aggTrade -- real-time per-trade price streaming, no authentication required for public streams, rate limit: 5 messages/second outbound, handles ping/pong keepalive every 3 minutes. Secondary: Coinbase WebSocket for redundancy",
+      "Kalshi REST API (Production): https://api.elections.kalshi.com/trade-api/v2 -- Full endpoint catalog: /exchange/status, /exchange/schedule, /exchange/announcements, /events (list events with status/series_ticker/with_nested_markets filtering), /events/{event_ticker}, /markets/{ticker}/orderbook (depth 0-100), /markets/orderbooks (batch up to 100 tickers), /markets/trades, /series/{series_ticker}/markets/{ticker}/candlesticks (OHLC 1/60/1440 min), /portfolio/orders (list/create, 200K max), /portfolio/orders/{order_id} (get/cancel), /portfolio/orders/{order_id}/amend, /portfolio/orders/{order_id}/decrease, /portfolio/orders/batched (batch create/cancel up to 20), /portfolio/positions, /portfolio/fills, /portfolio/settlements, /portfolio/balance (cents), /portfolio/order_groups/create, /portfolio/subaccounts (up to 32), /historical/markets, /historical/trades, /historical/fills, /search/tags_by_categories, /series/fee_changes. Authentication via RSA-PSS signed headers on every request (stateless). All prices in integer cents. Rate limits apply per endpoint (exact limits to be documented during Phase 1)",
+      "Kalshi REST API (Demo): https://demo-api.kalshi.co/trade-api/v2 -- identical endpoints to production, used for paper trading and development. Separate API key required. No real capital at risk",
+      "Kalshi WebSocket API: wss://api.elections.kalshi.com/trade-api/ws/v2 -- real-time orderbook updates and fill streaming. Requires authentication. Subscribe to orderbook channels per market ticker for live bid/ask updates",
+      "News/Sentiment Data Sources: RSS feeds (configurable), news APIs (configurable), X API via MCP server (x-api tools for tweet search and article retrieval) -- for NewsSignalEngine",
+      "Claude API: For LLM-based news probability assessment in NewsSignalEngine -- maps breaking news to probability impact on Kalshi contracts",
+      "Telegram Bot API: https://api.telegram.org/bot<TOKEN>/sendMessage -- for real-time alerts. Rate limit: 30 messages/minute per chat",
+      "System filesystem: config.yaml for bot configuration, .env for secrets (KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PATH, BINANCE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ANTHROPIC_API_KEY), JSON files for state persistence and trade logs"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "name": "Phase 1: Kalshi Platform Discovery and Repricing Lag Measurement",
+        "description": "Before building the full bot, resolve the critical Kalshi-specific unknowns identified in the knowledge overview. This phase produces empirical data on Kalshi's repricing lag, orderbook liquidity, fee impact on edge thresholds, and API rate limits. Without this data, downstream design decisions (which strategies are viable, what thresholds to use, whether latency arb works at all on Kalshi) are speculative. Uses the autonomous agent methodology: observe first, build second.",
+        "tasks": [
+          "Set up Python project structure: pyproject.toml with dependencies (websockets, aiohttp, python-dotenv, pydantic, cryptography), src/ package layout, config.yaml schema",
+          "Implement KalshiRequestSigner: RSA-PSS per-request signing using API key ID and private key PEM. Verify against both demo and production Kalshi API",
+          "Implement Kalshi market discovery client: GET /events, GET /markets/{ticker}/orderbook, GET /markets/orderbooks -- catalog all active crypto-price event contracts, their strike thresholds, expiry windows, and current orderbook state",
+          "Implement BinancePriceFeed (minimal version): WebSocket connection to btcusdt@aggTrade, parse and timestamp price updates",
+          "Implement cancel lag measurement tool: simultaneously record Binance price movements and Kalshi orderbook updates for crypto contracts. For each significant CEX price movement (>0.3%), record (a) when the Kalshi orderbook reflects the new probability (repricing lag), and (b) when stale-priced limit orders on Kalshi's orderbook are cancelled or updated by market makers (cancel lag). The cancel lag, not the repricing lag, determines the exploitable window for latency arb",
+          "Measure Kalshi WebSocket update frequency: determine average and p99 latency between orderbook changes and WebSocket notification, whether REST polling at 100ms intervals provides lower effective latency, and the practical minimum latency floor imposed by Kalshi's infrastructure",
+          "Run cancel lag and repricing lag measurement for 7+ days across multiple contract types and times of day. Collect 500+ lag observations. Compute mean, median, p10, p90, and trend over time",
+          "Measure Kalshi orderbook liquidity: for each active crypto contract, record depth (USD available within 2 cents of best bid/ask), spread, and how these vary by time of day and market conditions",
+          "Document Kalshi API rate limits empirically: test increasing request rates until 429 responses, record per-endpoint limits",
+          "Quantify fee impact: using Kalshi's taker fee formula round_up(0.07 * contracts * P * (1-P)) and maker fee formula round_up(0.0175 * contracts * P * (1-P)), calculate the minimum edge threshold required for each contract type and price level to remain profitable after fees. Note: Kalshi has NO settlement fees -- all fees are per-trade based on these formulas",
+          "Assess YES/NO pairs spread frequency: over the 7-day observation period, count how often YES+NO combined cost falls below 100 cents and by how much, to determine pairs arb viability",
+          "Conduct CFTC compliance assessment: determine (1) whether 50-500 trades/day on Kalshi triggers any registration threshold under Regulation AT, (2) whether sub-second order lifecycle (submit, cancel within 2s if unfilled) constitutes automated trading requiring specific CFTC reporting or audit trail obligations, (3) review Kalshi terms of service for API traders and automated trading policy",
+          "Produce Phase 1 Report: cancel lag profile (with go/no-go assessment for latency arb), WebSocket update frequency analysis, liquidity assessment, fee-adjusted edge thresholds (using actual taker/maker formulas), rate limit documentation, pairs arb opportunity frequency, CFTC compliance assessment, and recommended strategy mix for Kalshi"
+        ],
+        "deliverables": [
+          "KalshiRequestSigner verified against Kalshi API with RSA-PSS signing",
+          "Cancel lag dataset: 500+ observations with statistical profile (mean, median, p10, p90) measuring time stale orders remain on book after CEX price moves",
+          "WebSocket update frequency analysis: average and p99 latency, comparison with REST polling, practical minimum latency floor",
+          "Go/no-go assessment: is latency arbitrage viable on Kalshi at current cancel lag and competition levels?",
+          "Liquidity report: per-contract-type depth and spread profiles",
+          "Fee-adjusted minimum edge thresholds per contract type using actual Kalshi taker/maker fee formulas (no settlement fees)",
+          "API rate limit documentation per endpoint",
+          "Pairs arb opportunity frequency and average spread profit",
+          "CFTC compliance assessment: registration thresholds, audit trail obligations, Kalshi automated trading policy review",
+          "Phase 1 Report with recommended strategy mix and calibrated parameters for Phase 2"
+        ]
+      },
+      {
+        "name": "Phase 2: Core Infrastructure, Price Feed, and Latency Arb Engine",
+        "description": "Build the async foundation, Binance price feed, Kalshi market scanner, and the primary latency arbitrage engine. Calibrate the probability model using Phase 1 repricing lag data. This phase produces a running signal generator that detects divergence and logs hypothetical trades without executing them. If Phase 1 determined latency arb is not viable on Kalshi, this phase pivots to prioritize pairs arb and news-driven signal generation instead.",
+        "tasks": [
+          "Implement full BinancePriceFeed: async WebSocket client, rolling price window, momentum calculator (30s/60s/120s/300s), reconnection with exponential backoff, latency tracking",
+          "Implement KalshiMarketScanner: contract discovery across all categories, WebSocket orderbook streaming, lifecycle tracking, liquidity filtering, repricing lag measurement, YES/NO spread detection, strategy eligibility tagging",
+          "Implement LatencyArbEngine: consume PriceUpdate + ContractUpdate, staleness check (500ms), logistic probability model calibrated with Phase 1 k-values, edge threshold (calibrated from Phase 1 fee-adjusted thresholds), signal cooldown, divergence logging",
+          "Implement PairsArbEngine: consume PairsOpportunity events, validate spread profitability after fees, emit paired signals",
+          "Implement StrategyRouter (minimal): route data to active strategy engines, merge signals, basic prioritization",
+          "Implement TradeLogger foundation: structured JSON lines logging to rotating files",
+          "Implement BotOrchestrator skeleton: asyncio entry point, signal handlers, component lifecycle, paper mode toggle",
+          "Run signal validation in paper mode: operate for 7+ days using Kalshi demo environment, record all signals and compare against contract resolutions to compute theoretical win rate and edge per strategy",
+          "Calibrate probability model: use paper mode signal accuracy data to adjust k-values and thresholds"
+        ],
+        "deliverables": [
+          "Running async process streaming BTC/ETH prices from Binance with verified sub-50ms latency",
+          "Kalshi market scanner with live orderbook tracking, strategy eligibility tagging, and repricing lag measurement",
+          "Latency arb signal generation with calibrated probability model (target: >70% theoretical win rate over 200+ signals)",
+          "Pairs arb signal generation with fee-validated spread profitability",
+          "Signal accuracy report: theoretical win rate and edge per strategy from paper mode",
+          "Model calibration data: k-values, thresholds, and accuracy by contract type and time-to-expiry"
+        ]
+      },
+      {
+        "name": "Phase 3: Position Sizing, Risk Management, and Edge Compression Monitoring",
+        "description": "Implement the fractional Kelly position sizer with strategy-specific fractions, the full risk management suite including the -40% kill switch and per-strategy capital isolation, and the edge compression monitor. This is the most critical phase -- risk management quality is the primary determinant of survival and profitability across all documented systems.",
+        "tasks": [
+          "Implement KellyPositionSizer: full Kelly formula for binary contracts (prices in integer cents), strategy-specific fractional multipliers (latency: 0.25-0.50, pairs: 0.75, news: 0.15-0.25), settlement fee deduction, per-strategy capital allocation",
+          "Implement position cap logic: min(kelly_size, 8% of portfolio, 50% of orderbook depth, max_position_usd, kalshi_position_limit)",
+          "Implement Kalshi position limit enforcement: query per-market limits, track current positions, reject exceeding orders",
+          "Implement RiskManager: portfolio state tracking, per-strategy state tracking, high-water mark drawdown calculation",
+          "Implement kill switch: -40% drawdown triggers full halt across all strategies, cancel all orders, emit KillSwitchActivated",
+          "Implement per-strategy loss limits: disable individual strategy if its daily loss exceeds its allocation weight * daily limit",
+          "Implement daily loss limit: halt all trading at configured threshold, reset at UTC midnight",
+          "Implement per-trade risk limit and concurrent position limit (configurable per strategy)",
+          "Implement portfolio reconciliation: periodically call GET /portfolio/positions and GET /portfolio/balance to verify local state matches Kalshi",
+          "Implement Kalshi subaccount management: optionally create subaccounts per strategy for capital isolation",
+          "Implement EdgeCompressionMonitor: repricing lag statistics, fill competition tracking, edge profitability tracking, compression threshold alerts, tier transition recommendations",
+          "Implement state persistence: write portfolio state to JSON every 60 seconds for crash recovery",
+          "Write risk unit tests: kill switch at -40%, daily limit halt, position caps, Kalshi position limits, per-strategy limits, compression alerts"
+        ],
+        "deliverables": [
+          "Kelly sizer with strategy-specific fractions and settlement fee deduction verified",
+          "Kill switch verified at exactly -40% drawdown via unit tests",
+          "Per-strategy loss limits and capital isolation verified",
+          "Portfolio reconciliation with Kalshi API verified",
+          "Edge compression monitor producing lag statistics and tier recommendations",
+          "State persistence: crash recovery verified",
+          "Full unit test suite passing for all risk scenarios"
+        ]
+      },
+      {
+        "name": "Phase 4: Execution Engine, News Signal Engine, and Paper Trading Validation",
+        "description": "Build the order execution pipeline with Kalshi RSA-PSS authentication and multi-strategy support (including batch orders for pairs arb). Implement the news/sentiment signal engine. Run the complete multi-strategy system in paper mode using Kalshi demo environment for at least two weeks to validate end-to-end performance across all active strategies.",
+        "tasks": [
+          "Implement ExecutionEngine: construct Kalshi order payloads for single orders and batch operations (pairs arb), RSA-PSS signed authentication, order lifecycle tracking, strategy-specific timeouts (latency: 2s, pairs: 5s, news: 30s)",
+          "Implement pairs arb batch execution: POST /portfolio/orders/batched for simultaneous YES+NO leg submission",
+          "Implement order amendment, cancellation, and cancel_all functionality",
+          "Implement fill detection and reporting with strategy attribution",
+          "Implement NewsSignalEngine: news feed ingestion (RSS + configurable APIs), news-to-contract mapping, LLM-based probability impact assessment (Claude API), edge calculation against market odds, cross-source validation, rate-limited signal generation",
+          "Wire complete multi-strategy pipeline in BotOrchestrator: PriceFeed -> StrategyRouter -> [LatencyArb|PairsArb|NewsSignal] -> KellySizer -> RiskCheck -> ExecutionEngine -> RiskUpdate + AlertService + CompressionMonitor",
+          "Implement AlertService: Telegram Bot API integration for trade fills (with strategy attribution), risk alerts, compression alerts, and daily summaries with per-strategy breakdowns",
+          "Run paper trading validation: operate for minimum 14 days using Kalshi demo environment with all enabled strategies. Collect 200+ completed trades per active strategy. Compute per-strategy win rate, average edge, average latency, max drawdown",
+          "Validate edge compression monitoring: compare measured repricing lag trend with Phase 1 baseline",
+          "Document paper trading results and compare per-strategy performance against documented benchmarks (latency arb target: >70% win rate; pairs arb: >95% win rate; news: >55% win rate)"
+        ],
+        "deliverables": [
+          "Complete multi-strategy pipeline running in paper mode against Kalshi demo environment",
+          "Pairs arb batch execution verified with simultaneous YES+NO fills",
+          "News signal engine generating and tracking signals with accuracy metrics",
+          "Paper trading results: 200+ trades per strategy with win rate, edge, latency, and drawdown metrics",
+          "Per-strategy performance comparison against documented benchmarks",
+          "Edge compression baseline established from paper mode operation",
+          "Telegram alerts working for all event types with strategy attribution",
+          "Sub-100ms latency verified for latency arb pipeline"
+        ]
+      },
+      {
+        "name": "Phase 5: Live Deployment, Monitoring, Strategy Evolution, and Scaling",
+        "description": "Transition from paper to live trading with graduated position sizes. Establish monitoring, operational procedures, and the strategy evolution framework. Start with the highest-confidence strategy (based on paper mode results), add strategies progressively. Implement the full edge compression response: as latency arb compresses, automatically shift capital allocation toward pairs arb and news-driven strategies. Requires completed Kalshi KYC and funded account.",
+        "tasks": [
+          "Complete Kalshi KYC verification (SSN, government ID) and fund account via ACH or wire transfer",
+          "Implement live/paper mode switch in config.yaml with explicit confirmation required for live mode",
+          "Deploy with minimal position sizes: start at 1-5 contracts per trade regardless of Kelly recommendation, on the single highest-confidence strategy from paper mode",
+          "Monitor first 50 live trades per strategy: compare fill prices, win rate, and latency against paper mode baselines",
+          "Implement performance dashboard: real-time CLI display showing per-strategy positions, PnL, win rate, latency, drawdown, compression stats, kill switch status",
+          "Implement graduated scaling protocol: if live win rate within 5% of paper after 50 trades, double position size weekly (respecting Kalshi limits). After 100 trades on primary strategy, enable second strategy at minimum size",
+          "Implement strategy evolution automation: when EdgeCompressionMonitor detects latency arb 7d average edge < 2%, automatically reduce latency arb capital allocation by 20% and redistribute to other strategies. Alert operator for confirmation",
+          "Configure systemd/pm2 process management for unattended operation with auto-restart on crash",
+          "Implement health check endpoint: HTTP server on localhost exposing /health with component status",
+          "Implement secondary watchdog process: independently monitors portfolio value, kills main process if drawdown > 40% (defense-in-depth for kill switch reliability)",
+          "Document operational runbook: daily checks, strategy enable/disable procedures, emergency procedures, kill switch manual override, strategy tier transition procedures",
+          "Plan next-generation strategies: when all current strategies reach diminishing returns, evaluate market making (2-5%/month steady returns, best durability) and calendar volatility exploitation (PHANTOM X Strategy 3) as additions"
+        ],
+        "deliverables": [
+          "Kalshi KYC completed and account funded",
+          "Live bot running with real capital at graduated position sizes, starting with highest-confidence strategy",
+          "Live vs paper performance comparison documented per strategy",
+          "Strategy evolution automation active: capital reallocation triggers based on compression data",
+          "Secondary watchdog process providing defense-in-depth for kill switch",
+          "Process management configured for 24/7 unattended operation",
+          "Operational runbook covering all procedures including strategy tier transitions",
+          "Edge compression monitoring active with alerts and automated responses",
+          "Scaling plan with evidence-based per-strategy position size progression"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+: Core language -- async/await native support, strong ecosystem for trading automation",
+      "asyncio: Event loop and coroutine management for concurrent WebSocket streams, multi-strategy signal processing, and order execution",
+      "websockets: Async WebSocket client library for Binance price feed and Kalshi orderbook streaming",
+      "aiohttp: Async HTTP client for Kalshi REST API calls, Telegram Bot API, and news feed ingestion",
+      "pydantic: Data validation and settings management for configuration, message types, and strategy parameters",
+      "kalshi_python_sync / kalshi_python_async: Official Kalshi Python client libraries -- provides API wrappers, RSA-PSS authentication helpers, and market data access. Note: the deprecated 'kalshi-python' package must NOT be used",
+      "cryptography: Required for RSA-PSS request signing -- provides serialization.load_pem_private_key, padding.PSS with MGF1, and hashes.SHA256",
+      "anthropic: Claude API client for LLM-based news probability assessment in NewsSignalEngine",
+      "feedparser: RSS feed parsing for news ingestion",
+      "python-dotenv: Environment variable loading for secrets management",
+      "PyYAML: Configuration file parsing for config.yaml",
+      "structlog: Structured logging with JSON output for trade, signal, and compression logs",
+      "pytest + pytest-asyncio: Test framework for async unit and integration tests",
+      "USD cash: Trading capital denomination -- deposited to Kalshi via ACH, wire transfer, or supported payment method. No cryptocurrency, blockchain wallets, or gas fees required"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "Edge compression rendering latency arbitrage uneconomical: The repricing lag compressed from 12+ seconds (2024) to ~2.7 seconds (Q1 2026) on Polymarket. This trajectory is monotonically decreasing as more bots enter the space. At some threshold (perhaps 0.5 seconds), the window will be smaller than retail API round-trip latency. Kalshi's compression trajectory is independently unknown and may differ. Co-located infrastructure becomes necessary as the window shrinks, squeezing out retail operators.",
+      "severity": "critical",
+      "mitigation": "Phase 1 empirically measures Kalshi-specific repricing lag before committing to latency arb. EdgeCompressionMonitor tracks lag continuously with alerts at 2.0s (warning), 1.5s (critical), 1.0s (nonviable). Multi-strategy architecture (PHANTOM X model) ensures the bot is not dependent on a single compressing edge. Automatic strategy tier transitions shift capital from latency arb to pairs arb and news-driven as edge decays. Treat latency arb as a time-limited extraction opportunity, not a permanent income source."
+    },
+    {
+      "description": "Kill switch failure: A bug in the -40% drawdown kill switch -- the single most important risk control -- could allow the bot to continue trading through catastrophic losses. The OpenClaw liquidation proved that absent proper kill switch logic, even high-win-rate strategies can blow up the entire portfolio.",
+      "severity": "critical",
+      "mitigation": "Unit test kill switch exhaustively: test at exactly -39.9% (should not trigger), -40.0% (should trigger), -40.1% (should trigger). Test with rapid sequential losses across multiple strategies. Test state persistence -- kill switch must remain active after restart. Implement secondary watchdog process that independently monitors portfolio value and kills the main process if drawdown exceeds threshold. Optionally use Kalshi Order Groups for exchange-side risk limits as defense-in-depth."
+    },
+    {
+      "description": "Kalshi repricing lag insufficient for latency arbitrage: Unlike Polymarket, Kalshi is a regulated exchange that may have fundamentally different market microstructure. It is possible that Kalshi's repricing lag is already too short for retail-speed latency arb, or that crypto contract liquidity is too thin for meaningful execution. This would invalidate the primary strategy entirely.",
+      "severity": "critical",
+      "mitigation": "Phase 1 is entirely dedicated to measuring this. If repricing lag is < 1 second or liquidity is insufficient, the bot pivots to pairs arb + news-driven strategies as primary (both of which do not depend on repricing lag). The multi-strategy architecture ensures no single-point-of-failure from latency arb non-viability. Go/no-go decision for latency arb is made explicitly at Phase 1 completion."
+    },
+    {
+      "description": "Kalshi API/rules changes: Kalshi can modify contract mechanics, settlement rules, API endpoints, fee structures, or rate limits at any time. As a CFTC-regulated exchange, Kalshi is also subject to regulatory changes that could alter available contract types, impose position limits, or restrict automated trading.",
+      "severity": "high",
+      "mitigation": "Monitor Kalshi changelog, blog, and developer documentation. Monitor GET /exchange/announcements and GET /series/fee_changes for fee structure changes. Implement API response validation -- if response schema changes unexpectedly, halt trading and alert. Pin to known API version (v2). Maintain manual override capability via Telegram command. Track CFTC regulatory developments."
+    },
+    {
+      "description": "Kalshi fee structure eroding edge profitability: Settlement fees of 1-7 cents per contract directly reduce net edge. If Kalshi fees are higher than anticipated, minimum viable edge thresholds increase and some strategies (particularly micro-edge latency arb and thin-spread pairs arb) may become uneconomical.",
+      "severity": "high",
+      "mitigation": "Phase 1 quantifies exact fee impact per contract type using GET /series/fee_changes. KellyPositionSizer deducts settlement fees from edge before sizing -- only trades profitable after fees are executed. Edge thresholds are calibrated to fee-adjusted minimums. If fees make latency arb uneconomical, capital shifts to wider-edge strategies (news-driven, calendar volatility) where fees are proportionally smaller."
+    },
+    {
+      "description": "Kalshi orderbook liquidity insufficient for target trade sizes and frequencies: Kalshi crypto contracts may have thinner orderbooks than established prediction markets, preventing execution at meaningful size (200-500 trades/day, $500-$5K/trade). The bot's order may move the market or not fill at all.",
+      "severity": "high",
+      "mitigation": "Phase 1 measures liquidity depth per contract type and time of day. Size positions to max 50% of available depth. Start with smaller trade sizes ($100-$500) and scale only with evidence. Track fill rate and slippage -- if fill rate below 70%, reduce sizes or widen thresholds. Diversify across more contracts to spread liquidity impact. Kalshi's broader market categories (weather, economics, politics) provide additional liquidity pools for news-driven strategies."
+    },
+    {
+      "description": "WebSocket disconnection during active positions: If Binance WebSocket drops while positions are open, the bot loses its primary price signal and cannot detect divergence or generate latency arb signals.",
+      "severity": "high",
+      "mitigation": "Heartbeat monitoring with 3-second timeout. On disconnection: halt new latency arb signals (other strategies can continue), keep existing positions (binary bets settle at 0 or 100), reconnect with exponential backoff. Coinbase as redundant secondary price source. Never trade latency arb on stale price data (require price update within 2 seconds). Alert via Telegram on gap >30 seconds."
+    },
+    {
+      "description": "Kalshi per-market position limits constraining capital deployment: Kalshi enforces per-market limits (typically $25K-$100K) that cap position sizes regardless of Kelly recommendation. This creates artificial ceilings on capital deployment per contract.",
+      "severity": "medium",
+      "mitigation": "Query limits during contract discovery (Phase 1). Factor into KellyPositionSizer before order submission. Diversify across concurrent contracts when limit is binding. Track when limits constrain sizing. Multi-strategy approach naturally diversifies across more contracts and categories, reducing single-market limit impact."
+    },
+    {
+      "description": "CFTC regulatory constraints on automated trading: As a regulated exchange, Kalshi may impose constraints on automated trading speed, volume, or reporting that differ from unregulated platforms. Position reporting, audit trails, or rate limit restrictions could reduce strategy viability.",
+      "severity": "medium",
+      "mitigation": "Phase 1 documents actual API rate limits and any automated trading restrictions. Implement comprehensive trade logging that satisfies potential audit requirements. Start with conservative trading frequency and scale only after confirming no regulatory friction. Monitor CFTC announcements for rule changes affecting prediction market automation."
+    },
+    {
+      "description": "Position sizing bug: A miscalculation in Kelly sizing or failure to enforce caps could result in a single position consuming 80%+ of the portfolio. With multiple strategies, the risk of an interaction bug between strategy-level and portfolio-level sizing is amplified.",
+      "severity": "medium",
+      "mitigation": "Layered caps (each independent): strategy-specific Kelly fraction, hard max 8% of portfolio, hard max USD ($5000), depth limit (50%), Kalshi position limit, per-strategy allocation weight. Add assertion that no order exceeds 8% of capital -- crash the bot rather than submit. Unit test each cap independently and test interaction between per-strategy and portfolio-level limits."
+    },
+    {
+      "description": "News/sentiment engine generating false signals: LLM-based probability assessment can misinterpret news impact, leading to trades based on incorrect probability estimates. The documented 60-75% win rate for news-driven strategies reflects this inherent interpretation uncertainty.",
+      "severity": "medium",
+      "mitigation": "Apply wider edge threshold (5% minimum) for news signals vs. 3% for latency arb. Use lower Kelly fraction (0.15-0.25) for news-driven trades. Cross-validate against multiple news sources. Rate-limit to max 1 signal per contract per 5 minutes. Track signal accuracy over time and disable if win rate drops below 55%. Start with news strategy disabled; enable only after manual validation of signal quality."
+    },
+    {
+      "description": "Kalshi API key/private key compromise: The RSA private key PEM file enables request signing for full trading capabilities. If leaked, an attacker could trade against the account.",
+      "severity": "medium",
+      "mitigation": "Store API key ID in KALSHI_API_KEY_ID env var and PEM path in KALSHI_PRIVATE_KEY_PATH. Never log or print the private key. Add PEM and .env to .gitignore. Restrictive file permissions (chmod 600). If compromise suspected, immediately delete API key at Kalshi Settings and generate new one. Keep only active trading capital in account."
+    },
+    {
+      "description": "Model miscalibration: The probability model k-parameter may be incorrectly calibrated for Kalshi's specific contract structure (threshold-style: 'BTC above $70,000' vs. simple UP/DOWN), producing systematically wrong fair probability estimates.",
+      "severity": "medium",
+      "mitigation": "Phase 1 collects calibration data. Phase 2 runs 7+ days of paper signal validation against resolutions. Separately calibrate for different time-to-expiry ranges, distance-from-strike bands, and contract types. If paper win rate < 70% after 200 signals, recalibrate before proceeding. Ongoing recalibration using EdgeCompressionMonitor data."
+    }
+  ],
+  "success_criteria": [
+    "Phase 1 repricing lag measurement produces 500+ observations with clear statistical profile and a definitive go/no-go for latency arbitrage on Kalshi",
+    "Paper mode win rate exceeds 70% for latency arb, 95% for pairs arb, and 55% for news-driven over a minimum of 200 completed trades per active strategy within the first 14 days of multi-strategy paper operation",
+    "End-to-end latency arb pipeline latency (Binance price update receipt to Kalshi order submission) consistently under 100ms, measured and logged per trade",
+    "Binance WebSocket connection maintains >99.5% uptime with automatic reconnection completing within 5 seconds",
+    "Kalshi RSA-PSS request signing produces valid signatures on every request, zero failed requests due to authentication errors after Phase 1 validation",
+    "Kill switch activates within 1 second of portfolio drawdown reaching -40% from high-water mark, verified by unit tests, secondary watchdog, and live monitoring",
+    "Per-strategy loss limits correctly disable individual strategies without halting profitable ones, verified by unit tests",
+    "Daily loss limit halts trading within 1 trade of the configured threshold",
+    "No single position exceeds 8% of total portfolio value or the Kalshi per-market position limit, enforced by layered caps with logged cap reasons",
+    "Live trading win rate converges within 5 percentage points of paper mode win rate after 50 live trades per strategy",
+    "Zero instances of Kalshi API key ID or private key PEM content exposure in logs, error messages, or version control",
+    "Telegram alerts delivered within 5 seconds for all trade fills, risk threshold breaches, kill switch activations, and edge compression warnings",
+    "Bot runs unattended for 72+ hours without manual intervention, with automatic recovery from WebSocket disconnections and transient API errors",
+    "Profitability targets are conditional on Phase 1 validation: if latency arb is viable, >$30/day from latency arb; if not, >$15/day from pairs+news combined. Average net profit per trade (after Kalshi taker/maker fees and slippage) exceeds $0.50 USD for each active strategy tier. Per-strategy targets apply only to strategy tiers that pass Phase 1 validation.",
+    "EdgeCompressionMonitor tracks repricing lag with <5% measurement error and generates tier transition recommendations when latency arb 7d average edge drops below 2%",
+    "Strategy tier transition executes smoothly: capital reallocation from latency arb to other strategies completes within one trading session when triggered",
+    "State persistence enables crash recovery: after simulated kill and restart, portfolio state (including per-strategy states) matches pre-crash values within $1 USD",
+    "Portfolio reconciliation between local state and Kalshi GET /portfolio/positions matches within $1 USD at all times",
+    "Multi-strategy portfolio achieves lower maximum drawdown than any single strategy running alone, validating the diversification thesis from PHANTOM X"
+  ],
+  "notes": "v3.1 spec upgrade from v3.0, incorporating 8 accepted debate changes: (1) Replaced Polymarket-derived win rate claims (85-98%) with 'to be determined in Phase 1' framing, (2) Reframed repricing lag as cancel lag throughout -- the exploitable window is how long stale limit orders remain, not when prices visually update, (3) Fixed PairsArbEngine fee model from 2x settlement fee to 1x (winning side only), updated to actual Kalshi taker/maker fee formulas, (4) Added CFTC compliance assessment as Phase 1 deliverable, (5) Removed cost-averaging fallback entirely (martingale-adjacent risk), (6) Made profitability success criteria conditional on Phase 1 validation results, (7) Added Kalshi WebSocket update frequency measurement to Phase 1, (8) Added explicit latency budget breakdown to architecture. Additionally: all settlement fee references updated to reflect Kalshi's actual taker/maker formula (no settlement fees).\n\nPrior version notes -- v3.0 spec upgrade from v2.1, integrating insights from the Cross-Exchange Latency Arbitrage & Price Lag Exploitation knowledge overview (e4733c0f). Key changes from v2.1: (1) Multi-strategy architecture: Added PHANTOM X-inspired strategy diversification with three complementary strategies (latency arb, pairs arb, news-driven) instead of pure latency arb dependency. PHANTOM X is the only documented bot with confirmed Kalshi execution ($1.18 to $3.3M, 37K trades, 71% win rate across three strategies). (2) Edge compression as first-class concern: Added EdgeCompressionMonitor and automatic strategy tier transitions. The overview documents irreversible compression from 12s to 2.7s and establishes that single-strategy systems face existential risk. (3) Kalshi-first Phase 1: New Phase 1 dedicated to resolving Kalshi-specific unknowns (repricing lag, liquidity, fee impact, rate limits) before building the full bot. The overview identified these as critical knowledge gaps. (4) Autonomous agent methodology: Phase 1 applies the wallet analysis 'observe first, build second' approach from the autonomous agent ($25 to $4,237) to Kalshi-specific market research. (5) Strategy archetype alignment: Latency arb maps to Simons archetype (statistical exploitation), news-driven maps to Soros archetype (information edge). The overview establishes that Simons has best documented returns but worst durability, while Soros is most applicable to Kalshi's diverse event categories. (6) Four-tier strategy framework: The overview documents four strategy tiers with win rate ranges -- latency arb (85-98%), oracle arb (78-85%), news-driven (60-75%), market making (2-5%/month). This spec implements the first and third tiers with pairs arb as an additional risk-free tier, and plans market making as a future addition. (7) Risk management as universal primitive: The overview confirms that fractional Kelly + -40% kill switch + edge threshold filtering is the standard across ALL documented profitable systems. This spec extends it with per-strategy isolation and Kalshi subaccount support. (8) Kalshi-specific risks: Added risks for Kalshi repricing lag insufficiency, fee erosion, liquidity constraints, and CFTC regulatory constraints. (9) All Polymarket references replaced with Kalshi equivalents. Core arbitrage logic remains identical: detect CEX price movements faster than Kalshi reprices, execute at stale odds, profit from the structural lag. Implementation priority: (1) measure Kalshi-specific parameters (Phase 1), (2) reliable price feed, (3) bulletproof risk management, (4) multi-strategy execution. Conservative risk parameters (0.5% per trade, 2% daily loss) remain default for initial deployment."
+}

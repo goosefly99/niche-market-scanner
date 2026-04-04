@@ -1,0 +1,192 @@
+{
+  "transcript_id": "debate-latency-arb-95de804a",
+  "input_type": "design-spec",
+  "input_id": "95de804a-178d-4927-9805-401029974c4b",
+  "input_version": "3.0",
+  "output_version": "3.1",
+  "created_date": "2026-04-04",
+  "rounds": [
+    {
+      "round": 1,
+      "type": "divergent",
+      "agents": [
+        {
+          "role": "advocate",
+          "position": "The v3.0 spec is well-engineered for survivability. Its strongest design decision is treating latency arbitrage as a time-limited extraction opportunity rather than a permanent income stream, and wrapping it in a multi-strategy architecture with empirical validation gates. The Phase 1 observe-first methodology, the three-primitive risk framework, and the edge compression monitor collectively address the most common failure mode of prediction market bots: riding a decaying edge into oblivion.",
+          "evidence": [
+            "Phase 1 as a kill gate is structurally correct. By dedicating an entire phase to measuring Kalshi-specific repricing lag, liquidity, and fees before writing strategy code, the spec avoids the most expensive mistake in algo trading: building infrastructure for a non-existent edge. The 500+ observation requirement with statistical profiling (mean, median, p10, p90) and an explicit go/no-go decision point is rigorous. Most hobbyist bot specs skip this entirely and assume the edge exists.",
+            "The multi-strategy architecture (latency arb + pairs arb + news-driven) is directly motivated by empirical evidence. PHANTOM X's $1.18-to-$3.3M trajectory across 37K trades with 71% win rate used three complementary strategies. Single-strategy systems are brittle against edge compression; this spec explicitly models the compression trajectory and builds automatic capital reallocation. The strategy priority ordering (latency > pairs > news) correctly ranks by edge reliability.",
+            "The risk management framework is battle-tested. The -40% kill switch, fractional Kelly (25-50% of full Kelly for latency arb, 15-25% for news), and per-trade caps are directly drawn from the Claude vs. OpenClaw experiment where proper risk controls produced +1,322% vs. liquidation. The spec extends this with per-strategy loss isolation, Kalshi subaccount separation, and a secondary watchdog process for defense-in-depth. Layered caps (Kelly, 8% portfolio, 50% depth, Kalshi limits, per-strategy allocation) mean multiple independent checks must all fail for a catastrophic sizing error.",
+            "Kalshi API integration is technically precise. The spec correctly documents RSA-PSS signing (SHA-256, MGF1-SHA256, salt_length=DIGEST_LENGTH), stateless authentication with three headers, integer-cents pricing (0-10000), batch order endpoints (up to 20), order amendment without cancel-and-replace, and the demo environment for paper trading. It correctly identifies the deprecated kalshi-python package to avoid. This level of API specification reduces implementation risk significantly.",
+            "The EdgeCompressionMonitor is a unique differentiator. Most latency arb bots operate until they stop working. This spec builds an explicit sensor that tracks repricing lag degradation, fill competition ratios, and FIFO queue position, with automatic tier transition recommendations when the 7-day average edge drops below 2%. The compression threshold alerts (2.0s warning, 1.5s critical, 1.0s nonviable) provide structured decision points rather than gradual portfolio erosion."
+          ],
+          "counterpoints": [
+            "The news-driven strategy (Soros archetype) at 60-75% win rate with LLM-based probability assessment introduces significant model risk. The spec's mitigations (wider thresholds, lower Kelly, cross-source validation) are reasonable but the strategy has the weakest empirical backing of the three. However, the spec correctly marks it as lowest priority and starts it disabled.",
+            "The spec's profitability claim of '$50/day aggregate daily profit' is ambitious given the unknowns. Phase 1 may reveal that only pairs arb and news-driven are viable, which could reduce expected daily returns substantially. The spec does hedge this by not hard-committing to latency arb, but the success criteria should be conditional on which strategies pass Phase 1 validation.",
+            "The sub-100ms latency target for latency arb using Python asyncio is aggressive. While the spec acknowledges this in its assumptions ('without requiring C/Rust components'), Python's GIL and garbage collection introduce unpredictable latency spikes. However, given that the target is 'Binance price update to Kalshi order submission' and the Kalshi API round-trip is likely 50-100ms itself, the bottleneck is network, not language runtime."
+          ],
+          "proposed_changes": [
+            "Make the $50/day success criterion conditional: specify separate profitability targets for each strategy tier that apply only if that tier passes Phase 1 validation. For example: 'If latency arb viable: >$30/day from latency arb; if not: >$15/day from pairs+news combined.'",
+            "Add a Phase 1.5 checkpoint: after Phase 1 data collection but before Phase 2 implementation, explicitly document which strategy tiers are viable and which are abandoned, updating the spec accordingly. This prevents building dead code.",
+            "Add explicit latency budget breakdown in the architecture section: target allocations for price feed processing (<5ms), strategy computation (<10ms), position sizing (<5ms), risk check (<5ms), order construction and signing (<10ms), leaving 65ms for network round-trip to Kalshi."
+          ],
+          "confidence": 0.78
+        },
+        {
+          "role": "critic",
+          "position": "The spec's core premise -- that latency arbitrage is viable on Kalshi at retail infrastructure speeds -- is almost certainly wrong, and the multi-strategy fallback architecture, while better than pure latency arb, masks fundamental profitability challenges. The claimed win rates are derived from Polymarket/crypto prediction markets with fundamentally different microstructure, and the spec's profitability projections do not survive fee-adjusted analysis under realistic Kalshi conditions.",
+          "evidence": [
+            "The repricing lag data is entirely from Polymarket, not Kalshi. The spec admits this: 'Kalshi's compression trajectory is independently unknown and may differ.' But it goes further than uncertainty -- Kalshi's structure is categorically different. Kalshi is a CFTC-regulated exchange with institutional market makers running co-located infrastructure. The repricing lag on Kalshi crypto contracts is likely already sub-1-second -- well below the retail-viable threshold. The entire primary strategy may be dead on arrival. The spec's Phase 1 is a correct response to this, but the spec still allocates 4 out of 5 phases assuming latency arb will work, with pivoting treated as an afterthought.",
+            "The 85-98% win rate claim for latency arb is misleading in context. The 0x8dxd bot ($313 to $2.38M, 98% win rate) operated on Polymarket in 2024-2025 when repricing lags were 5-12 seconds and competition was minimal. By Q1 2026 the lag was 2.7 seconds -- already 4x faster. Extrapolating this win rate to Kalshi in April 2026 with a different market structure, regulated market makers, and the spec's own admission of 'compression from 12s to 2.7s' is not credible. A realistic win rate estimate for latency arb on Kalshi today would be 55-65% at best, assuming the lag is even exploitable.",
+            "The fee structure makes micro-edge latency arb uneconomical. Kalshi charges 1-7 cents per contract in settlement fees. For a contract bought at 50 cents (implied 50% probability) with a 3% edge (the spec's default threshold), the expected profit per contract is 3 cents. After a 2-cent settlement fee, net profit is 1 cent per contract. At $500/trade (10 contracts at 50 cents), that is $0.10 per trade. To hit $50/day, you need 500 profitable trades per day. The spec targets 50-200 trades/day initially. The math does not close without either much larger edge (unlikely on Kalshi) or much larger position sizes (capped by liquidity and position limits).",
+            "The pairs arb strategy (YES+NO < $1.00) is theoretically sound but practically rare on a regulated exchange with active market makers. On Kalshi, sophisticated market makers continuously arbitrage these spreads. The spec's own success criterion of '95% win rate' for pairs arb is meaningless if there are only 2-3 opportunities per week, each for a 1-2 cent spread that barely covers fees. The spec acknowledges this ('opportunities are rare and fleeting') but still counts it as a full strategy pillar.",
+            "The news-driven strategy has the weakest empirical foundation. The spec cites a 60-75% win rate range but provides no source for this specific figure on Kalshi. Using Claude API for real-time probability assessment introduces latency (LLM inference is 1-5 seconds), cost ($0.01-0.10 per call), and unreliable confidence calibration. At a 60% win rate with 5% minimum edge threshold and 15-25% Kelly fraction, the strategy generates tiny positions with marginal expected value. The Claude API call alone may cost more than the expected profit on small positions."
+          ],
+          "counterpoints": [
+            "The advocate correctly notes that Phase 1 is designed to catch the 'latency arb is dead on Kalshi' scenario. However, the Phase 1 go/no-go is binary, while reality is a spectrum. If the lag is 1.5 seconds (marginal), the spec does not provide clear guidance on how to calibrate expectations versus the 'nonviable' threshold of 1.0 seconds.",
+            "The multi-strategy architecture is genuinely better than single-strategy, and the edge compression monitor is a good idea. The criticism is not that the spec is badly designed, but that it is overconfident in its profitability projections and win rate claims. The architecture is sound; the expected returns are not."
+          ],
+          "proposed_changes": [
+            "Replace all win rate claims with ranges that include Kalshi-specific pessimistic estimates: latency arb 50-70% (not 85-98%), pairs arb 90-99% but with explicit frequency estimate (likely <5 opportunities/week), news-driven 50-60% (not 60-75%). The upper bounds reflect optimal conditions; the lower bounds reflect Kalshi's regulated, competitive environment.",
+            "Add a complete fee-adjusted profitability model to Phase 1 deliverables: for each strategy tier, compute expected profit per trade after fees at various edge thresholds, and determine the minimum daily trade count required to meet profitability targets. Make the $50/day target conditional on this analysis.",
+            "Add a 'Strategy Not Viable' exit path for each strategy tier: if Phase 1 or paper trading shows a strategy cannot meet minimum profitability after fees, formally document its abandonment rather than carrying it as dead weight through subsequent phases. Include minimum viable metrics: latency arb requires >2s repricing lag and >60% win rate; pairs arb requires >10 opportunities/week with >2-cent net profit each; news-driven requires >55% win rate after 100 signals."
+          ],
+          "confidence": 0.82
+        },
+        {
+          "role": "risk_specialist",
+          "position": "The spec's risk management framework is among the best-designed elements, but it underweights three categories of risk: CFTC regulatory risk for high-frequency automated trading on Kalshi, capital efficiency risk from the multi-strategy approach, and correlated failure modes that could bypass the kill switch. The operational risk of running a multi-strategy Python bot on retail infrastructure against institutional market makers on a regulated exchange deserves more rigorous treatment.",
+          "evidence": [
+            "CFTC regulatory risk is underspecified. Kalshi is a CFTC-regulated Designated Contract Market (DCM). The CFTC has explicit rules on automated trading systems including: (1) Regulation AT requirements for algorithmic trading with pre-trade risk controls, (2) potential registration as a 'floor trader' if trading proprietary capital algorithmically, (3) audit trail requirements under CFTC Rule 1.35, (4) anti-spoofing and manipulation provisions under Dodd-Frank Section 747. The spec treats CFTC compliance as a medium-severity risk with mitigation of 'monitor CFTC announcements.' This is inadequate. A retail trader running an HFT-style bot on a DCM could trigger regulatory inquiry. The spec should explicitly assess whether its trading patterns (50-500 trades/day, sub-second order entry and cancellation) trigger any CFTC registration or reporting thresholds.",
+            "Capital efficiency under the multi-strategy model is poor. The spec allocates capital across three strategies with per-strategy isolation via Kalshi subaccounts. With a hypothetical $10K starting capital, splitting across three strategies yields ~$3.3K per strategy. At 0.5% per-trade conservative mode, that is $16.50 per trade. With Kalshi's minimum contract size and settlement fees, many trades will be unprofitable after fees at this scale. The spec's scaling plan (start at 1-5 contracts, double weekly) requires significant time to reach meaningful position sizes. At 5 contracts * 50 cents/contract = $2.50 per trade, even a 98% win rate produces negligible absolute returns. The spec needs an explicit minimum capital requirement analysis.",
+            "Correlated failure modes can bypass the kill switch. The spec's kill switch monitors drawdown from high-water mark. But consider: (1) A flash crash in BTC causes all crypto contracts to move simultaneously -- the bot could have 5 open latency arb positions that all go to maximum loss within seconds, exceeding the -40% threshold between portfolio state persistence intervals (60 seconds). (2) A Kalshi API outage prevents the bot from cancelling orders or flatting positions -- the kill switch triggers but execution fails. (3) The secondary watchdog monitors 'portfolio value' but if Kalshi's API is down, it cannot read the current value. All three scenarios are realistic and the spec's defense-in-depth has single-point dependencies on Kalshi API availability.",
+            "The cost-averaging fallback (marked EXPERIMENTAL, disabled by default) is a dangerous anti-pattern. Averaging down on a losing binary position is martingale-adjacent behavior. If a binary contract bought at 50 cents is now at 20 cents, the original thesis was wrong. Buying more at 35 cents 'to maintain average cost below 99 cents' does not improve expected value -- it increases exposure to a position that is already losing. The spec correctly flags it as experimental but should go further and recommend against including it at all, as its mere presence in the codebase creates the temptation to enable it.",
+            "Edge decay timeline is not modeled quantitatively. The spec notes compression from 12s to 2.7s over roughly 2 years (2024-2026) but does not model the expected remaining lifetime of the latency arb edge. If compression is exponential (a reasonable assumption given increasing competition), the edge halflife is approximately 8-10 months. By the time Phases 1-4 are complete (conservatively 3-6 months), the edge may have compressed further. The spec should include a timeline projection and calculate whether the implementation investment has positive expected ROI given the compression trajectory."
+          ],
+          "counterpoints": [
+            "The spec does acknowledge most of these risks at some level. CFTC risk is listed as medium severity. Capital efficiency is addressed through the graduated scaling plan. The cost-averaging fallback is disabled by default. The criticism is about degree of treatment, not absence of awareness.",
+            "The per-strategy kill switch isolation (disable one strategy without halting others) is a genuinely good design that most trading bot specs lack. The spec's risk framework is above average for this class of project.",
+            "The Phase 1 observe-first approach inherently limits capital at risk during the highest-uncertainty period. You cannot lose money measuring repricing lag."
+          ],
+          "proposed_changes": [
+            "Add a CFTC compliance assessment as a Phase 1 deliverable. Explicitly determine: (1) whether 50-500 trades/day on Kalshi triggers any registration threshold, (2) whether sub-second order lifecycle (submit, cancel within 2s if unfilled) constitutes the kind of automated trading that CFTC Regulation AT addresses, (3) what audit trail obligations apply to algorithmic trading on a DCM. Consult Kalshi's terms of service for API traders and their automated trading policy.",
+            "Remove the cost-averaging fallback entirely from the spec. It is martingale-adjacent, has no empirical support in the cited sources, and its presence in the codebase is a latent risk even if disabled. If the primary arb thesis is invalidated on a position, the correct response is to let the binary settle and take the loss, not to increase exposure.",
+            "Add a minimum capital requirement analysis: calculate the minimum starting capital at which each strategy tier is viable after fees, position limits, and Kelly sizing. If the minimum is $25K+ for latency arb to be meaningful, state that explicitly. Add a 'capital requirement' field to each strategy tier's parameters."
+          ],
+          "confidence": 0.80
+        },
+        {
+          "role": "domain_specialist",
+          "position": "The spec demonstrates strong awareness of Kalshi's API mechanics but has critical gaps in understanding Kalshi's actual market microstructure, the practical realities of crypto contract liquidity, and how Kalshi's FIFO matching model differs from other prediction markets. Several assumptions that are valid on Polymarket's CLOB do not transfer to Kalshi's regulated DCM environment, and the spec's repricing lag hypothesis may be structurally incorrect for Kalshi's market maker ecosystem.",
+          "evidence": [
+            "Kalshi's crypto contract market is fundamentally different from Polymarket's. Polymarket operates crypto prediction markets where all participants are crypto-native and many are retail. Kalshi's crypto contracts (BTC/ETH above/below threshold) compete for liquidity with a much smaller participant base -- Kalshi's core demographic is event bettors on weather, politics, and economics, not crypto traders. Crypto contract liquidity on Kalshi is typically thin: spreads of 5-15 cents are common (vs. 1-3 cents on Polymarket for comparable markets). The spec assumes $500-$5K trades are feasible; in practice, many Kalshi crypto contracts have $200-$2K total depth at best bid/ask. The spec's 50% depth cap would reduce position sizes to $100-$1K.",
+            "Kalshi uses price-time (FIFO) matching, not pro-rata. This means the first order at a price level gets filled first. For latency arb, this is critical: if institutional market makers are updating their quotes in 200ms after a CEX price move and the bot takes 100ms to detect and 50-100ms to submit an order, the bot needs to be first at the target price level. But market makers on Kalshi are already resting orders at multiple price levels -- they do not need to react to CEX price moves, they need to cancel their stale orders. The latency arb opportunity exists only in the window between the CEX move and the market maker's cancellation. If the market maker's cancel arrives before the bot's buy, there is no opportunity. The spec models this as 'repricing lag' but the actual mechanism is 'cancel lag' -- and market makers have co-located cancel infrastructure.",
+            "Kalshi's fee structure is more complex than the spec models. Settlement fees vary by contract series and can be asymmetric between YES and NO sides. The GET /series/fee_changes endpoint provides fee schedule updates, but fees also depend on the contract's settlement price. For contracts settling at 0 or 100 (the majority of binary outcomes), the losing side pays 0 in settlement fees but the winning side pays 1-7 cents. This means the effective fee on a winning trade reduces the 100-cent payout. For pairs arb (buy both YES and NO), one side always settles at 0 and one at 100, so the fee applies once, not twice as the spec's PairsArbEngine seems to calculate ('2 * estimated_settlement_fee_cents'). This is a modeling error that underestimates pairs arb profitability.",
+            "Kalshi WebSocket orderbook streaming has significant practical limitations. The WebSocket API (wss://api.elections.kalshi.com/trade-api/ws/v2) provides orderbook updates but not at the granularity the spec assumes. Updates are batched and may arrive at 100-500ms intervals, not per-tick. For a bot targeting sub-100ms latency, the Kalshi WebSocket update frequency may be the binding constraint, not the Binance feed or Python processing. The spec should explicitly measure WebSocket update frequency as a Phase 1 deliverable and determine whether REST polling at high frequency provides lower effective latency than WebSocket streaming for specific use cases.",
+            "The PHANTOM X reference ($1.18 to $3.3M) is cited as having 'confirmed Kalshi execution' but the details of its Kalshi-specific performance are not broken out. PHANTOM X operated on both Kalshi and Polymarket. The $3.3M figure is aggregate across both platforms. Kalshi-specific returns, win rates, and trade frequencies are not documented separately. Treating PHANTOM X's aggregate stats as Kalshi-specific evidence is misleading. The spec should flag this as a data quality issue and not use PHANTOM X's aggregate stats to set Kalshi-specific expectations."
+          ],
+          "counterpoints": [
+            "The spec correctly identifies all of these as unknowns to be resolved in Phase 1. The repricing lag, liquidity depth, fee impact, and WebSocket update frequency are all called out as Phase 1 measurement targets. The criticism is about the spec's implied optimism and default parameter calibration, not about structural blindness.",
+            "The fee modeling error (double-counting settlement fees on pairs arb) is a genuine bug but one that makes the spec more conservative than necessary for pairs arb -- it would reject opportunities that are actually profitable. This is a safe direction for an error to go."
+          ],
+          "proposed_changes": [
+            "Fix the pairs arb fee model: settlement fee applies once (to the winning leg only), not twice. Change PairsArbEngine validation from 'combined YES ask + NO ask < 100 cents after 2 * settlement_fee' to 'combined YES ask + NO ask < 100 cents after 1 * settlement_fee'. This increases viable pairs arb opportunities.",
+            "Add Kalshi WebSocket update frequency measurement as an explicit Phase 1 deliverable. Determine: (1) average and p99 latency between orderbook changes and WebSocket notification, (2) whether REST polling at 100ms intervals provides lower effective latency for price-sensitive contracts, (3) the practical minimum latency floor imposed by Kalshi's infrastructure.",
+            "Reframe the repricing lag hypothesis from 'time between CEX move and Kalshi price update' to 'time between CEX move and Kalshi market maker order cancellation at the stale price level.' This reframing changes what Phase 1 needs to measure: not just when the orderbook updates, but when the stale liquidity disappears. If stale orders are cancelled before the bot can trade against them, the lag is irrelevant regardless of its duration."
+          ],
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "type": "convergent",
+      "agents": [
+        {
+          "role": "synthesizer",
+          "position": "The spec v3.0 is architecturally sound and demonstrates above-average awareness of prediction market bot failure modes. Its greatest strengths are the Phase 1 empirical validation gate, the multi-strategy architecture motivated by documented evidence, and the three-primitive risk framework extended with per-strategy isolation. However, the debate reveals three systemic issues that require spec revision: (1) the latency arb win rate and profitability projections are unrealistically optimistic for Kalshi's regulated, competitively market-made environment; (2) the spec underweights CFTC regulatory risk and lacks a compliance assessment; (3) several Kalshi-specific microstructure details are modeled incorrectly or incompletely, particularly the fee model for pairs arb and the nature of the exploitable lag (cancel lag vs. repricing lag). The spec should be revised to v3.1 with corrected assumptions, more conservative baseline projections, and additional Phase 1 deliverables addressing regulatory compliance and WebSocket latency.",
+          "evidence": [
+            "All four agents agree that Phase 1 as an empirical validation gate is the spec's strongest structural decision. The advocate correctly identifies it as unusual and rigorous; the critic and domain specialist agree it will catch non-viable strategies before capital is committed. No agent proposes removing or weakening Phase 1.",
+            "The critic's fee-adjusted profitability analysis is compelling and unrefuted. At a 3% edge threshold, 2-cent settlement fee, and 50-cent contract price, net profit per contract is approximately 1 cent. The spec's $50/day target requires either much higher edge (unlikely on Kalshi), much higher volume (limited by liquidity), or much larger position sizes (limited by Kalshi position limits and the spec's own 8% cap). The profitability projections need recalibration.",
+            "The domain specialist's reframing of 'repricing lag' as 'cancel lag' is the most important conceptual contribution. The exploitable window is not how long it takes Kalshi prices to update, but how long stale limit orders remain on the book before market makers cancel them. This changes what Phase 1 must measure and has significant implications for whether the edge exists at all.",
+            "The risk specialist's CFTC compliance concern is valid and actionable. The spec's 50-500 trades/day target with sub-second order lifecycle on a CFTC-regulated DCM is a non-trivial regulatory surface. The spec should not proceed to live trading without a compliance assessment, even if the assessment concludes no registration is required.",
+            "The domain specialist's correction of the pairs arb fee model (1x fee, not 2x) is a concrete bug fix that improves pairs arb viability estimation. This is a clear accept."
+          ],
+          "counterpoints": [
+            "The critic's downward revision of latency arb win rate to 50-70% may be overly pessimistic before Phase 1 data exists. The appropriate response is not to change the estimate but to make the win rate explicitly conditional on Phase 1 findings and remove the 85-98% figure from the overview, since it describes historical Polymarket performance that does not transfer to Kalshi.",
+            "The risk specialist's recommendation to remove cost-averaging entirely could be debated -- some documented systems use it successfully. However, the risk of including martingale-adjacent logic in a codebase outweighs the theoretical value. The spec already marks it as experimental and disabled; removing it eliminates a latent hazard with no practical cost."
+          ],
+          "proposed_changes": [
+            "Accept the critic's proposal to replace Polymarket-derived win rate claims with Kalshi-specific ranges, but frame them as 'to be determined in Phase 1' rather than fixing new numbers. Remove '85-98% documented win rate' from the overview description; replace with 'win rate to be empirically determined during Phase 1 (historical Polymarket data suggests 85-98% under 2024 conditions, but Kalshi's regulated market structure may produce significantly lower rates)'.",
+            "Accept the domain specialist's reframing of repricing lag as cancel lag. Add to Phase 1 tasks: 'Measure cancel lag: for each significant CEX price movement, record when the stale-priced limit orders on Kalshi's orderbook are cancelled or updated by market makers. This cancel lag, not the repricing lag, determines the exploitable window for latency arb.'",
+            "Accept the domain specialist's pairs arb fee correction. Fix PairsArbEngine to deduct 1x settlement fee (winning side only), not 2x.",
+            "Accept the risk specialist's recommendation to add CFTC compliance assessment as a Phase 1 deliverable.",
+            "Accept the risk specialist's recommendation to remove the cost-averaging fallback entirely.",
+            "Accept the advocate's proposal to make profitability success criteria conditional on which strategy tiers pass Phase 1 validation.",
+            "Accept the domain specialist's proposal to add Kalshi WebSocket update frequency measurement to Phase 1.",
+            "Accept the advocate's proposal for an explicit latency budget breakdown."
+          ],
+          "confidence": 0.81
+        }
+      ]
+    }
+  ],
+  "synthesis": {
+    "changes_accepted": [
+      {
+        "proposed": "Replace Polymarket-derived win rate claims (85-98%) with 'to be determined in Phase 1' framing, noting historical Polymarket data as non-transferable reference only",
+        "reason": "All agents agree that Polymarket win rates do not transfer to Kalshi's regulated, competitively market-made environment. Carrying forward 85-98% as an expectation creates false confidence and may lead to over-aggressive position sizing and scaling decisions."
+      },
+      {
+        "proposed": "Reframe 'repricing lag' measurement in Phase 1 to explicitly include 'cancel lag' -- the time stale limit orders remain on Kalshi's book after a CEX price move, before market makers cancel them",
+        "reason": "The domain specialist's reframing is conceptually critical. The exploitable window is defined by how long you can trade against stale orders, not by when the orderbook's best bid/ask visually updates. This changes the measurement methodology and may produce different (likely shorter) lag estimates."
+      },
+      {
+        "proposed": "Fix PairsArbEngine fee model: change from '2 * estimated_settlement_fee_cents' to '1 * estimated_settlement_fee_cents' since settlement fee applies only to the winning leg of a YES+NO pair",
+        "reason": "This is a concrete modeling error identified by the domain specialist. The current model double-counts fees, which makes pairs arb appear less profitable than it actually is. While this is a conservative error, it causes the spec to reject viable opportunities."
+      },
+      {
+        "proposed": "Add CFTC compliance assessment as a Phase 1 deliverable: determine whether 50-500 trades/day with sub-second order lifecycle triggers registration, reporting, or audit trail obligations under Regulation AT or DCM rules",
+        "reason": "Trading algorithmically on a CFTC-regulated DCM has non-trivial regulatory surface. The spec currently treats this as a medium-severity risk with 'monitor announcements' mitigation, which is insufficient. A formal assessment before live deployment protects against regulatory action."
+      },
+      {
+        "proposed": "Remove the cost-averaging fallback entirely from the spec (not just disable it by default)",
+        "reason": "Averaging down on a losing binary position is martingale-adjacent behavior with no empirical support in the cited sources. Its presence in the codebase creates latent risk even when disabled. The correct response to an invalidated arb thesis is to let the binary settle, not to increase exposure."
+      },
+      {
+        "proposed": "Make profitability success criteria conditional on which strategy tiers pass Phase 1 validation, with separate per-strategy targets",
+        "reason": "The current $50/day aggregate target is not decomposed by strategy and assumes latency arb is viable. If Phase 1 shows latency arb is not viable on Kalshi, the profitability target must adjust downward to reflect only pairs arb and news-driven returns."
+      },
+      {
+        "proposed": "Add Kalshi WebSocket update frequency measurement as an explicit Phase 1 deliverable, including comparison with REST polling latency",
+        "reason": "The domain specialist identifies that Kalshi WebSocket updates may be batched at 100-500ms intervals, which would be the binding constraint on the latency arb pipeline. This must be measured before designing the data ingestion strategy."
+      },
+      {
+        "proposed": "Add explicit latency budget breakdown to the architecture section: allocate target latencies for each pipeline stage (price feed processing, strategy computation, position sizing, risk check, order construction/signing, network round-trip)",
+        "reason": "The current sub-100ms target is stated as a single end-to-end number without decomposition. A latency budget makes it possible to identify which stage is the bottleneck and whether the target is achievable."
+      }
+    ],
+    "changes_rejected": [
+      {
+        "proposed": "Replace win rate claims with specific pessimistic ranges (latency arb 50-70%, news-driven 50-60%) before Phase 1 data exists",
+        "reason": "While the critic's direction is correct (current claims are too optimistic), substituting one set of unsupported estimates for another does not improve the spec. The better approach -- accepted above -- is to mark win rates as 'to be determined in Phase 1' and remove the Polymarket-derived figures from expectation-setting. Phase 1 will produce actual Kalshi-specific data."
+      },
+      {
+        "proposed": "Add minimum capital requirement analysis per strategy tier as a spec deliverable",
+        "reason": "While useful, this is an output of Phase 1's fee-adjusted profitability model, not a separate deliverable. The accepted change to add a fee-adjusted profitability model to Phase 1 subsumes this analysis. Duplicating it as a standalone requirement adds specification overhead without new information."
+      },
+      {
+        "proposed": "Add edge decay timeline projection with ROI calculation for the implementation investment",
+        "reason": "While intellectually valid, modeling edge halflife requires data that does not exist for Kalshi. The Polymarket compression data (12s to 2.7s over 2 years) is from a different platform with different dynamics. Projecting a halflife from a single platform's trajectory and applying it to Kalshi would produce a false-precision estimate. The EdgeCompressionMonitor, already in the spec, will provide real-time decay data once operating. The spec's Phase 1 will capture a snapshot; extrapolation should wait for actual Kalshi data."
+      }
+    ],
+    "open_questions": [
+      "What is Kalshi's actual cancel lag for crypto contract market makers? The entire latency arb thesis depends on this being >1 second for retail infrastructure to exploit. This is the single most important unknown and Phase 1 must answer it definitively.",
+      "Does Kalshi's terms of service or automated trading policy impose any restrictions on algorithmic order submission frequency, order-to-cancel ratios, or sub-second order lifecycle that would constrain the latency arb strategy? This must be reviewed before Phase 1 begins.",
+      "What is the realistic Kalshi crypto contract liquidity depth at various times of day? The spec assumes $500-$5K trades are feasible, but domain expertise suggests $200-$2K total depth at best bid/ask is more realistic. Phase 1 must produce a depth profile segmented by time of day and market conditions.",
+      "Is the PHANTOM X's Kalshi-specific performance documented separately from its aggregate cross-platform results? The spec cites PHANTOM X as the 'only documented bot with confirmed Kalshi execution' but uses aggregate stats. Kalshi-specific win rate and trade frequency data would significantly improve confidence in the multi-strategy approach.",
+      "What is the minimum starting capital at which the multi-strategy approach becomes viable after Kalshi fees and position sizing constraints? At $500 starting capital with 0.5% per-trade conservative mode, each trade is $2.50 -- likely smaller than settlement fees on some contracts. There may be a capital floor below which the entire strategy set is uneconomical.",
+      "Can Python asyncio achieve the latency budget reliably, or will GIL contention and garbage collection pauses cause periodic spikes above 100ms? A controlled benchmark with realistic message rates should be part of Phase 2 validation before committing to the Python tech stack."
+    ]
+  }
+}

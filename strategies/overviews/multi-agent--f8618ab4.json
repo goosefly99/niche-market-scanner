@@ -1,0 +1,409 @@
+{
+  "overview_id": "f8618ab4",
+  "title": "Multi-Agent Consensus & AI Swarm Trading Architecture",
+  "created_date": "2026-04-03T12:00:00.000Z",
+  "status": "complete",
+  "sources": [
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039798489522053626", "title": "Multi-strategy skill architecture bot"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039611662584684697", "title": "Claude bot from GitHub ($1K to $45K)"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039342946416283925", "title": "Parliament system 5 agents"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2038574044606558237", "title": "Open-source AI agent swarm 20+ agents"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039017567206191240", "title": "Open-source repos: Paperclip, MiroFish, Hermes, OpenClaw"}
+  ],
+  "summary": "This overview synthesizes 5 sources covering multi-agent consensus and AI swarm architectures for prediction market trading, with all strategies targeting Kalshi (CFTC-regulated, US-legal). The dominant architectural pattern is replacing single-model confidence with diverse agent panels -- ranging from 5-agent parliaments with domain specialization to 20+ agent swarms using multi-model consensus (Claude, GPT, Gemini, DeepSeek, Llama) -- which demonstrably reduces overconfidence-driven losses and improves win rates from 60% to 74%. The material reveals three tiers of multi-agent design: voting-based governance (parliament), model-diversity consensus (swarm), and functional skill decomposition (specialized agents with EV sizing, Bayesian updates, and capped Kelly), all converging on the insight that the orchestration layer and agent disagreement mechanisms matter more than any individual model's capability. Four open-source reference implementations (Paperclip, MiroFish, Hermes, OpenClaw) provide starting points for Kalshi-adapted systems leveraging Claude Code infrastructure (MCP servers, skills, subagents, hooks).",
+  "concepts": [
+    {
+      "name": "Parliament Consensus Architecture",
+      "category": "architecture",
+      "description": "A multi-agent governance system where 5 specialized AI agents (geopolitics, macroeconomics, science, sports, crypto) independently evaluate each trading opportunity and cast votes. A supermajority threshold of 3/5 agreement is required before entering any position. Each agent operates with isolated context -- receiving only data sources matching its domain -- to prevent convergence on identical conclusions.",
+      "key_details": [
+        "5 agents with distinct specializations: geopolitics, macroeconomics, science, sports, crypto",
+        "Consensus threshold: minimum 3 out of 5 agents must agree to enter a trade",
+        "Each agent returns a confidence score (0-100) plus detailed reasoning",
+        "Isolated context scoping: geopolitics agent sees diplomatic briefings but no on-chain data; crypto agent sees whale alerts but no Fed minutes",
+        "14-day live results across 47 markets: +23% ROI improvement over single-agent baseline",
+        "Win rate improved from 60% (single agent) to 74% (parliament)",
+        "Average loss size dropped by 50%",
+        "System refused to enter markets where agents could not reach consensus",
+        "Inspired by observing that top 5 Polymarket wallets rarely bet on the same thing simultaneously",
+        "Market data delivered as structured JSON: name, current odds, deadline, trading volume",
+        "Each agent is a separate system prompt with strict scope boundaries"
+      ],
+      "source_items": [
+        "tweet_2039342946416283925"
+      ],
+      "relationships": [
+        "Dissent Report and Minority Value",
+        "Single-Agent Overconfidence Problem",
+        "Multi-Model Swarm Consensus",
+        "Isolated Context Scoping"
+      ]
+    },
+    {
+      "name": "Dissent Report and Minority Value",
+      "category": "technique",
+      "description": "When the parliament splits (e.g., 3:2 or 4:1), minority agents are required to produce structured counterarguments citing specific sources. This built-in mechanism of doubt surfaces risks that a majority view might overlook. Empirically, the lone dissenting agent proved disproportionately valuable -- more so than the rest of the system combined on critical calls.",
+      "key_details": [
+        "Minority agents must produce counterarguments with specific sources when outvoted",
+        "Human reviews dissent report before confirming the majority position",
+        "Science agent was in the minority most often: 19 out of 47 markets",
+        "When the science agent was the sole dissenter against 4 others, it was correct 4 out of 5 times",
+        "Those 4 correct dissents saved $890 in avoided losses",
+        "A single dissenting agent proved more valuable than the rest of the system combined on its minority calls",
+        "Acts as a built-in doubt mechanism that single models cannot achieve",
+        "Dissent reports create an audit trail for post-hoc analysis of decision quality",
+        "Kalshi adaptation: dissent reports can flag regulatory or structural risks specific to CFTC-regulated contracts"
+      ],
+      "source_items": [
+        "tweet_2039342946416283925"
+      ],
+      "relationships": [
+        "Parliament Consensus Architecture",
+        "Single-Agent Overconfidence Problem",
+        "Agent Disagreement Resolution"
+      ]
+    },
+    {
+      "name": "Single-Agent Overconfidence Problem",
+      "category": "risk-management",
+      "description": "The fundamental limitation where a single AI model expresses identical confidence whether its prediction is correct or incorrect. Without adversarial validation from other agents, wrong predictions are indistinguishable from right ones at the confidence level, causing the ~40% error rate to consume profits generated by the ~60% win rate.",
+      "key_details": [
+        "Single agent correct approximately 60% of the time on prediction markets",
+        "Wrong predictions carry the same confidence as correct ones",
+        "40% error rate eats entire profit from 60% win rate due to inability to size down on wrong calls",
+        "Root cause: a model cannot self-doubt without adversarial input from a differently-scoped agent",
+        "Solution: multiple agents with different data and different system prompts forced to argue",
+        "Parliament is not smarter than any individual member -- it prevents any one agent from being confident alone",
+        "Multi-model swarms add a second layer of protection: different model architectures have different failure modes",
+        "This problem is amplified on Kalshi where binary event contracts have no partial exit -- you are right or wrong"
+      ],
+      "source_items": [
+        "tweet_2039342946416283925",
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Parliament Consensus Architecture",
+        "Multi-Model Swarm Consensus",
+        "Dissent Report and Minority Value"
+      ]
+    },
+    {
+      "name": "Multi-Model Swarm Consensus",
+      "category": "architecture",
+      "description": "A large-scale consensus architecture querying 20+ agents across multiple AI model providers (Claude, GPT, Gemini, DeepSeek, Llama) in parallel on the same trading question. A consensus reviewer aggregates responses into a final unified decision. The swarm acts as a corrective second layer on top of proven quantitative strategy, ratifying or refusing trades based on current market regime.",
+      "key_details": [
+        "20+ agents queried simultaneously across multiple model providers",
+        "Models include Claude, GPT, Gemini, DeepSeek, Llama",
+        "Consensus reviewer aggregates all responses into a final decision",
+        "Removes single-model provider bias -- different architectures have different blind spots",
+        "If 7 models say yes and 1 says no, confidence is higher than any single model alone",
+        "LLMs alone cannot trade profitably; they serve as a gate/filter layer on quant signals",
+        "Agent ratifies or refuses trades based on current market regime analysis",
+        "Acts as corrective second layer on proven quantitative strategies, not a replacement",
+        "Exchange manager routes orders to appropriate platform based on liquidity and fees",
+        "Kalshi adaptation: swarm can evaluate CFTC regulatory risk as an additional consensus dimension"
+      ],
+      "source_items": [
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Parliament Consensus Architecture",
+        "RBI Framework",
+        "Exchange Manager and Platform Routing",
+        "Model Registry and Multi-Provider Infrastructure"
+      ]
+    },
+    {
+      "name": "Isolated Context Scoping",
+      "category": "technique",
+      "description": "The deliberate restriction of each agent's information access to prevent convergence on identical conclusions. Each agent in a parliament or swarm receives different data sources matching its specialization, ensuring genuine diversity of analysis. If all agents see the same data, they reach the same conclusion, defeating the purpose of multi-agent consensus.",
+      "key_details": [
+        "Geopolitics agent: diplomatic briefings, sanctions lists (no on-chain data)",
+        "Macroeconomist agent: Fed minutes, CPI data (no Twitter sentiment)",
+        "Crypto agent: whale alerts, on-chain data, Twitter sentiment scores",
+        "Sports agent: injury reports, team statistics, historical matchup data",
+        "Science agent: research papers, regulatory filings, technical analysis",
+        "Fundamental principle: identical inputs produce identical outputs, making multi-agent pointless",
+        "Each agent is a separate system prompt with strict scope boundaries",
+        "Claude Code implementation: each subagent gets a different CLAUDE.md configuration scoping its data access",
+        "For Kalshi: agents can be scoped to different information domains (CFTC filings, news, social sentiment, historical contract data)"
+      ],
+      "source_items": [
+        "tweet_2039342946416283925",
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Parliament Consensus Architecture",
+        "Multi-Model Swarm Consensus",
+        "Claude Code Integration Patterns"
+      ]
+    },
+    {
+      "name": "Skill Architecture with EV Sizing",
+      "category": "architecture",
+      "description": "A multi-agent system where each trading capability is encapsulated as a discrete skill built around a core mathematical model. Skills include expected value calculation, Bayesian probability updates, capped Kelly position sizing, and log-return tracking. Agents specialize functionally (arbitrage detection, token tracking, spread harvesting, whale monitoring, sentiment analysis, execution) and coordinate through structured skill invocations.",
+      "key_details": [
+        "Each skill wraps a core math model: expected value, position sizing, Bayesian updates, log-return tracking",
+        "Functional specialization: arbitrage detection, token tracking, spread harvesting, whale monitoring, sentiment analysis, auto-execution",
+        "Skills are modular and independently deployable",
+        "Progressive context loading: basic checks (liquidity, spread) run first; deep calculations (probability updates, portfolio impact) trigger only when needed",
+        "Result: $1K to $45K in one week, 79% win rate, Sharpe ratio 2.59",
+        "1,580 trades executed with zero human intervention",
+        "Single-night profit: $5,774",
+        "Capped Kelly criterion prevents over-concentration on any single position",
+        "Bayesian updates continuously refine probability estimates from live market data",
+        "For Kalshi: skills can be adapted to Kalshi-specific contract structures (binary events, ranged markets)"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626",
+        "tweet_2039611662584684697"
+      ],
+      "relationships": [
+        "Progressive Context Loading",
+        "Capped Kelly and Bayesian Position Sizing",
+        "Multi-Model Swarm Consensus",
+        "Claude Code Integration Patterns"
+      ]
+    },
+    {
+      "name": "Progressive Context Loading",
+      "category": "technique",
+      "description": "A layered execution model where agent skills activate in tiers to optimize for speed and computational efficiency. Basic checks (liquidity, spread validation, contract availability) run first. Deep computations (probability updates, portfolio impact assessment, cross-agent confirmation) trigger only when basic conditions are met, reducing overhead for the majority of market scans that result in no action.",
+      "key_details": [
+        "Tier 1: liquidity checks, spread validation, contract availability verification",
+        "Tier 2: probability updates, portfolio impact assessment, cross-agent confirmation",
+        "Deep calculations only fire when basic conditions are satisfied",
+        "Designed for speed-critical trading where milliseconds matter",
+        "Reduces computational overhead for the majority of scans that produce no trade signal",
+        "147 contracts scanned per session on average, resulting in only 2-3 entries per day",
+        "Enables scanning hundreds of Kalshi markets per session without latency penalty",
+        "Claude Code implementation: basic skill triggers first, only escalates to full subagent analysis pipeline when thresholds met"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626",
+        "tweet_2039611662584684697"
+      ],
+      "relationships": [
+        "Skill Architecture with EV Sizing",
+        "Capped Kelly and Bayesian Position Sizing",
+        "Claude Code Integration Patterns"
+      ]
+    },
+    {
+      "name": "Capped Kelly and Bayesian Position Sizing",
+      "category": "technique",
+      "description": "The universal position sizing framework across all sources, combining Kelly criterion (f* = (p*b - q) / b) with caps to prevent over-leverage, and Bayesian probability updates that continuously refine estimates by comparing P(real) from external forecasts against P(market) from current contract prices. The spread between these probabilities defines the trading edge.",
+      "key_details": [
+        "Kelly formula: f* = (p*b - q) / b, where p = win probability, q = loss probability, b = odds",
+        "Caps applied to prevent over-concentration on any single position",
+        "Bayesian updates pull live contract data every 15 minutes and compare against external forecasts",
+        "Minimum spread threshold of 0.07 between P(real) and P(market) required to enter",
+        "When spread < 0.07, system does nothing (most of the time)",
+        "Handles win/loss asymmetry automatically: e.g., average win $340 vs average loss $61",
+        "Combined with EV calculation: only positions with positive expected value and sufficient edge pass",
+        "For Kalshi: binary contract structure simplifies Kelly calculation (b = payout/cost - 1)",
+        "Every profitable system across all 5 sources uses some variant of capped Kelly"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626",
+        "tweet_2039611662584684697",
+        "tweet_2039342946416283925"
+      ],
+      "relationships": [
+        "Skill Architecture with EV Sizing",
+        "Progressive Context Loading",
+        "Agent Disagreement Resolution"
+      ]
+    },
+    {
+      "name": "RBI Framework",
+      "category": "technique",
+      "description": "Research, Backtest, Implement -- a systematic methodology for developing and validating trading strategies before deployment. Research builds a continuous list of trading ideas. Backtesting tests each idea against historical data. Only strategies that prove profitable in backtest are implemented live. Inspired by Jim Simons' approach at Renaissance Technologies.",
+      "key_details": [
+        "Research: continuously build list of trading ideas from market observation and data analysis",
+        "Backtest: test each idea against historical data to verify statistical edge",
+        "Implement: deploy only strategies that prove profitable in backtest",
+        "Core principle: if an idea worked historically, more likely to work in the future (with caveats)",
+        "Inspired by Jim Simons' approach at Renaissance Technologies",
+        "People with zero coding knowledge learned to backtest within 15 days using this framework",
+        "One good bot can offset every bad financial decision through repeatable systematic success",
+        "For Kalshi: historical contract resolution data enables backtesting against actual CFTC-regulated outcomes",
+        "Agents act as corrective layer on strategies that have already passed backtesting"
+      ],
+      "source_items": [
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Multi-Model Swarm Consensus",
+        "Skill Architecture with EV Sizing",
+        "Exchange Manager and Platform Routing"
+      ]
+    },
+    {
+      "name": "Exchange Manager and Platform Routing",
+      "category": "infrastructure",
+      "description": "A routing abstraction layer that decouples trading logic from specific exchange implementations. Allows the same agent system to operate across multiple platforms (Kalshi, Polymarket, crypto exchanges) with a single configuration change. Handles differences between contract identifiers, order formats, and settlement mechanics.",
+      "key_details": [
+        "Single line of code to switch between exchanges",
+        "Routes between on-chain platforms (Polymarket) and regulated exchanges (Kalshi) seamlessly",
+        "Handles contract identifier mapping automatically across platforms",
+        "Future-proof: new exchanges added without changing agent logic",
+        "Routes orders to exchanges based on liquidity, fees, and regulatory status",
+        "Zero coding changes needed in the agent itself when switching platforms",
+        "Critical for Kalshi pivot: same multi-agent logic, different exchange adapter",
+        "For US-based traders: routing layer can enforce Kalshi-only execution to maintain CFTC compliance"
+      ],
+      "source_items": [
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Multi-Model Swarm Consensus",
+        "RBI Framework",
+        "Model Registry and Multi-Provider Infrastructure"
+      ]
+    },
+    {
+      "name": "Model Registry and Multi-Provider Infrastructure",
+      "category": "infrastructure",
+      "description": "A centralized registry for AI models that enables easy swapping and updating as new models release. Includes a testing framework that verifies each model with a simple prompt to confirm operational status. Decouples agent logic from specific model versions, ensuring the system always uses the most capable available models.",
+      "key_details": [
+        "Easy model updates as new versions drop",
+        "Supports multiple providers: OpenAI, Anthropic, Google, DeepSeek, Meta",
+        "Testing framework queries each model with a verification prompt to confirm operational status",
+        "Ensures the trading system always uses the most capable available model per provider",
+        "Decouples agent logic from specific model versions",
+        "Critical for swarm consensus: need reliable connections to 5+ model providers simultaneously",
+        "For Kalshi: can weight models differently based on domain performance (e.g., Claude for reasoning-heavy political markets, GPT for data-dense sports markets)"
+      ],
+      "source_items": [
+        "tweet_2038574044606558237"
+      ],
+      "relationships": [
+        "Multi-Model Swarm Consensus",
+        "Exchange Manager and Platform Routing",
+        "Claude Code Integration Patterns"
+      ]
+    },
+    {
+      "name": "Claude Code Integration Patterns",
+      "category": "infrastructure",
+      "description": "Patterns for implementing multi-agent consensus systems using Claude Code's native infrastructure: MCP servers for live Kalshi API data, CLAUDE.md for persistent trading rules and risk limits, Skills for encapsulating trading capabilities, Subagents for parallel agent execution with isolated contexts, and Hooks for event-driven alerts and monitoring.",
+      "key_details": [
+        "MCP servers: connect Kalshi API directly into Claude's context for live market data and order execution",
+        "CLAUDE.md: persistent configuration for risk limits, edge thresholds, liquidity filters, Kalshi-specific rules",
+        "Skills: encapsulate each trading capability (market analysis, probability estimation, position sizing) as a reusable module",
+        "Subagents: run parliament members or swarm agents in parallel with isolated context scoping",
+        "Hooks: auto-send alerts on order fills, drawdown thresholds, or consensus disagreements",
+        "Plan Mode: force structured reasoning before committing to any trade",
+        "Each parliament agent can be a separate subagent with its own system prompt and data access scope",
+        "Skills enable progressive context loading natively: basic skill fires first, escalates only when needed"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626",
+        "tweet_2039611662584684697",
+        "tweet_2039342946416283925"
+      ],
+      "relationships": [
+        "Parliament Consensus Architecture",
+        "Skill Architecture with EV Sizing",
+        "Progressive Context Loading",
+        "Isolated Context Scoping"
+      ]
+    },
+    {
+      "name": "Open-Source Reference Implementations",
+      "category": "infrastructure",
+      "description": "Four open-source repositories providing starting points for building multi-agent trading systems: Paperclip (general agent framework), MiroFish (prediction market bot), Hermes by Nous Research (multi-agent orchestration), and OpenClaw (Claude Code-based trading). These repos provide reference architectures that can be adapted for Kalshi-specific multi-agent consensus systems.",
+      "key_details": [
+        "Paperclip: general-purpose agent framework applicable to trading automation",
+        "MiroFish: prediction market trading bot with multi-agent signal processing",
+        "Hermes (Nous Research): multi-agent orchestration framework with consensus mechanisms",
+        "OpenClaw: Claude Code-based trading system leveraging skills and subagents",
+        "All four are open-source and available on GitHub",
+        "Provide reference architectures for exchange integration, agent coordination, and position management",
+        "Can be forked and adapted for Kalshi-specific contract types and API requirements",
+        "Hermes framework particularly relevant for implementing parliament-style voting systems",
+        "OpenClaw most directly applicable to Claude Code infrastructure integration"
+      ],
+      "source_items": [
+        "tweet_2039017567206191240"
+      ],
+      "relationships": [
+        "Claude Code Integration Patterns",
+        "Exchange Manager and Platform Routing",
+        "Multi-Model Swarm Consensus",
+        "Parliament Consensus Architecture"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Consensus as Risk Reduction",
+      "description": "The central thesis across all sources is that multi-agent consensus is fundamentally a risk reduction mechanism rather than an intelligence amplifier. The parliament does not make smarter predictions than its best member -- it prevents catastrophic overconfidence by requiring agreement across diverse perspectives. The swarm does not find better trades -- it filters out regime-inappropriate signals. Win rate improvements (60% to 74%), loss reduction (50% smaller average loss), and dissent value ($890 saved by a single agent's correct minority votes) all point to the same conclusion: the primary value of multi-agent systems is in what they prevent, not what they discover.",
+      "concept_names": [
+        "Parliament Consensus Architecture",
+        "Dissent Report and Minority Value",
+        "Single-Agent Overconfidence Problem",
+        "Multi-Model Swarm Consensus",
+        "Capped Kelly and Bayesian Position Sizing"
+      ]
+    },
+    {
+      "name": "Orchestration Over Model Capability",
+      "description": "Multiple sources converge on the insight that the orchestration layer -- how agents are composed, scoped, and coordinated -- matters more than the raw capability of any individual model. The parliament's power comes from isolated context scoping, not from using a better model. The swarm's value comes from the consensus reviewer, not from any single model's prediction. The skill architecture's results come from progressive loading and EV sizing, not from the underlying LLM. This has direct implications for Kalshi implementation: invest in the agent coordination infrastructure (Claude Code subagents, MCP servers, skill decomposition) rather than chasing the latest model release.",
+      "concept_names": [
+        "Isolated Context Scoping",
+        "Progressive Context Loading",
+        "Claude Code Integration Patterns",
+        "Skill Architecture with EV Sizing",
+        "Model Registry and Multi-Provider Infrastructure"
+      ]
+    },
+    {
+      "name": "Functional Decomposition of Trading Intelligence",
+      "description": "Three distinct decomposition strategies emerge: domain decomposition (parliament: each agent is a subject-matter expert), model decomposition (swarm: same question to different LLM architectures), and functional decomposition (skill architecture: each agent handles a step in the pipeline -- signal detection, probability estimation, position sizing, execution). These are not mutually exclusive and can be layered. A Kalshi implementation could use domain-expert agents for signal generation, multi-model consensus for validation, and functional skills for execution -- combining all three tiers.",
+      "concept_names": [
+        "Parliament Consensus Architecture",
+        "Multi-Model Swarm Consensus",
+        "Skill Architecture with EV Sizing",
+        "RBI Framework",
+        "Exchange Manager and Platform Routing"
+      ]
+    },
+    {
+      "name": "Kalshi-Native Multi-Agent Design",
+      "description": "All source architectures were originally designed for Polymarket or crypto exchanges and require adaptation for Kalshi's CFTC-regulated environment. Key adaptations include: binary contract structure simplifying Kelly calculations, CFTC compliance as an additional consensus dimension, historical contract resolution data enabling RBI backtesting, and the exchange manager pattern enabling platform-agnostic agent logic. The open-source repos (particularly OpenClaw and Hermes) provide starting points, while Claude Code's MCP servers can integrate directly with the Kalshi API.",
+      "concept_names": [
+        "Exchange Manager and Platform Routing",
+        "Open-Source Reference Implementations",
+        "Claude Code Integration Patterns",
+        "Capped Kelly and Bayesian Position Sizing",
+        "RBI Framework"
+      ]
+    }
+  ],
+  "key_findings": [
+    "Multi-agent parliament consensus improved prediction market win rate from 60% to 74% and halved average loss size over 14 days across 47 markets, with +23% ROI over single-agent baseline. The improvement comes from preventing bad trades rather than finding better ones.",
+    "The science agent's minority dissent was disproportionately valuable: it voted against the majority on 19/47 markets, and when it was the sole dissenter against 4 other agents, it was correct 4 out of 5 times, saving $890 in avoided losses. One dissenting agent outperformed the rest of the system combined on its minority calls.",
+    "The skill architecture bot achieved $1K to $45K in one week (79% win rate, Sharpe 2.59, 1,580 trades) by decomposing trading into modular skills with EV sizing, Bayesian updates, and capped Kelly, using progressive context loading to scan hundreds of markets efficiently.",
+    "Multi-model swarms (20+ agents across Claude, GPT, Gemini, DeepSeek, Llama) function best as a corrective second layer on proven quantitative strategies rather than as primary signal generators -- LLMs alone cannot trade profitably but they can filter regime-inappropriate signals.",
+    "The insight that top 5 wallets rarely bet on the same thing simultaneously inspired the parliament architecture -- consensus among diverse specialized agents mimics the natural diversification observed in the most successful traders.",
+    "Four open-source repos (Paperclip, MiroFish, Hermes, OpenClaw) provide reference implementations for multi-agent trading, with OpenClaw being most directly applicable to Claude Code infrastructure and Hermes most relevant for parliament-style voting systems.",
+    "The RBI framework (Research, Backtest, Implement) is the common methodology across sources: agents act as a corrective consensus layer on strategies that have already passed backtesting, not as raw signal generators."
+  ],
+  "knowledge_gaps": [
+    "Agent orchestration specifics for Kalshi are undocumented. No source addresses how to implement multi-agent consensus against the Kalshi API specifically -- contract types, order formats, settlement mechanics, rate limits, and regulatory constraints all differ from Polymarket. The exchange manager pattern is described abstractly but no Kalshi adapter implementation exists in any referenced repo.",
+    "Claude Code integration for multi-agent trading lacks a reference architecture. While individual components are described (MCP servers for data, subagents for parallel execution, skills for trading capabilities, hooks for alerts), no source provides a complete blueprint for wiring these together into a functioning parliament or swarm system within Claude Code. The mapping from 'parliament of 5 domain experts' to 'Claude Code subagents with isolated CLAUDE.md configs' is implied but unimplemented.",
+    "Agent disagreement resolution beyond simple voting is unexplored. The parliament uses 3/5 majority with dissent reports reviewed by a human. The swarm uses a consensus reviewer. But neither source addresses: weighted voting based on domain relevance, dynamic threshold adjustment based on market type, cascading disagreement (what if the consensus reviewer itself is uncertain), or fully automated dissent handling without human-in-the-loop.",
+    "Confidence calibration across agents is unaddressed. Each parliament agent returns a confidence score (0-100), but no source describes how these scores are calibrated, whether agents' confidence scores are comparable across domains, or how to detect and correct for systematically over- or under-confident agents. A crypto agent's '80% confidence' may have very different reliability than a science agent's '80% confidence'.",
+    "Infrastructure costs and latency profiles are never quantified. Running 20+ model queries in parallel across 5 providers, maintaining MCP server connections, and achieving sub-second execution all have real costs. No source provides data on API costs per trade, consensus latency (time from signal to all agents responding), or the break-even trading volume needed to cover infrastructure overhead on Kalshi.",
+    "Survivorship bias is not addressed in any source. These are success stories that went viral; identical architectures that failed are invisible. The $1K to $45K result and the parliament's 74% win rate may not be reproducible, and no source provides confidence intervals, drawdown statistics, or performance across different market regimes."
+  ],
+  "open_questions": [
+    "What is the optimal number of agents for Kalshi-specific consensus? The parliament uses 5 domain experts and the swarm uses 20+ model instances. Is there a point of diminishing returns, and does it differ across Kalshi market categories (politics, economics, weather, sports)? How does consensus quality degrade as agent count increases due to latency and cost?",
+    "How should agent disagreement be handled when the dissent mechanism identifies genuine risk but the majority signal has positive expected value? The science agent's 4/5 correct dissent rate suggests minority agents should sometimes override the majority -- but automating this without human review could also amplify false negatives. What decision rules balance these risks on Kalshi's binary contracts?",
+    "Can Claude Code subagents effectively replicate the isolated context scoping required for a parliament system? Each parliament agent needs a different data feed and system prompt. Claude Code subagents share a codebase but can have different instructions -- is this sufficient isolation, or do agents need fully separate runtime environments to prevent information leakage?",
+    "How do multi-agent consensus systems perform during black swan events where all agents' training data is equally unprepared? The parliament and swarm architectures assume diversity of perspective creates robustness, but a truly novel event (e.g., a new type of Kalshi contract category, an unprecedented regulatory action) may produce uniform uncertainty across all agents.",
+    "What happens when multiple multi-agent trading systems compete for the same Kalshi markets? As more participants deploy similar parliament or swarm architectures, do edges collapse? Is there a first-mover advantage, or does the consensus mechanism adapt to competitive pressure?"
+  ]
+}

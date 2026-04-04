@@ -1,0 +1,712 @@
+{
+  "spec_id": "bd818d90-4496-4fcd-92b7-e9a355970ad5",
+  "title": "Multi-Agent Consensus Trading Architecture",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "1.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "architecture",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039342946416283925",
+      "title": "Multi-agent parliament: 5 specialized AI agents (geopolitics, macro, science, sports, crypto) vote on each trade. 3+ agreement required. Beat single-agent by 23% ROI over 14 days. Solves overconfidence problem.",
+      "relevance": "Multi-agent parliament: 5 specialized agents vote, 3+ agreement required, beat single-agent by 23% ROI in 14 days"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039319426474869070",
+      "title": "Claude Code features for Polymarket: MCP Servers (live API/order book), CLAUDE.md (trading rules: max risk, min edge, liquidity filters), Skills (market analyzer), Subagents (parallel news/probability/position), Plan Mode, Ultra Think.",
+      "relevance": "Claude Code infrastructure: MCP servers, CLAUDE.md rules, skills, subagents — the tooling layer for multi-agent systems"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039165211178061967",
+      "title": "Rebuilt trading bot from Claude Code (claw-code) harness and skill system, cloned from leaked GitHub repo. $400 to $9,340 in 11 days.",
+      "relevance": "Harness architecture and skill system — how to structure agent capabilities and orchestration"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038574044606558237",
+      "title": "AI swarm for trading alpha. Big firms use agent swarms vs manual traders. GitHub repo. Author builds bots daily on live Zoom, learned to code after liquidations.",
+      "relevance": "AI swarm for trading alpha — big firms use agent swarms vs manual traders"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039373347696328738",
+      "title": "Claude agent analyzed 10K top wallets over 90 days, cross-referenced win rates/sizing. Built autonomous agent: reads live news, maps to markets, runs probabilistic inference on mispricing, detects cross-market arb, sizes with Kelly. $25 to $4,237 overnight.",
+      "relevance": "Autonomous agent combining wallet analysis + news + probabilistic inference + cross-market arb + Kelly sizing"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039006300441620782",
+      "title": "Launch of $50K live portfolio managed by Claude autonomous agents. Can they outperform Buffett? 18.5K likes. Explains portfolio system.",
+      "relevance": "$50K autonomous agent portfolio — live performance tracking, agent-managed stock selection"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039776473687494784",
+      "title": "PHANTOM: automated Claude script by Chinese engineers. $1.18 to $3.3M on Polymarket. Referenced wallet and breakdown in linked article.",
+      "relevance": "PHANTOM autonomous script — $1.18 to $3.3M, demonstrates what fully autonomous execution can achieve"
+    }
+  ],
+  "overview": {
+    "description": "A multi-agent consensus trading system (the 'Parliament') where five specialized AI agents independently analyze prediction market opportunities through isolated information contexts, then vote on whether to execute each trade. The architecture leverages Claude Code's native infrastructure — MCP servers for live data, CLAUDE.md for immutable trading rules, the skill system for typed capabilities, and subagent orchestration for parallel execution. Each agent specializes in a distinct analytical domain (geopolitics, macroeconomics, science, sports, crypto), receives domain-specific data feeds, and produces a structured vote with confidence score and reasoning. A consensus threshold of 3/5 agents must agree before execution. Critically, dissenting minority votes are treated as high-value signals rather than noise — when a single agent dissents against four, a 5-sample pilot showed it was correct 4 out of 5 times (80%), though this sample size is insufficient for statistical reliability and must be validated over 30+ solo-dissent events. The system targets a 20%+ ROI improvement over single-agent approaches by eliminating overconfident single-model failures and filtering out low-conviction trades at the gate.",
+    "objectives": [
+      "Outperform single-agent trading by 20%+ ROI through ensemble consensus filtering",
+      "Eliminate single-model overconfidence by requiring adversarial validation across 5 specialized agents",
+      "Reduce average loss size by 50% through consensus gating — refuse entry when agents cannot agree",
+      "Increase win rate from ~60% (single-agent baseline) to 74%+ through multi-perspective analysis",
+      "Surface high-value dissent signals — minority votes that contradict majority consensus as early warning indicators",
+      "Enable fully autonomous 24/7 execution with no human intervention required for standard trades",
+      "Implement Kelly Criterion position sizing derived from per-agent confidence scores and historical wallet pattern analysis",
+      "Support cross-market arbitrage detection across Polymarket, Kalshi, and correlated outcome pairs",
+      "Provide progressive signal loading so agents can be added/removed without rebuilding the system",
+      "Maintain full audit trail of all votes, dissent reports, and execution decisions for iterative improvement"
+    ],
+    "constraints": [
+      "Each agent MUST operate in an isolated information context — shared information collapses diversity and defeats the purpose",
+      "Minimum consensus threshold of 3/5 agents required for any trade execution",
+      "Maximum risk per position governed by CLAUDE.md rules — no agent can override the risk ceiling",
+      "All agents must return structured output: direction (YES/NO/ABSTAIN), confidence (0-100), reasoning (text), and sources (array)",
+      "Dissent reports are mandatory when the parliament splits — minority agents must produce counterarguments with specific sources",
+      "Kelly Criterion sizing with a fractional cap (half-Kelly or quarter-Kelly) to prevent catastrophic drawdown",
+      "System must handle API rate limits, network failures, and agent timeouts gracefully with fallback to NO_TRADE",
+      "Latency budget: full parliament vote cycle targets p50=60s, p95=120s. The 30-second per-agent timeout will produce frequent ABSTAINs on complex markets; to mitigate, Market Scanner must pre-fetch and cache all domain-specific data feeds at scan time so agents receive pre-loaded data packages rather than fetching live during their analysis window. Agents should spend their 30 seconds on analysis, not data retrieval.",
+      "No agent may access another agent's raw analysis — only the orchestrator sees all votes",
+      "Human override capability must exist for emergency halt, but standard operation is fully autonomous"
+    ],
+    "assumptions": [
+      "Claude Code with MCP server support is available as the execution environment",
+      "Polymarket API provides real-time order book, contract data, and execution endpoints",
+      "Each agent can be instantiated as a separate Claude subagent with its own system prompt and tool access",
+      "External data feeds (diplomatic briefings, Fed minutes, whale alerts, Twitter sentiment, sports feeds) are accessible via dedicated MCP servers or API integrations",
+      "Historical wallet analysis of top performers has been completed to derive Kelly sizing parameters",
+      "The system operates with sufficient capital to absorb losing streaks within Kelly-sized positions",
+      "Market liquidity is sufficient for the position sizes the system will attempt",
+      "Agent specialization domains (geopolitics, macro, science, sports, crypto) cover the majority of prediction market categories on target platforms"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "Orchestrator (Parliament Speaker)",
+        "type": "core_service",
+        "description": "The central coordination layer that manages the full trade evaluation lifecycle. Receives candidate markets from the Market Scanner, distributes them to all 5 specialist agents in parallel, collects structured votes, applies consensus logic, triggers dissent report generation when splits occur, computes aggregate confidence, determines Kelly-sized position, and dispatches execution orders. Implements the harness architecture pattern from claw-code: runtime context scoping with typed I/O contracts and scoped agent permissions. The orchestrator never makes trading decisions itself — it is purely a coordination and aggregation layer.",
+        "responsibilities": [
+          "Receive candidate markets from Market Scanner",
+          "Fan out market data to all 5 specialist agents in parallel via subagent dispatch",
+          "Collect structured vote responses with timeout handling (30s per agent, fallback to ABSTAIN)",
+          "Apply consensus threshold logic: 3/5 minimum agreement for execution",
+          "Trigger mandatory dissent report generation on split votes (3:2 or 4:1)",
+          "Compute weighted aggregate confidence from individual agent scores",
+          "Calculate Kelly-sized position based on aggregate probability estimate and current bankroll",
+          "Dispatch execution orders to the Execution Engine",
+          "Log all votes, reasoning, dissent reports, and decisions to the Audit Trail",
+          "Implement circuit breakers: halt trading if daily loss limit reached or if win rate drops below threshold over rolling window"
+        ],
+        "interfaces": [
+          "Input: CandidateMarket from Market Scanner",
+          "Output: ParliamentDecision {direction, aggregate_confidence, position_size, votes[], dissent_reports[]}",
+          "Output: ExecutionOrder to Execution Engine",
+          "Output: AuditEntry to Audit Trail"
+        ]
+      },
+      {
+        "name": "Market Scanner",
+        "type": "data_service",
+        "description": "Continuously monitors target platforms (Polymarket, Kalshi) for tradeable opportunities. Scans all active markets at configurable intervals (default: every 15 minutes), filters by liquidity minimums, volume thresholds, and time-to-resolution. Identifies cross-market arbitrage opportunities where paired contracts (YES + NO) deviate from $1.00, or where the same event is priced differently across platforms. Outputs a ranked list of CandidateMarket objects to the Orchestrator. Inspired by the PHANTOM system's approach of tracking thousands of markets simultaneously and the wallet analysis agent's pattern of scanning 147 contracts per session.",
+        "responsibilities": [
+          "Poll Polymarket and Kalshi APIs for active markets at configurable intervals",
+          "Filter markets by minimum liquidity ($5K+ volume), minimum time-to-resolution (>2 hours), and maximum spread",
+          "Detect cross-market arbitrage: paired contract deviations from $1.00 (risk-free arb opportunities)",
+          "Detect cross-platform arbitrage: same event priced differently on Polymarket vs Kalshi",
+          "Rank candidates by estimated edge magnitude and liquidity",
+          "Apply CLAUDE.md liquidity filters and excluded-market rules",
+          "Pass CandidateMarket objects to Orchestrator with full market metadata as JSON"
+        ],
+        "interfaces": [
+          "Input: Raw market data from Polymarket MCP Server and Kalshi MCP Server",
+          "Output: CandidateMarket {market_id, platform, name, current_odds, deadline, volume, category, paired_contract_data, cross_platform_price}"
+        ]
+      },
+      {
+        "name": "Geopolitics Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a geopolitical lens. Receives diplomatic briefings, sanctions lists, treaty status updates, UN voting records, and geopolitical risk indices. Specializes in elections, international conflicts, sanctions outcomes, diplomatic negotiations, and government policy decisions. Operates in a completely isolated context — does NOT see on-chain data, does NOT read social media sentiment, does NOT access sports or science feeds. This isolation is fundamental to preserving analytical diversity.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with geopolitics-specific data feeds attached",
+          "Analyze market through geopolitical framework: power dynamics, historical precedent, institutional incentives",
+          "Assess probability of outcome based on diplomatic signals, intelligence assessments, and policy trajectories",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority on a split vote, produce dissent report with specific counterarguments and source citations"
+        ],
+        "data_feeds": [
+          "Diplomatic briefings and press releases (via news MCP server)",
+          "Sanctions lists and trade policy updates",
+          "UN voting records and Security Council proceedings",
+          "Geopolitical risk indices (e.g., GPR index)",
+          "Government official statements and policy announcements"
+        ],
+        "system_prompt_scope": "You are a geopolitical analyst specializing in prediction market assessment. You evaluate markets ONLY through the lens of international relations, political power dynamics, institutional incentives, and diplomatic signals. You do NOT have access to financial market data, on-chain metrics, social media sentiment, sports statistics, or scientific research. Your analysis must cite specific geopolitical sources and events. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Macroeconomics Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a macroeconomic lens. Receives Fed minutes, CPI/PPI data, employment reports, GDP figures, yield curve data, and central bank communications. Specializes in economic policy outcomes, inflation bets, interest rate decisions, recession probabilities, and fiscal policy impacts. Isolated from social media, on-chain data, and domain-specific feeds outside economics.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with macroeconomics-specific data feeds attached",
+          "Analyze market through macroeconomic framework: monetary policy, fiscal dynamics, leading indicators",
+          "Assess probability using economic models, historical base rates, and indicator convergence",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority on a split vote, produce dissent report with specific economic counterarguments"
+        ],
+        "data_feeds": [
+          "Federal Reserve minutes, speeches, and dot plots",
+          "CPI, PPI, PCE inflation data",
+          "Employment reports (NFP, unemployment rate, JOLTS)",
+          "GDP and GDI estimates",
+          "Treasury yield curve and credit spreads",
+          "Central bank communications from ECB, BOJ, BOE"
+        ],
+        "system_prompt_scope": "You are a macroeconomic analyst specializing in prediction market assessment. You evaluate markets ONLY through the lens of monetary policy, fiscal policy, economic indicators, and central bank dynamics. You do NOT have access to social media, on-chain data, sports statistics, or geopolitical intelligence beyond what affects economic policy. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Science & Technology Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a scientific and technological lens. Receives research publications, clinical trial data, patent filings, regulatory submissions (FDA, EMA), and technology adoption curves. Specializes in scientific breakthroughs, drug approvals, technology milestones, climate events, and space/defense technology outcomes. The most contrarian agent in historical testing — voted against the majority on 40% of markets, and when it was the sole dissenter against 4 agents, it was correct 80% of the time (4 out of 5 events). NOTE: The 80% figure is from a 5-sample pilot and cannot be treated as statistically reliable. This metric must be re-evaluated after 30+ solo-dissent events are observed before being used to drive automated decisions. This makes it a potentially high-value agent for preventing catastrophic losses, pending validation at scale.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with science-specific data feeds attached",
+          "Analyze market through scientific rigor: evidence quality, replication likelihood, regulatory precedent, technical feasibility",
+          "Assess probability using base rates for scientific claims, clinical trial success rates by phase, and technology readiness levels",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority, produce especially detailed dissent reports — historical data shows this agent's dissent is the highest-value signal in the entire system"
+        ],
+        "data_feeds": [
+          "PubMed / arXiv preprints and publications",
+          "FDA and EMA regulatory filings and advisory committee votes",
+          "Clinical trial registries (ClinicalTrials.gov) with phase and endpoint data",
+          "Patent filings and technology readiness assessments",
+          "Satellite and meteorological data for climate/weather markets"
+        ],
+        "system_prompt_scope": "You are a scientific analyst specializing in prediction market assessment. You evaluate markets ONLY through the lens of empirical evidence, scientific methodology, regulatory precedent, and technological feasibility. You are naturally skeptical of claims that lack strong evidence. You apply base rate reasoning aggressively. You do NOT have access to financial data, social media, geopolitical intelligence, or sports statistics. When you disagree with a market's implied probability, state your case with maximum specificity. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Sports Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a sports analytics lens. Receives team/player statistics, injury reports, historical matchup data, venue effects, and sports-specific quantitative models. Specializes in game outcomes, player performance, tournament brackets, and over/under markets. Particularly valuable for detecting arbitrage in paired O/U contracts where YES + NO should sum to $1.00 but frequently deviate due to differential trader reaction speeds (the PHANTOM strategy).",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with sports-specific data feeds attached",
+          "Analyze market through sports analytics framework: Elo ratings, injury-adjusted projections, venue effects, schedule fatigue",
+          "Detect paired contract mispricing: if YES costs $0.62 and NO costs $0.41, total is $1.03 = 3% risk-free arb",
+          "Assess probability using statistical models, not narrative or media hype",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object, arb_detected: boolean, arb_spread: number}",
+          "When in minority on a split vote, produce dissent report grounded in statistical evidence"
+        ],
+        "data_feeds": [
+          "Team and player statistics databases (ESPN, Sports Reference)",
+          "Real-time injury reports and lineup confirmations",
+          "Historical head-to-head matchup data",
+          "Venue and travel schedule data",
+          "Betting line movements from traditional sportsbooks for calibration"
+        ],
+        "system_prompt_scope": "You are a sports analytics specialist evaluating prediction market contracts. You assess outcomes ONLY through quantitative sports analysis: Elo ratings, win probability models, injury-adjusted projections, and schedule effects. You actively look for paired contract arbitrage (YES + NO > $1.00 or < $1.00). You do NOT access geopolitical, economic, or crypto data. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Crypto & On-Chain Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a crypto-native lens. Receives whale alerts, on-chain flow data, DeFi protocol metrics, Twitter/X crypto sentiment scores, and smart money wallet tracking. Specializes in crypto price outcomes, DeFi governance votes, protocol milestones, regulatory decisions affecting crypto, and on-chain activity patterns. Derived from the wallet analysis methodology: analyzing 10K+ top wallets, cross-referencing win rates and sizing patterns to identify edges that are skill rather than luck.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with crypto-specific data feeds attached",
+          "Analyze market through on-chain lens: whale positioning, smart money flows, protocol fundamentals, sentiment divergence",
+          "Track top wallet behavior patterns — identify when smart money is positioning on specific outcomes",
+          "Assess probability using on-chain evidence, not price charts or narratives",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object, whale_alignment: number}",
+          "When in minority on a split vote, produce dissent report citing specific on-chain evidence"
+        ],
+        "data_feeds": [
+          "Whale alert feeds (large transaction monitoring)",
+          "On-chain flow analysis (exchange inflows/outflows)",
+          "Twitter/X crypto sentiment scores (aggregated, not raw)",
+          "Smart money wallet tracking (top 100 wallets by ROI on Polymarket)",
+          "DeFi protocol TVL, governance proposals, and treasury data",
+          "Gas fee trends and network congestion metrics"
+        ],
+        "system_prompt_scope": "You are a crypto and on-chain analyst specializing in prediction market assessment. You evaluate markets ONLY through on-chain data, whale behavior, smart money wallet patterns, DeFi fundamentals, and crypto-native sentiment. You track what the most profitable wallets are doing, not what influencers are saying. You do NOT access geopolitical briefings, macroeconomic data, sports statistics, or scientific publications. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Execution Engine",
+        "type": "core_service",
+        "description": "Handles all trade execution after the Parliament approves a position. Manages order placement, slippage control, partial fill handling, and position tracking. Implements the three execution strategies identified in the PHANTOM analysis: direct market orders for high-conviction consensus trades, limit orders for lower-urgency positions, and millisecond-speed arbitrage execution for paired contract mispricing. Connects to platform APIs via MCP servers. Sends Telegram alerts on fills, drawdown warnings, and daily P&L summaries.",
+        "responsibilities": [
+          "Receive ExecutionOrder from Orchestrator with approved position size and direction",
+          "Place orders via Polymarket MCP Server and/or Kalshi MCP Server",
+          "Implement slippage protection: reject execution if price has moved more than 2% from analysis time",
+          "Handle partial fills gracefully — re-queue remainder or cancel based on time sensitivity",
+          "Track all open positions with real-time P&L",
+          "Execute paired contract arbitrage at maximum speed when Sports Agent detects mispricing",
+          "Send Telegram alerts on: order fills, position closures, drawdown threshold crossings, daily P&L summary",
+          "Implement emergency halt: cease all trading and close positions if daily loss exceeds CLAUDE.md limit",
+          "GRACEFUL SHUTDOWN: On system halt (manual, circuit breaker, or crash recovery): (1) Cancel all pending/open orders immediately, (2) Log all open position states to persistent storage (SQLite) with current market prices, (3) Do NOT auto-close positions on shutdown — positions on prediction markets cannot be 'closed' without selling at current market price which may realize unnecessary losses, (4) On restart, validate persisted state against live platform positions via MCP server queries before resuming trading, (5) Send Telegram alert with shutdown reason and open position summary, (6) Require explicit human confirmation before resuming autonomous trading after an unclean shutdown"
+        ],
+        "interfaces": [
+          "Input: ExecutionOrder {market_id, platform, direction, size_usd, limit_price, order_type, urgency}",
+          "Output: ExecutionResult {order_id, fill_price, fill_size, status, timestamp}",
+          "Output: TelegramAlert via webhook",
+          "Output: PositionUpdate to Portfolio Tracker"
+        ]
+      },
+      {
+        "name": "Portfolio Tracker & Risk Manager",
+        "type": "core_service",
+        "description": "Maintains real-time portfolio state, enforces risk limits, and tracks performance metrics against benchmarks. Computes rolling win rate, average win/loss ratio, Sharpe ratio equivalent, and maximum drawdown. Inspired by the $50K Claude Portfolio concept of live, transparent performance tracking. Enforces all CLAUDE.md risk rules as hard constraints that no agent or orchestrator can override.",
+        "responsibilities": [
+          "Maintain real-time portfolio state: all open positions, cash balance, total equity",
+          "Enforce maximum position size (from CLAUDE.md rules) — reject orders that exceed per-trade or total exposure limits",
+          "Track rolling performance metrics: win rate, avg win/loss, total ROI, max drawdown, Sharpe-equivalent",
+          "Compare performance against single-agent baseline to measure parliament alpha",
+          "Implement drawdown circuit breaker: pause trading if drawdown exceeds configurable threshold (e.g., 15% of bankroll)",
+          "Generate daily performance report with per-agent accuracy breakdown",
+          "Track which agent's dissent was correct retroactively — update agent credibility scores over time",
+          "EXIT MANAGER: Monitor open positions for early exit conditions — cut losses when position moves against by configurable threshold (default: 15% of position value), take profit when position reaches configurable target (default: 2x edge captured), and trigger re-evaluation when material new information arrives (breaking news, data feed alert, or agent-initiated signal)",
+          "EXIT MANAGER: Maintain per-position exit rules at entry time: stop-loss price, take-profit price, and re-evaluation triggers. Dispatch a reduced parliament session (3 agents, 15-second timeout) for re-evaluation votes on whether to hold, exit, or adjust size",
+          "EXIT MANAGER: Execute early exits via Execution Engine with same slippage protections as entry orders. Log exit rationale to Audit Trail with entry-vs-exit P&L attribution"
+        ],
+        "interfaces": [
+          "Input: PositionUpdate from Execution Engine",
+          "Input: MarketResolution events from platform APIs",
+          "Input: ExitTrigger {position_id, trigger_type: 'stop_loss'|'take_profit'|'re_evaluation'|'manual', trigger_data}",
+          "Output: PortfolioState {equity, cash, positions[], metrics{}}",
+          "Output: RiskVeto — can block ExecutionOrders that violate risk limits",
+          "Output: ExitOrder {position_id, direction, size, reason, exit_type} to Execution Engine",
+          "Output: PerformanceReport (daily/weekly)"
+        ]
+      },
+      {
+        "name": "Dissent Analyzer",
+        "type": "analytical_service",
+        "description": "A meta-analytical component that specifically processes and weights dissent signals. When the parliament splits, this component analyzes the minority dissent reports, cross-references them with historical outcomes, and assigns a 'dissent quality score' that can modify the Orchestrator's final decision. Based on the empirical finding that the Science Agent's solo dissent against 4 agreeing agents was correct 4 out of 5 times — saving $890 in avoided losses from a single agent's contrarian signal. The Dissent Analyzer turns this pattern from anecdote into systematic edge.",
+        "responsibilities": [
+          "Receive all dissent reports from minority-voting agents",
+          "Score dissent quality based on: specificity of sources cited, historical accuracy of the dissenting agent on similar markets, strength of counterargument",
+          "Maintain per-agent dissent accuracy tracking: when agent X dissents, how often is X ultimately correct?",
+          "Flag 'high-quality dissent' scenarios: e.g., Science Agent sole dissenter with >80 confidence = historically 80% accurate (5-sample pilot — do not trust accuracy score for automated escalation decisions until minimum 30 solo-dissent events per agent have been recorded; until then, always escalate to HUMAN_REVIEW rather than auto-ABORT or auto-PROCEED)",
+          "Can escalate dissent to human review or reduce position size when dissent quality score exceeds threshold",
+          "Feed dissent accuracy data back to Orchestrator for dynamic confidence weighting"
+        ],
+        "interfaces": [
+          "Input: DissentReport {agent_name, vote, confidence, reasoning, sources, market_context}",
+          "Output: DissentScore {quality: 0-100, historical_accuracy: float, recommendation: PROCEED|REDUCE_SIZE|HUMAN_REVIEW|ABORT}",
+          "Output: AgentCredibilityUpdate to Orchestrator"
+        ]
+      },
+      {
+        "name": "Audit Trail & Learning System",
+        "type": "data_service",
+        "description": "Persistent storage and analysis of all parliament decisions, agent votes, market outcomes, and performance attribution. Enables retroactive analysis of which agents were right, which dissent signals had value, and how consensus quality correlates with outcome. This is the learning loop that allows the system to improve over time by adjusting agent credibility weights and consensus thresholds based on empirical results.",
+        "responsibilities": [
+          "Log every parliament session: market analyzed, all 5 votes with reasoning, consensus outcome, execution decision, final P&L",
+          "Track market resolutions and attribute outcomes to individual agent accuracy",
+          "Compute rolling accuracy by agent, by market category, and by consensus split pattern",
+          "Identify systematic biases: is any agent consistently overconfident? Consistently wrong on a market type?",
+          "Generate weekly learning reports recommending adjustments to agent weights or data feeds",
+          "Store all data in SQLite with structured schemas for downstream analysis and model fine-tuning"
+        ],
+        "interfaces": [
+          "Input: ParliamentSession {market, votes[], decision, execution, outcome}",
+          "Output: SQLite audit records (append-only, structured schemas)",
+          "Output: WeeklyLearningReport with recommendations",
+          "Output: AgentAccuracyMetrics for dynamic weight adjustment"
+        ]
+      }
+    ],
+    "data_flow": "1. MARKET DISCOVERY: Market Scanner polls Polymarket/Kalshi APIs via MCP servers every 15 minutes. Filters by CLAUDE.md liquidity and volume rules. Produces ranked CandidateMarket objects. 2. PROGRESSIVE SIGNAL LOADING: For each CandidateMarket, the Orchestrator prepares 5 isolated data packages — each containing the base market JSON (name, odds, deadline, volume) plus domain-specific feeds unique to that agent. Geopolitics gets diplomatic briefings; Macro gets Fed minutes and CPI; Science gets clinical trials and research; Sports gets stats and injury reports; Crypto gets whale alerts and on-chain flows. No agent sees another agent's data. 3. PARALLEL AGENT DISPATCH: Orchestrator dispatches all 5 specialist agents simultaneously as Claude Code subagents. Each runs in its own context with its own system prompt. 30-second timeout per agent; timeout = ABSTAIN vote. 4. VOTE COLLECTION: Each agent returns structured JSON: {direction, confidence, reasoning, sources, domain_signals}. Orchestrator collects all 5 votes. 5. CONSENSUS EVALUATION: Orchestrator applies threshold: 3/5 minimum agreement on direction. If threshold not met, NO_TRADE and log the disagreement. 6. DISSENT PROCESSING: On split votes (3:2 or 4:1), minority agents produce dissent reports. Dissent Analyzer scores quality and checks historical accuracy of the dissenting agent(s). High-quality dissent can reduce position size or escalate to human review. 7. POSITION SIZING: If consensus reached, Orchestrator computes Kelly-sized position using aggregate probability estimate (confidence-weighted average of agreeing agents) against market odds, capped at half-Kelly. Portfolio Tracker validates against risk limits. 8. EXECUTION: Execution Engine places order via platform MCP server. Slippage check, fill confirmation, Telegram alert. 9. RESOLUTION TRACKING: When market resolves, Audit Trail records outcome, attributes accuracy to each agent, updates credibility scores. 10. LEARNING LOOP: Weekly, the system reviews agent accuracy by domain and market category, adjusts credibility weights, and flags agents that need data feed improvements.",
+    "integration_points": [
+      {
+        "name": "Polymarket MCP Server",
+        "type": "mcp_server",
+        "description": "MCP server wrapping Polymarket's CLOB API. Provides real-time order book, contract data, market listings, and order execution endpoints. Registered in .mcp.json. Tools: get_markets, get_order_book, get_contract, place_order, cancel_order, get_positions, get_trade_history.",
+        "tools": [
+          "polymarket_get_markets(category?, status?, limit?) -> Market[]",
+          "polymarket_get_order_book(market_id) -> OrderBook{bids[], asks[], spread}",
+          "polymarket_get_contract(contract_id) -> Contract{price, volume, deadline}",
+          "polymarket_place_order(market_id, side, size, price, type) -> OrderResult",
+          "polymarket_cancel_order(order_id) -> CancelResult",
+          "polymarket_get_positions() -> Position[]",
+          "polymarket_get_trade_history(limit?) -> Trade[]"
+        ]
+      },
+      {
+        "name": "Kalshi MCP Server",
+        "type": "mcp_server",
+        "description": "MCP server wrapping Kalshi's API for cross-platform arbitrage detection and execution. Provides event listings, market data, and order management.",
+        "tools": [
+          "kalshi_get_events(category?, status?) -> Event[]",
+          "kalshi_get_market(market_id) -> Market{yes_price, no_price, volume}",
+          "kalshi_place_order(market_id, side, count, price) -> OrderResult",
+          "kalshi_get_positions() -> Position[]"
+        ]
+      },
+      {
+        "name": "News & Intelligence MCP Server",
+        "type": "mcp_server",
+        "description": "Aggregates news feeds, diplomatic briefings, and real-time event data. Provides filtered, domain-specific news queries so each agent only receives data relevant to its specialization. Prevents information cross-contamination between agents.",
+        "tools": [
+          "news_query(domain: 'geopolitics'|'economics'|'science'|'sports'|'crypto', query: string, hours_back?: number) -> Article[]",
+          "news_get_breaking(domain: string) -> BreakingAlert[]",
+          "news_get_sentiment(topic: string) -> SentimentScore{positive, negative, neutral, magnitude}"
+        ]
+      },
+      {
+        "name": "On-Chain Analytics MCP Server",
+        "type": "mcp_server",
+        "description": "Provides on-chain data feeds for the Crypto Agent. Whale alerts, wallet tracking, DeFi metrics, and exchange flow analysis.",
+        "tools": [
+          "onchain_whale_alerts(min_usd?: number, hours_back?: number) -> WhaleTransaction[]",
+          "onchain_track_wallets(wallet_addresses: string[]) -> WalletActivity[]",
+          "onchain_exchange_flows(asset: string) -> FlowData{inflow, outflow, net}",
+          "onchain_polymarket_smart_money(top_n?: number) -> SmartWallet[]{address, roi, win_rate, recent_positions[]}"
+        ]
+      },
+      {
+        "name": "Telegram Notification Webhook",
+        "type": "webhook",
+        "description": "Sends real-time alerts to a Telegram channel/chat. Used for order fill notifications, drawdown warnings, daily P&L summaries, and high-quality dissent alerts that may require human review.",
+        "events": [
+          "order_filled: position entered with details",
+          "position_closed: P&L on closed position",
+          "drawdown_warning: daily loss approaching limit",
+          "dissent_escalation: high-quality dissent flagged for human review",
+          "daily_summary: end-of-day P&L, win rate, positions"
+        ]
+      },
+      {
+        "name": "X (Twitter) API MCP Server",
+        "type": "mcp_server",
+        "description": "Existing custom MCP server wrapping X API v2 with OAuth PKCE, registered in .mcp.json. Used by the Crypto Agent for sentiment analysis and by the Sports Agent for real-time injury/lineup news. Provides search, user lookup, and thread retrieval. NOTE: Agents sharing this MCP server must use non-overlapping query namespaces to preserve information isolation. The Crypto Agent should search only crypto-specific terms (e.g., $BTC, DeFi, whale alert) and the Sports Agent only sports-specific terms (e.g., injury report, lineup, game day). The Orchestrator's data package preparation must enforce these query scopes — agents must not be able to craft arbitrary X API queries that breach their domain boundary.",
+        "tools": [
+          "x_search_tweets(query, max_results?) -> Tweet[]",
+          "x_get_user(username) -> UserProfile",
+          "x_get_tweet(tweet_id) -> Tweet",
+          "x_get_thread(tweet_id) -> Thread"
+        ]
+      }
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Foundation — MCP Servers & CLAUDE.md Rules",
+        "duration": "1 week",
+        "description": "Set up the infrastructure layer: configure MCP servers for Polymarket API, deploy CLAUDE.md trading rules, and establish the project structure.",
+        "deliverables": [
+          "Kalshi MCP Server (read-only baseline): event listings and market data endpoints registered in .mcp.json. Kalshi has a simpler REST API and should be integrated first to validate the MCP server pattern before tackling Polymarket.",
+          "Polymarket MCP Server: live market data, order book, execution endpoints registered in .mcp.json. NOTE: Polymarket execution requires a dedicated wallet, EIP-712 typed data signing for order placement, and CLOB API key registration. Budget additional setup time for wallet/signing infrastructure — this is significantly more complex than a standard REST API wrapper.",
+          "CLAUDE.md trading rules file with immutable constraints (see claude_md_rules below)",
+          "Project directory structure: /agents, /skills, /orchestrator, /execution, /data, /config",
+          "Basic Market Scanner skill: polls markets, filters by CLAUDE.md rules, outputs CandidateMarket JSON",
+          "Integration tests validating MCP server connectivity and data quality"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Agent Parliament — Specialist Agents & Voting",
+        "duration": "1 week",
+        "description": "Build the 5 specialist agents with isolated system prompts, domain-specific data feed routing, and structured vote output. Implement the Orchestrator's parallel dispatch and vote collection.",
+        "deliverables": [
+          "5 specialist agent definitions with system prompts, tool permissions, and data feed configurations",
+          "Orchestrator service: parallel subagent dispatch, timeout handling, vote collection",
+          "Structured vote schema with validation: direction, confidence, reasoning, sources, domain_signals",
+          "Consensus threshold logic: 3/5 minimum, weighted confidence aggregation",
+          "Dry-run mode: full parliament evaluation without execution, outputting vote logs for manual review"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Dissent & Sizing — Contrarian Signal Processing",
+        "duration": "1 week",
+        "description": "Build the dissent reporting system, Dissent Analyzer, Kelly Criterion sizing, and Portfolio Tracker. This is where the system's edge over single-agent approaches materializes.",
+        "deliverables": [
+          "Mandatory dissent report generation for split-vote scenarios",
+          "Dissent Analyzer with quality scoring and historical accuracy tracking",
+          "Kelly Criterion position sizer with fractional cap (half-Kelly default)",
+          "Portfolio Tracker with real-time P&L, risk limits enforcement, and drawdown circuit breaker",
+          "Dissent escalation to Telegram for human review on high-quality minority signals"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Execution & Monitoring — Live Trading Pipeline",
+        "duration": "1 week",
+        "description": "Connect the full pipeline from Market Scanner through Parliament through Execution Engine. Deploy Telegram alerts, audit logging, and performance dashboards.",
+        "deliverables": [
+          "Execution Engine with slippage protection, partial fill handling, and order management",
+          "Telegram notification integration for all event types",
+          "Audit Trail with SQLite-backed structured logging of all parliament sessions",
+          "Cross-market arbitrage fast path for paired contract mispricing",
+          "Paper trading validation: run full system on live markets with no real capital for 7 days minimum"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Learning & Optimization — Adaptive Weights",
+        "duration": "Ongoing (starts week 5)",
+        "description": "Deploy the learning loop that adjusts agent credibility weights based on empirical outcomes. Expand to additional platforms and market categories. Target: measurable 20%+ ROI improvement over single-agent baseline.",
+        "deliverables": [
+          "Weekly learning reports with per-agent accuracy breakdown by market category",
+          "Dynamic credibility weighting: agents that are consistently right on specific market types get higher vote weight",
+          "Kalshi MCP Server integration for cross-platform arbitrage",
+          "Additional data feed MCP servers as needed based on agent performance gaps",
+          "A/B testing framework: run parliament vs single-agent on identical markets for direct comparison. PREREQUISITE: Define and freeze a baseline_configuration for the single-agent comparison — must specify exact model version, system prompt text, data feeds, position sizing method, and risk limits. The baseline must be frozen before A/B testing begins and never modified during the comparison period, or results are invalid.",
+          "Performance benchmark dashboard comparing parliament ROI vs single-agent baseline"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Claude Code — primary development and execution environment, provides subagent orchestration, skill system, and MCP integration",
+      "Python 3.12+ — agent harness implementation, data processing, and execution engine",
+      "MCP (Model Context Protocol) — standardized tool interface for all external data and execution APIs",
+      "Polymarket CLOB API — prediction market data and order execution",
+      "Kalshi API — secondary prediction market for cross-platform arbitrage",
+      "Claude API (Anthropic SDK) — for programmatic subagent instantiation when running outside Claude Code",
+      "JSON — structured data interchange format for all agent I/O, vote schemas, and audit logs",
+      "Telegram Bot API — real-time notifications and alerts",
+      "SQLite — audit trail, performance data persistence, and position state. Single source of truth for all structured data; JSON file storage is not acceptable for production audit trails due to lack of transactional integrity and concurrent access safety.",
+      "Git — version control for agent prompts, CLAUDE.md rules, and configuration"
+    ],
+    "complexity": "high",
+    "skill_definitions": [
+      {
+        "skill_name": "market-analyzer",
+        "description": "Calculates implied probability, edge, and expected value for a given prediction market contract. Used by Market Scanner and individual agents.",
+        "inputs": "MarketData {market_id, yes_price, no_price, volume, deadline}",
+        "outputs": "MarketAnalysis {implied_prob, edge_vs_fair, expected_value, liquidity_grade, time_to_resolution, recommendation}",
+        "invocation": "Claude Code skill invoked via /market-analyzer or programmatically by Orchestrator"
+      },
+      {
+        "skill_name": "kelly-sizer",
+        "description": "Computes optimal position size using Kelly Criterion given estimated probability, market odds, and current bankroll. Applies fractional Kelly cap.",
+        "inputs": "KellyInput {estimated_prob, market_odds, bankroll, kelly_fraction: 0.25|0.5|1.0, max_position_pct}",
+        "outputs": "KellyOutput {optimal_size_usd, kelly_fraction_used, edge, expected_growth_rate}",
+        "formula": "f* = (p * b - q) / b, where p = estimated probability, q = 1-p, b = net odds. For binary YES contracts on prediction markets, b = (1 - p_market) / p_market, where p_market is the market price of the YES contract. Example: if our estimated probability is p=0.70 and the market price is p_market=0.55 (YES contract costs $0.55), then b = (1 - 0.55) / 0.55 = 0.818, and f* = (0.70 * 0.818 - 0.30) / 0.818 = (0.573 - 0.30) / 0.818 = 0.334, meaning Kelly-optimal is 33.4% of bankroll (before fractional cap). At half-Kelly, position size = 16.7% of bankroll, further capped by max_position_pct."
+      },
+      {
+        "skill_name": "dissent-reporter",
+        "description": "Generates a structured dissent report when an agent is in the minority on a split vote. Forces the agent to produce specific counterarguments with source citations.",
+        "inputs": "DissentInput {agent_name, agent_vote, majority_direction, market_data, agent_reasoning, agent_sources}",
+        "outputs": "DissentReport {counterarguments: string[], risk_factors: string[], sources: string[], confidence_in_dissent: 0-100, recommended_action: 'proceed'|'reduce_size'|'abort'}"
+      },
+      {
+        "skill_name": "parliament-session",
+        "description": "Orchestrates a complete parliament voting session for a single market. Dispatches all 5 agents in parallel, collects votes, applies consensus logic, processes dissent, computes position size, and returns a final decision.",
+        "inputs": "SessionInput {candidate_market: CandidateMarket, bankroll: number, risk_limits: RiskLimits}",
+        "outputs": "SessionOutput {decision: 'EXECUTE'|'NO_TRADE'|'HUMAN_REVIEW', votes: Vote[], dissent_reports: DissentReport[], position_size_usd: number, aggregate_confidence: number, execution_order?: ExecutionOrder}"
+      },
+      {
+        "skill_name": "arb-detector",
+        "description": "Detects arbitrage opportunities in paired contracts (YES + NO != $1.00) and cross-platform price discrepancies for the same event.",
+        "inputs": "ArbInput {market_pairs: {yes_price, no_price}[], cross_platform_prices?: {polymarket_price, kalshi_price}[]}",
+        "outputs": "ArbOutput {opportunities: {type: 'paired'|'cross_platform', spread_pct, market_ids, recommended_action}[]}"
+      }
+    ],
+    "claude_md_rules": {
+      "description": "Immutable trading rules enforced via CLAUDE.md. These are loaded into every agent's context at runtime and cannot be overridden by any agent or the orchestrator. They represent hard risk management constraints.",
+      "rules": [
+        {
+          "rule_id": "RISK-001",
+          "name": "Maximum Position Size",
+          "rule": "Never risk more than 5% of total bankroll on a single position. This applies regardless of confidence score or consensus strength.",
+          "enforcement": "Portfolio Tracker validates before execution; Execution Engine rejects oversized orders"
+        },
+        {
+          "rule_id": "RISK-002",
+          "name": "Minimum Edge Threshold",
+          "rule": "Do not enter any position where estimated edge is less than 7% (difference between estimated probability and implied market probability). Below this threshold, transaction costs and model uncertainty consume the edge.",
+          "enforcement": "Orchestrator checks edge calculation before dispatching ExecutionOrder"
+        },
+        {
+          "rule_id": "RISK-003",
+          "name": "Liquidity Floor",
+          "rule": "Do not trade markets with less than $5,000 in 24-hour volume or where the order book spread exceeds 8%. Illiquid markets create slippage risk that destroys edge.",
+          "enforcement": "Market Scanner filters out illiquid markets before they reach the Parliament"
+        },
+        {
+          "rule_id": "RISK-004",
+          "name": "Daily Loss Limit",
+          "rule": "If cumulative daily losses exceed 10% of starting-day bankroll, halt all trading for the remainder of the day. No exceptions. Resume at midnight UTC.",
+          "enforcement": "Portfolio Tracker monitors intraday P&L; Execution Engine implements hard halt"
+        },
+        {
+          "rule_id": "RISK-005",
+          "name": "Consensus Requirement",
+          "rule": "Minimum 3 out of 5 agents must agree on direction before any trade is executed. This threshold CANNOT be lowered. 2:3 splits or worse result in NO_TRADE. EXCEPTION: Verified paired-contract arbitrage (YES + NO < $0.98 after fees on same market, or equivalent cross-platform price discrepancy) may bypass consensus requirement because the edge is mathematically defined, not probabilistic. Arbitrage bypass requires: (1) spread exceeds 2% after all fees, (2) both sides have sufficient liquidity for simultaneous execution, (3) Market Scanner and arb-detector both independently confirm the opportunity.",
+          "enforcement": "Orchestrator consensus logic — hardcoded, not configurable. Arbitrage carve-out enforced via separate code path with independent validation (see arb-detector skill)."
+        },
+        {
+          "rule_id": "RISK-006",
+          "name": "Dissent Acknowledgment",
+          "rule": "When a trade executes on a split vote (3:2 or 4:1), the dissent report MUST be logged and the position size MUST be reduced by at least 25% from Kelly-optimal. Unanimous (5:0) trades get full Kelly-fraction sizing.",
+          "enforcement": "Orchestrator applies automatic size reduction on split consensus"
+        },
+        {
+          "rule_id": "RISK-007",
+          "name": "Maximum Concurrent Positions",
+          "rule": "No more than 10 concurrent open positions at any time. Portfolio concentration beyond this level creates correlated risk that consensus cannot mitigate.",
+          "enforcement": "Portfolio Tracker blocks new ExecutionOrders when limit reached"
+        },
+        {
+          "rule_id": "RISK-008",
+          "name": "Time-to-Resolution Minimum",
+          "rule": "Do not enter markets resolving in less than 2 hours unless executing a paired-contract arbitrage (which is time-insensitive). Short-resolution markets have high volatility and limited time for edge to materialize.",
+          "enforcement": "Market Scanner filters on resolution deadline"
+        },
+        {
+          "rule_id": "RISK-009",
+          "name": "Kelly Fraction Cap",
+          "rule": "Use half-Kelly (0.5x Kelly-optimal) as the default position sizing. Full Kelly is too aggressive for prediction markets given model uncertainty. Quarter-Kelly (0.25x) for markets with high agent disagreement.",
+          "enforcement": "Kelly Sizer skill applies fraction based on consensus strength"
+        },
+        {
+          "rule_id": "RISK-010",
+          "name": "No Override Without Human Approval",
+          "rule": "No agent, orchestrator component, or automated process may disable or modify these rules. Only a human operator with direct CLAUDE.md file access can change risk parameters. The system must treat CLAUDE.md as immutable at runtime.",
+          "enforcement": "CLAUDE.md must be set to read-only permissions at OS level (chmod 444 / attrib +R) during trading sessions. Portfolio Tracker must perform a SHA-256 hash check of CLAUDE.md at startup and compare against a committed known-good hash; halt trading if mismatch detected. Changes require git commit and manual restart."
+        }
+      ]
+    },
+    "subagent_orchestration": {
+      "description": "How Claude Code's native subagent system is used to run the 5 specialist agents in parallel.",
+      "pattern": "The Orchestrator is implemented as the primary Claude Code session. For each parliament vote, it spawns 5 subagents using Claude Code's built-in agent dispatch mechanism. Each subagent receives: (1) its specialist system prompt, (2) the CandidateMarket JSON, (3) its domain-specific data feeds, and (4) access only to MCP tools relevant to its domain (e.g., Crypto Agent gets on-chain tools but not news tools). Subagents run in parallel with a 30-second timeout. Results are collected as structured JSON.",
+      "agent_dispatch_config": {
+        "max_parallel_agents": 5,
+        "timeout_ms": 30000,
+        "timeout_behavior": "ABSTAIN vote with reason 'timeout'",
+        "retry_policy": "No retries — timeout means the agent could not form a view in time, which is informative",
+        "isolation": "Each subagent has its own system prompt, its own tool permissions, and its own data context. No shared state between agents during a voting session.",
+        "result_schema": {
+          "direction": "YES | NO | ABSTAIN",
+          "confidence": "integer 0-100",
+          "reasoning": "string, minimum 100 characters",
+          "sources": "string[], at least 1 source required unless ABSTAIN",
+          "domain_signals": "object, agent-specific structured data supporting the vote",
+          "processing_time_ms": "integer, how long the agent took to analyze"
+        }
+      }
+    },
+    "progressive_signal_loading": {
+      "description": "Mechanism for incrementally adding or removing agents and data feeds without rebuilding the system. The Parliament is designed as a plug-in architecture where new specialist agents can be registered, existing agents can have their data feeds updated, and the consensus threshold adjusts automatically.",
+      "mechanism": [
+        "Agent Registry: a JSON config file listing all active agents with their system prompts, tool permissions, and data feed configurations. Adding a new agent = adding an entry to this registry.",
+        "Dynamic Consensus Threshold: threshold is defined as ceil(n_agents * 0.6), so 3/5, 4/6, 4/7, etc. This maintains the ~60% supermajority requirement as agents are added.",
+        "Data Feed Routing: each agent's data feeds are defined in its registry entry. The Orchestrator's data loading step reads these configs and prepares isolated data packages dynamically.",
+        "Hot-swap Capability: agents can be disabled (set active: false) without removing them, allowing A/B testing of parliament configurations.",
+        "Signal Priority Levels: data feeds can be tagged as 'critical' (must load before vote), 'supplementary' (load if available, proceed without), or 'background' (async, may arrive after vote starts). This prevents slow data feeds from blocking the entire parliament."
+      ],
+      "TODO_schemas": "Define a CandidateMarketPackage schema specifying the exact structure of the pre-loaded data package each agent receives (base market JSON + domain-specific feed payloads + feed freshness timestamps). Also define an agent_registry_schema for the Agent Registry config file, specifying required fields (agent_id, system_prompt, tool_permissions[], data_feed_configs[], active: boolean) so the Orchestrator can validate registry entries and route domain-specific data correctly."
+    }
+  },
+  "risks": [
+    {
+      "risk_id": "R-001",
+      "category": "Model Risk",
+      "description": "All 5 agents use the same underlying LLM (Claude), creating correlated failure modes. If the base model has a systematic bias or blind spot, all agents may share it despite having different prompts and data.",
+      "severity": "high",
+      "mitigation": "Consider mixing model providers (e.g., 2 Claude agents, 1 GPT, 1 Gemini, 1 open-source) for true cognitive diversity. The swarm approach from MoonDev's framework queries multiple model providers in parallel for exactly this reason. Monitor for correlated errors across agents."
+    },
+    {
+      "risk_id": "R-002",
+      "category": "Data Risk",
+      "description": "Domain-specific data feeds may be stale, incomplete, or unavailable. If the geopolitics agent receives no diplomatic briefings, its vote quality degrades but it may still vote with false confidence.",
+      "severity": "medium",
+      "mitigation": "Each agent must report data freshness in its vote response. If primary data feeds are unavailable, agent should ABSTAIN rather than guess. Implement data feed health monitoring with Telegram alerts on feed failures."
+    },
+    {
+      "risk_id": "R-003",
+      "category": "Execution Risk",
+      "description": "Market conditions can change between parliament vote completion and order execution. A 60-second deliberation window may be too slow for fast-moving markets.",
+      "severity": "medium",
+      "mitigation": "Slippage protection: Execution Engine rejects trades where price has moved >2% from analysis time. For arbitrage opportunities (paired contracts), bypass parliament for speed per the RISK-005 arbitrage carve-out — these are mathematically defined edges that require independent verification by both Market Scanner and arb-detector, not consensus. Time-sensitive markets get priority dispatch with shorter agent timeouts."
+    },
+    {
+      "risk_id": "R-004",
+      "category": "Overfitting Risk",
+      "description": "The 23% ROI improvement was measured over only 14 days and 47 markets. This sample size is insufficient for statistical significance. The system may be overfitting to a specific market regime.",
+      "severity": "high",
+      "mitigation": "Run extended paper trading (minimum 30 days, 200+ markets) before deploying real capital. Track performance across multiple market categories and regimes. Implement walk-forward validation: train weights on historical data, validate on subsequent unseen period."
+    },
+    {
+      "risk_id": "R-005",
+      "category": "Consensus Collapse",
+      "description": "If agents learn to agree with each other (prompt drift, shared training data updates), the consensus mechanism loses its value. The parliament degenerates into a single-agent system with extra steps.",
+      "severity": "medium",
+      "mitigation": "Monitor inter-agent agreement rate. If it exceeds 85% over a 7-day window, it indicates loss of diversity. Trigger system prompt review and data feed isolation audit. Consider introducing a mandatory 'devil's advocate' rotation."
+    },
+    {
+      "risk_id": "R-006",
+      "category": "API / Infrastructure Risk",
+      "description": "Dependency on multiple external APIs (Polymarket, Kalshi, news feeds, on-chain analytics). Any API outage, rate limit, or breaking change can disable part or all of the system.",
+      "severity": "medium",
+      "mitigation": "Implement graceful degradation: if non-critical MCP servers are down, remaining agents still vote with available data. If Execution Engine APIs are down, queue approved trades for execution when connectivity restores. Maintain API key rotation and backup endpoints."
+    },
+    {
+      "risk_id": "R-007",
+      "category": "Regulatory Risk",
+      "description": "Automated trading on prediction markets may face regulatory scrutiny depending on jurisdiction. Kalshi is a CFTC-regulated Designated Contract Market (DCM); Polymarket operates offshore. Automated bot trading on regulated exchanges carries material legal risk.",
+      "severity": "high",
+      "mitigation": "Legal review required before deployment — obtain written opinion on operator jurisdiction, platform-specific compliance requirements, and automated trading permissibility. Maintain explicit operator jurisdiction documentation. Implement platform-specific kill switches that can disable trading on any single platform independently. Operate within platform ToS. Maintain full audit trail for regulatory compliance. Implement geographic restrictions if required. Monitor regulatory developments via the Geopolitics Agent's data feeds."
+    }
+  ],
+  "success_criteria": [
+    {
+      "metric": "ROI vs Single-Agent Baseline",
+      "target": "20%+ improvement over single-agent approach on identical market set",
+      "measurement": "A/B test: run parliament and single-agent on same markets for 30 days, compare total ROI",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Win Rate",
+      "target": "74%+ on executed trades (vs ~60% single-agent baseline). A 'win' is defined as a resolved position where total return (payout minus cost minus all fees) is strictly positive. Positions exited early at a loss count as losses. Positions exited early at a profit count as wins. Unresolved positions are excluded from win rate calculation until resolved or exited.",
+      "measurement": "Count of profitable resolved/exited trades / total resolved/exited trades executed by parliament",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Average Loss Reduction",
+      "target": "50%+ reduction in average loss size compared to single-agent",
+      "measurement": "Mean loss on losing trades: parliament vs single-agent baseline",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Dissent Signal Value",
+      "target": "Minority dissent accuracy > 60% when dissent quality score exceeds 70",
+      "measurement": "Track outcomes of trades where high-quality dissent was overridden vs heeded",
+      "timeframe": "60-day cumulative measurement (requires sufficient sample)"
+    },
+    {
+      "metric": "Maximum Drawdown",
+      "target": "< 15% of peak bankroll at any point",
+      "measurement": "Continuous monitoring by Portfolio Tracker",
+      "timeframe": "Continuous"
+    },
+    {
+      "metric": "Trades Filtered",
+      "target": "System should refuse 40-60% of candidate markets (consensus not reached)",
+      "measurement": "Count of NO_TRADE decisions / total markets evaluated by parliament",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Latency",
+      "target": "Full parliament vote cycle p50 < 60 seconds, p95 < 120 seconds from market dispatch to decision. Pre-fetched data packages must be delivered to agents at dispatch time to avoid live fetch delays consuming the 30-second agent timeout.",
+      "measurement": "Timestamp logging on Orchestrator: dispatch_time to decision_time, plus per-agent processing_time_ms breakdown",
+      "timeframe": "Per-session, with p50, p95 and p99 tracking"
+    },
+    {
+      "metric": "Agent Diversity",
+      "target": "Inter-agent unanimous agreement rate < 40% (agents should disagree frequently to demonstrate genuine analytical diversity). Track full vote split distribution: 5:0, 4:1, 3:2, and no-consensus outcomes. Healthy distribution target: 5:0 < 20%, 4:1 ~ 30-40%, 3:2 ~ 25-35%, no-consensus ~ 15-25%.",
+      "measurement": "Percentage of parliament sessions by vote split pattern (5:0, 4:1, 3:2, no-consensus). Alert if 5:0 rate exceeds 40% over rolling window (indicates diversity collapse).",
+      "timeframe": "7-day rolling measurement"
+    }
+  ],
+  "notes": "Key insight from source material: the Parliament's edge comes NOT from any individual agent being smarter, but from the built-in mechanism of doubt that a single model cannot replicate. The most profitable wallets on Polymarket 'almost never bet on the same thing at the same time' — they think differently, and that diversity is exactly what makes each profitable. The architecture replicates this cognitive diversity synthetically through isolated contexts and specialized data feeds.\n\nThe Science Agent anomaly is particularly important: it dissented more often than any other agent (19/47 markets), and when it was the sole dissenter against 4 agreeing agents, it was correct 4 out of 5 times (n=5 pilot sample, 80% accuracy). CAVEAT: This 5-sample result is directionally interesting but not statistically reliable — it must be validated over 30+ solo-dissent events before being treated as a durable edge. Those 4 correct dissents prevented $890 in avoided losses in the pilot. If the pattern holds at scale, the Dissent Analyzer is arguably the most important component in the entire architecture, not the consensus mechanism.\n\nThe harness architecture (from claw-code) provides the runtime context scoping pattern: agents 'know their role' before the conversation starts via injected system context, not through prompting. This is the foundation for agent specialization — each agent's worldview is shaped by its system prompt and its data feeds, not by user instructions.\n\nProgressive signal loading allows the system to evolve: start with 5 agents, add a 6th (e.g., a 'Regulatory' agent) when that expertise gap is identified, and the consensus threshold adjusts automatically. The architecture is explicitly designed to grow.\n\nCritical anti-pattern to avoid: giving all agents the same information. If every agent sees everything, they converge on the same conclusion, and the parliament becomes a single agent with 5x the cost and zero additional insight. Information isolation between agents is not a nice-to-have — it is the fundamental mechanism that creates the edge."
+}

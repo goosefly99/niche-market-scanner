@@ -1,0 +1,898 @@
+{
+  "spec_id": "bc164a1d-bfb6-4b23-b93b-6ff3175b26ae",
+  "title": "Alternative Data Anomaly Detection & Geopolitical Trading System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "1.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039282251159011513",
+      "title": "NASA FIRMS satellite thermal anomaly detection for geopolitical prediction markets. 10-source free data stack, 270-day backtest across Gaza/Kursk/Syria, $500 to $7,778 on 16 trades.",
+      "relevance": "Core system blueprint: NASA FIRMS satellite trading with 10-source data stack, anomaly detection algorithm (14-day rolling average, 3x threshold), detected Oct 7 at 11x anomaly, Kursk 4 days early, Assad 3 weeks early. Dynamic Kelly sizing with Claude decision engine. Full GitHub repo available."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038608348958834926",
+      "title": "Wall Street playbooks on Polymarket: Taleb barbell, Simons latency arb, Soros information edge. On-chain wallet analysis of top performers.",
+      "relevance": "Soros-style geopolitical information edge pattern: Magamyman's $800K military strike predictions at 93% win rate. Cascade detection across correlated markets. CNN-investigated insider-like precision on specific dates. Provides the information-edge copytrade archetype."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039323712713810150",
+      "title": "17,000 wallet parsing with Claude: mapped 11 strategies, flagged quiet high-performers, $150 to $9,800.",
+      "relevance": "Wallet intelligence pipeline: Claude-based bulk wallet parsing at $0.015/query, strategy classification across 11 types, detection of fresh-address insider patterns, weather-lag 83% win rate discovery, BTC lag compression monitoring."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039373347696328738",
+      "title": "Autonomous Claude agent: 10K wallet analysis, live news mapping, probabilistic inference on mispricing, cross-market arb, Kelly sizing. $25 to $4,237 overnight.",
+      "relevance": "Agent architecture reference: autonomous agent that reads live news, maps to open markets, runs probabilistic inference on crowd mispricing, detects cross-market arbitrage, sizes with Kelly derived from wallet patterns. 94 trades autonomous overnight."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038622884642398503",
+      "title": "14K wallet analysis: 87% lose money, top 0.1% extracted $3.7B. 3 core formulas (EV/Kelly/Bayesian), 12-tool open-source toolkit, security warnings.",
+      "relevance": "Mathematical foundation: EV filtering (skip below 5%), Kelly Criterion (quarter-Kelly always), Bayesian updating. Complete 12-tool open-source toolkit inventory. Critical security warnings about malicious GitHub repos and private key exfiltration."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039308895290581254",
+      "title": "5 free GitHub scripts: trading terminal, data recorder for Polymarket+Binance, wallet analyzer, ML model.",
+      "relevance": "Infrastructure components: data recorder logging order books and trades simultaneously, trading terminal with hotkeys and Telegram alerts, wallet analyzer with position accumulation charts, ML model with 208 TAAPI indicators."
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039055805626937399",
+      "title": "Why Polymarket bots fail: data completeness > strategy quality. 1,000+ bots built, 1% success rate.",
+      "relevance": "Critical design constraint: data completeness is more important than strategy quality. Must record full order book depth, real spreads, actual fill behavior, pre-window and post-window data. Minimum 1000 windows for statistical confidence. Perfect execution assumption is fatal."
+    }
+  ],
+  "overview": {
+    "description": "An end-to-end autonomous trading system that ingests free alternative data sources (satellite imagery, aircraft tracking, seismic data, financial indicators) to detect geopolitical and real-world anomalies before prediction markets price them in. The system combines three intelligence layers: (1) a multi-source anomaly detection engine using NASA FIRMS thermal data as the primary signal with 9 confirming sources, (2) a wallet intelligence pipeline that parses 17K+ Polymarket wallets to extract copytrade signals and strategy patterns, and (3) a Claude-based decision engine that synthesizes anomaly signals, wallet intelligence, and market data into trade decisions with dynamic Kelly sizing. The system targets 1-21 day lead time on geopolitical events, with proven backtest results showing detection of Oct 7 (11x anomaly), Kursk offensive (4 days early), and Assad's fall (3 weeks early).",
+    "objectives": [
+      "Detect geopolitical and real-world anomalies 1-21 days before prediction markets price them in, using free satellite and alternative data sources",
+      "Maintain a 10-source alternative data pipeline costing $0/month for data acquisition, with NASA FIRMS as the primary anomaly signal",
+      "Implement multi-source confirmation scoring that requires 2+ independent data sources before generating a trade signal to reduce false positives",
+      "Parse and classify 17,000+ Polymarket wallets to identify high-performing strategies, detect insider-like positioning patterns, and generate copytrade signals",
+      "Build a Claude-powered decision engine that cross-references all data sources, estimates true probabilities, calculates edge vs market price, and outputs structured trade decisions",
+      "Apply dynamic Kelly Criterion position sizing scaled by anomaly severity (magnitude multiplier), confirming source count, and wallet intelligence confidence",
+      "Achieve positive expected value across geopolitical prediction market trades with a target 65-75% directional accuracy on anomaly-triggered signals",
+      "Execute trades autonomously on Polymarket via py-clob-client with configurable risk limits, take-profit, stop-loss, and time-stop rules",
+      "Record complete market data (order books, fills, spreads) to enable statistically valid backtesting with minimum 1000 windows per strategy"
+    ],
+    "constraints": [
+      "All data sources must be free (no Bloomberg Terminal, no Planet Labs, no enterprise-tier subscriptions)",
+      "NASA FIRMS NRT data has ~3 hour processing delay from satellite observation to API availability. URT (Ultra Real-Time) data is available within 60 seconds via FIRMS URT endpoints — evaluate URT for maximum detection speed. This is swing trading, not HFT",
+      "Polymarket geopolitical markets typically have $10K-$100K total volume; position sizes must be capped at 2% of market volume to avoid slippage",
+      "Claude API is not classified intelligence — expect ~70% directional accuracy, which Kelly sizing must absorb",
+      "Anomaly detection only works for FIRST spikes; continuation signals after baseline tripling must be filtered out",
+      "Backtest results use estimated entry/exit prices since Polymarket does not expose full historical price data — treat P&L as directional, not audited",
+      "Sample size is inherently small for geopolitical events (7 major events over 16 months, 22 signals); system must be treated as a proof of concept with real data",
+      "Security: never use main wallet, audit all dependencies, cap USDC approvals, start with minimal funds ($50-100)",
+      "Must handle rate limits on all free APIs without data gaps",
+      "System must operate on a 15-minute polling cycle via Task Scheduler (Windows) or cron (Linux/Mac), with full pipeline executing in under 90-120 seconds (10 async API calls + anomaly detection + Claude API at 2-10s latency + order placement makes 60 seconds unrealistic)"
+    ],
+    "assumptions": [
+      "NASA FIRMS API will remain free and accessible with a MAP_KEY registration at firms.modaps.eosdis.nasa.gov",
+      "OpenSky Network (free registered account), USGS, CoinGecko (free Demo API key), ExchangeRate API (free API key), Alternative.me, and other free APIs will maintain their current free-tier access policies",
+      "Polymarket will continue operating with on-chain settlement via Polygon USDC and py-clob-client API access",
+      "Claude API (Anthropic) will remain available for probabilistic analysis at current pricing (~$0.015/query for wallet analysis, higher for trade decisions)",
+      "Thermal anomaly patterns from satellite data correlate with geopolitical escalation events with sufficient lead time to generate tradeable signals",
+      "Prediction markets are inefficient enough in pricing geopolitical events that a ~3 hour NRT data delay (or ~60s URT delay) still provides actionable edge",
+      "Wallet behavior patterns on Polymarket are stable enough that historical analysis predicts future positioning",
+      "The 87% of wallets that lose money create sufficient counter-party liquidity for the system to enter positions"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "DataIngestionLayer",
+        "description": "Centralized data collection service that polls all 10 alternative data sources on a 15-minute cycle and normalizes responses into a unified internal format. Handles API key management (NASA FIRMS MAP_KEY), rate limiting, retry logic, and data persistence to local storage for backtesting.",
+        "subcomponents": [
+          {
+            "name": "FIRMSCollector",
+            "description": "Polls NASA FIRMS VIIRS API for thermal anomaly data across 6+ monitored geopolitical regions. Returns fire count, coordinates, fire radiative power (FRP) in megawatts, and timestamps. Endpoint: firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/{bbox}/{days}. Requires MAP_KEY from NASA Earthdata registration.",
+            "api_endpoint": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/{bbox}/{days}",
+            "auth": "MAP_KEY (free registration)",
+            "polling_interval": "15 minutes",
+            "output_schema": {
+              "region": "string",
+              "fire_count": "int",
+              "max_frp_mw": "float",
+              "avg_frp_mw": "float",
+              "timestamp": "ISO8601",
+              "coordinates": "[{lat, lon}]"
+            }
+          },
+          {
+            "name": "OpenSkyCollector",
+            "description": "Queries OpenSky Network REST API for live aircraft positions within monitored region bounding boxes. Tracks military transport (C-17, C-130, Il-76) patterns, altitude anomalies, and traffic density spikes. Registered account required: anonymous access gives only 400 credits/day, insufficient for 6-region 15-minute polling (~576 requests/day). Free registered account provides 4,000 credits/day.",
+            "api_endpoint": "https://opensky-network.org/api/states/all?lamin={lat1}&lomin={lon1}&lamax={lat2}&lomax={lon2}",
+            "auth": "required: OpenSky account registration (free, provides 4,000 credits/day vs 400 anonymous)",
+            "polling_interval": "15 minutes",
+            "output_schema": {
+              "region": "string",
+              "aircraft_count": "int",
+              "military_pattern_score": "float",
+              "altitude_anomalies": "int",
+              "timestamp": "ISO8601"
+            }
+          },
+          {
+            "name": "USGSCollector",
+            "description": "Fetches recent M4+ earthquake data from USGS GeoJSON feed. Detects non-natural seismic events (underground tests, large explosions) by cross-referencing location with known geological fault lines. No authentication required.",
+            "api_endpoint": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson",
+            "auth": "none (keyless)",
+            "polling_interval": "15 minutes",
+            "output_schema": {
+              "events": "[{magnitude, lat, lon, depth_km, timestamp}]",
+              "anomaly_flags": "[{event_id, is_natural_probable: bool}]"
+            }
+          },
+          {
+            "name": "FinancialIndicatorCollector",
+            "description": "Aggregates financial stress indicators from multiple free APIs: Exchange rates (RUB, IRR, TRY, CNY vs USD) from ExchangeRate API (free API key required, daily refresh), VIX from yfinance (unofficial scraper, use Alpha Vantage or CBOE as primary; VIX only updates during US market hours), gold price from Gold API, BTC/ETH from CoinGecko (free Demo API key recommended), and crypto fear/greed index from Alternative.me.",
+            "sources": [
+              {
+                "name": "ExchangeRate API",
+                "endpoint": "https://api.exchangerate-api.com/v4/latest/USD",
+                "data": "RUB, IRR, TRY, CNY rates"
+              },
+              {
+                "name": "Yahoo Finance",
+                "endpoint": "yfinance Python library",
+                "data": "VIX (^VIX)"
+              },
+              {
+                "name": "Gold API",
+                "endpoint": "https://api.gold-api.com/price/XAU",
+                "data": "Gold spot price"
+              },
+              {
+                "name": "CoinGecko",
+                "endpoint": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd",
+                "data": "BTC, ETH prices"
+              },
+              {
+                "name": "Alternative.me",
+                "endpoint": "https://api.alternative.me/fng/",
+                "data": "Crypto fear & greed index (0-100)"
+              }
+            ],
+            "polling_interval": "15 minutes",
+            "output_schema": {
+              "vix": "float",
+              "gold_usd": "float",
+              "btc_usd": "float",
+              "eth_usd": "float",
+              "fear_greed_index": "int",
+              "currency_moves": "{RUB: float, IRR: float, TRY: float, CNY: float}"
+            }
+          },
+          {
+            "name": "PolymarketCollector",
+            "description": "Fetches active geopolitical prediction market contracts from Polymarket Gamma API. Returns contract details, current prices, volume, and liquidity depth. Used as the target market for trade signals.",
+            "api_endpoint": "Polymarket Gamma API / py-clob-client",
+            "auth": "API key for trading (read is public)",
+            "polling_interval": "15 minutes",
+            "output_schema": {
+              "markets": "[{contract_id, question, current_price, volume_24h, liquidity, category}]"
+            }
+          }
+        ]
+      },
+      {
+        "name": "AnomalyDetectionEngine",
+        "description": "Processes raw data from the ingestion layer through statistical anomaly detection. Uses a 14-day rolling average baseline per region per data source. Flags anomalies when current values exceed configurable threshold multipliers (default 3x for FIRMS). Implements continuation bias filter to skip signals where the baseline itself has tripled in the last 7 days.",
+        "algorithm": {
+          "baseline_window": "14 days rolling average",
+          "primary_threshold": "3x baseline (FIRMS fire count)",
+          "secondary_thresholds": {
+            "opensky_aircraft_spike": "2x baseline traffic density",
+            "usgs_non_natural": "any M4+ event flagged as non-natural in monitored region",
+            "currency_crash": "5%+ single-day move vs USD",
+            "vix_spike": "above 25 (elevated), above 30 (panic)",
+            "gold_spike": "2%+ single-day move",
+            "fear_greed_extreme": "below 20 (extreme fear)",
+            "crypto_dump": "5%+ single-day BTC/ETH decline"
+          },
+          "continuation_filter": "If 7-day baseline has tripled vs prior 7-day baseline, suppress signals for that region to avoid betting on the 'new normal'",
+          "anomaly_output": {
+            "region": "string",
+            "magnitude_ratio": "float (current / baseline)",
+            "frp_peak_mw": "float",
+            "confirming_sources": "[string] (list of triggered secondary sources)",
+            "confirmation_count": "int",
+            "timestamp": "ISO8601",
+            "is_continuation": "bool (true = suppressed)"
+          }
+        }
+      },
+      {
+        "name": "ConfirmationScorer",
+        "description": "Takes raw anomaly detections and computes a composite tension/confirmation score (0-100) by weighting each confirming data source. Higher scores indicate multi-source convergence and higher-confidence signals. Only anomalies with confirmation_count >= 2 are passed to the decision engine.",
+        "scoring_model": {
+          "weights": {
+            "firms_anomaly": 30,
+            "opensky_military": 15,
+            "usgs_seismic": 15,
+            "currency_crash": 10,
+            "vix_elevated": 10,
+            "gold_spike": 5,
+            "fear_greed_extreme": 5,
+            "crypto_dump": 5,
+            "weather_extreme": 5,
+            "_note_weather_extreme": "Requires a WeatherCollector subcomponent not yet defined. Add a WeatherCollector using OpenMeteo API (free, no key, https://api.open-meteo.com/v1/forecast) or NOAA Climate Data API (free, requires token). If not implemented, remove weather_extreme weight and redistribute 5 points across other sources."
+          },
+          "formula": "tension_score = sum(weight_i * (1 if source_i triggered else 0)) normalized to 0-100",
+          "minimum_confirmation": 2,
+          "score_thresholds": {
+            "low": "0-30",
+            "medium": "31-50",
+            "high": "51-75",
+            "critical": "76-100"
+          }
+        }
+      },
+      {
+        "name": "WalletIntelligencePipeline",
+        "description": "Bulk wallet analysis engine that parses 17K+ Polymarket wallets using Claude API to classify strategies, detect insider-like positioning, and generate copytrade signals. Runs as a scheduled batch job (daily) with incremental updates. Uses poly_data for historical trade data and polyterm for whale tracking.",
+        "subcomponents": [
+          {
+            "name": "WalletScraper",
+            "description": "Ingests wallet data from poly_data (86M+ historical trades) and Polymarket on-chain data. Extracts per-wallet metrics: total PnL, win rate, trade count, average position size, market category distribution, timing patterns.",
+            "data_source": "poly_data (warproxxx/poly_data GitHub), Polymarket on-chain",
+            "output": "wallet_profiles.json with per-wallet metrics"
+          },
+          {
+            "name": "StrategyClassifier",
+            "description": "Claude-based classifier that maps each wallet to one of 11+ strategy archetypes: barbell/tail risk (Taleb), latency arbitrage (Simons), information edge (Soros), weather lag, market making, momentum, mean reversion, event-driven, copytrade cascade, ML-based, and hybrid. Uses pattern matching on trade timing, size distribution, market selection, and win rate by category.",
+            "strategy_archetypes": [
+              "barbell_tail_risk",
+              "latency_arbitrage",
+              "information_edge",
+              "weather_lag_exploit",
+              "market_making",
+              "momentum",
+              "mean_reversion",
+              "event_driven_geopolitical",
+              "copytrade_cascade",
+              "ml_model_based",
+              "hybrid_multi_strategy"
+            ],
+            "claude_cost_per_query": "$0.015"
+          },
+          {
+            "name": "InsiderDetector",
+            "description": "Flags wallets exhibiting insider-like patterns: fresh addresses with no history entering large positions in low-volume markets, entries within hours of unannounced events, 90%+ win rates on specific-date markets, cluster analysis of coordinated wallet funding (a la Bubblemaps). Integrates with pselamy/polymarket-insider-tracker.",
+            "detection_signals": [
+              "Fresh wallet + large position in dead market",
+              "Entry in specific-date market hours before event",
+              "Win rate > 90% on positions > $10K",
+              "Cluster of wallets funded within 24 hours betting same direction",
+              "Position size disproportionate to wallet history"
+            ]
+          },
+          {
+            "name": "CopytradeSignalGenerator",
+            "description": "Monitors flagged high-performer wallets in real-time. When a tracked wallet opens a new position, generates a copytrade signal with the wallet's strategy type, historical accuracy in that market category, position direction, and suggested fraction sizing. Filters: only copy from wallets with Sharpe > 2.0 and category-specific win rate > 60%.",
+            "filters": {
+              "min_sharpe": 2,
+              "_note_sharpe": "Sharpe > 2.0 is easily inflated by low-variance near-certainty bets common in binary markets. Supplement with profit factor (gross wins / gross losses) as a secondary filter to avoid copying wallets that only bet on near-resolved markets.",
+              "min_profit_factor": 1.5,
+              "min_category_win_rate": 0.6,
+              "min_trade_count": 50,
+              "exclude_latency_arb": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "ClaudeDecisionEngine",
+        "description": "The central trade decision brain. Receives anomaly signals, confirmation scores, wallet intelligence, and live market data. Claude cross-references all inputs and outputs a structured JSON trade decision. The prompt template provides all 10 data source readings, the tension score, any relevant wallet copytrade signals, and the list of active Polymarket geopolitical contracts with current prices.",
+        "interface": {
+          "input": {
+            "anomaly_data": "Full anomaly detection output including region, magnitude, FRP, confirming sources",
+            "tension_score": "Composite 0-100 score from ConfirmationScorer",
+            "financial_indicators": "VIX, gold, BTC, ETH, fear/greed, currency moves",
+            "wallet_signals": "Any active copytrade signals from WalletIntelligencePipeline",
+            "active_markets": "List of Polymarket geopolitical contracts with current prices, volume, liquidity",
+            "portfolio_state": "Current open positions, bankroll, unrealized PnL"
+          },
+          "output_schema": {
+            "action": "BUY_YES | BUY_NO | SKIP",
+            "contract_id": "string (Polymarket contract identifier)",
+            "market_question": "string",
+            "market_price": "float (current market price 0-1)",
+            "estimated_true_probability": "float (Claude's estimate 0-1)",
+            "edge": "float (estimated_true - market_price)",
+            "confidence": "float (0-1)",
+            "reasoning": "string (1-3 sentence explanation)",
+            "recommended_kelly_fraction": "float",
+            "data_sources_used": "[string]",
+            "anomaly_magnitude": "float",
+            "confirmation_count": "int"
+          },
+          "prompt_template": "You are a geopolitical analyst and quantitative trader. You have access to 10 real-time data sources. Analyze the following anomaly and market data. Estimate the true probability of the event. Compare to the current market price. If edge > 5%, recommend a trade. Output JSON only.",
+          "model": "claude-sonnet-4-5 or later",
+          "temperature": 0.2,
+          "max_tokens": 1000
+        }
+      },
+      {
+        "name": "PositionSizingEngine",
+        "description": "Calculates exact position size using dynamic Kelly Criterion, scaled by anomaly severity and confirmation count. Always uses quarter-Kelly to prevent ruin. Applies liquidity cap (2% of market volume) and portfolio concentration limits.",
+        "formulas": {
+          "expected_value": "EV_per_dollar = (P_true * (1 - P_market) - (1 - P_true) * P_market) / P_market, which simplifies to P_true / P_market - 1. The 5% min_ev_threshold applies to this normalized per-dollar form.",
+          "kelly_fraction": "f* = (p * b - q) / b, where b = (1 - P_market) / P_market, p = P_true, q = 1 - P_true",
+          "quarter_kelly": "position_fraction = f* / 4",
+          "anomaly_scaling": "scaled_fraction = quarter_kelly * min(anomaly_magnitude / 10, 1.0) * (confirmation_count / max_sources)",
+          "position_size_usd": "min(scaled_fraction * bankroll, 0.02 * market_volume)",
+          "ev_minimum_filter": "skip if EV < 0.05 (5%)"
+        },
+        "risk_limits": {
+          "max_single_position_pct": 0.15,
+          "max_portfolio_exposure_pct": 0.5,
+          "max_position_vs_market_volume": 0.02,
+          "min_ev_threshold": 0.05,
+          "max_correlated_exposure": 0.25
+        }
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles trade execution on Polymarket via py-clob-client. Supports dry-run mode (default) and live mode. Implements limit orders with slippage protection, automatic take-profit/stop-loss/time-stop exits.",
+        "execution_config": {
+          "library": "py-clob-client (Polymarket official Python SDK)",
+          "chain": "Polygon",
+          "settlement_currency": "USDC",
+          "order_type": "limit",
+          "slippage_tolerance": 0.02,
+          "modes": [
+            "dry_run (default)",
+            "live (requires .env with PRIVATE_KEY, POLYMARKET_API_KEY, POLYMARKET_SECRET)"
+          ]
+        },
+        "exit_rules": {
+          "take_profit": "+50% from entry",
+          "stop_loss": "-30% from entry",
+          "time_stop": "14 days max hold",
+          "check_interval": "every pipeline run (15 minutes)"
+        },
+        "security": {
+          "dedicated_wallet": "Never use main wallet — create a dedicated trading wallet with minimal funds",
+          "usdc_approval_cap": "Set specific USDC approval limits via Revoke.cash, never unlimited",
+          "initial_capital": "$50-100 for live testing, scale only after 2+ weeks of verified performance",
+          "env_file_protection": ".env in .gitignore, never commit private keys",
+          "required_env_vars": ["PRIVATE_KEY", "POLYMARKET_API_KEY", "POLYMARKET_SECRET", "NASA_MAP_KEY", "ANTHROPIC_API_KEY", "TELEGRAM_BOT_TOKEN", "COINGECKO_API_KEY", "EXCHANGERATE_API_KEY", "OPENSKY_USERNAME", "OPENSKY_PASSWORD"]
+        }
+      },
+      {
+        "name": "DataRecorder",
+        "description": "Records complete market microstructure data for valid backtesting. Logs order book depth, trade ticks, spreads, and fill behavior for every monitored market. Also records all external data source readings with timestamps. Stores pre-window and post-window data to capture timing edge. Minimum target: 1000 windows per strategy for statistical confidence.",
+        "recording_targets": [
+          "Polymarket order book snapshots (bid/ask depth at 5 levels)",
+          "Polymarket trade ticks (every fill with price, size, timestamp)",
+          "Binance BTC/ETH order books (for latency/correlation analysis)",
+          "All 10 alternative data source readings with timestamps",
+          "Signal generation events with full context",
+          "Execution records (order placed, fill price, slippage, partial fills)"
+        ],
+        "storage_format": "Local JSON/Parquet files, organized by date and market",
+        "retention": "Minimum 90 days rolling, archive to compressed Parquet monthly",
+        "state_recovery": {
+          "mechanism": "Maintain last_run_state.json tracking: last successful run timestamp per data source, open position details, current anomaly baselines per region, and pipeline cycle ID. On restart, detect interrupted cycles by comparing expected vs actual last_run timestamps and resume from the last complete stage.",
+          "file": "last_run_state.json",
+          "tracked_fields": ["last_run_timestamps_per_source", "open_positions", "anomaly_baselines_per_region", "cycle_id", "pipeline_stage_completed"]
+        }
+      },
+      {
+        "name": "AlertSystem",
+        "description": "Real-time notification system via Telegram bot. Sends alerts for anomaly detections, trade signals, executed trades, exit events, and system health. Includes full context in each alert for manual override capability.",
+        "alert_types": [
+          {
+            "type": "ANOMALY_DETECTED",
+            "content": "Region, magnitude ratio, FRP, confirming sources, tension score",
+            "urgency": "high"
+          },
+          {
+            "type": "TRADE_SIGNAL",
+            "content": "Market question, current price, estimated true prob, edge, recommended size, Claude reasoning",
+            "urgency": "critical"
+          },
+          {
+            "type": "TRADE_EXECUTED",
+            "content": "Contract, direction, size, fill price, slippage",
+            "urgency": "medium"
+          },
+          {
+            "type": "EXIT_TRIGGERED",
+            "content": "Contract, exit reason (TP/SL/time), PnL, hold duration",
+            "urgency": "medium"
+          },
+          {
+            "type": "WALLET_SIGNAL",
+            "content": "Tracked wallet activity, strategy type, historical accuracy, position details",
+            "urgency": "high"
+          },
+          {
+            "type": "SYSTEM_HEALTH",
+            "content": "API failures, data gaps, pipeline latency, error counts",
+            "urgency": "low"
+          }
+        ],
+        "delivery": "Telegram Bot API (python-telegram-bot library)",
+        "rate_limit": "Max 1 alert per type per 5 minutes to prevent spam"
+      },
+      {
+        "name": "MonitoredRegions",
+        "description": "Configurable list of geopolitical regions monitored by the anomaly detection engine. Each region defined by a bounding box (lat/lon) and associated Polymarket market categories.",
+        "default_regions": [
+          {
+            "name": "Israel/Gaza",
+            "bbox": {
+              "lat1": 29.5,
+              "lon1": 33.5,
+              "lat2": 33.5,
+              "lon2": 36.5
+            },
+            "markets": [
+              "Middle East conflict",
+              "Israel"
+            ]
+          },
+          {
+            "name": "Ukraine/Kursk",
+            "bbox": {
+              "lat1": 44,
+              "lon1": 30,
+              "lat2": 56,
+              "lon2": 42
+            },
+            "markets": [
+              "Ukraine",
+              "Russia"
+            ]
+          },
+          {
+            "name": "Syria",
+            "bbox": {
+              "lat1": 32,
+              "lon1": 35,
+              "lat2": 37.5,
+              "lon2": 42.5
+            },
+            "markets": [
+              "Syria",
+              "Assad"
+            ]
+          },
+          {
+            "name": "Iran",
+            "bbox": {
+              "lat1": 25,
+              "lon1": 44,
+              "lat2": 40,
+              "lon2": 63
+            },
+            "bbox_note": "Western boundary (lon1: 44) intentionally captures Baghdad and eastern Iraq. Claude must contextualize signal origin — anomalies near lon 44-46 may be Iraqi rather than Iranian activity.",
+            "markets": [
+              "Iran",
+              "US military strike"
+            ]
+          },
+          {
+            "name": "Korean Peninsula",
+            "bbox": {
+              "lat1": 33,
+              "lon1": 124,
+              "lat2": 43,
+              "lon2": 132
+            },
+            "markets": [
+              "North Korea",
+              "Korean Peninsula"
+            ]
+          },
+          {
+            "name": "Taiwan Strait",
+            "bbox": {
+              "lat1": 21,
+              "lon1": 117,
+              "lat2": 26,
+              "lon2": 123
+            },
+            "markets": [
+              "Taiwan",
+              "China"
+            ]
+          }
+        ]
+      }
+    ],
+    "data_flow": "15-minute cycle: (1) DataIngestionLayer polls all 10 sources for all monitored regions -> (2) AnomalyDetectionEngine computes baselines and flags anomalies per region per source -> (3) ConfirmationScorer computes composite tension score, filters for minimum 2 confirming sources -> (4) WalletIntelligencePipeline provides any active copytrade signals from tracked wallets (daily batch, real-time monitoring overlay) -> (5) ClaudeDecisionEngine receives anomalies + scores + wallet signals + active markets, outputs structured trade decision JSON -> (6) PositionSizingEngine calculates exact USD position using dynamic quarter-Kelly scaled by magnitude and confirmations -> (7) ExecutionEngine places order on Polymarket via py-clob-client (or logs dry-run) -> (8) AlertSystem sends Telegram notification -> (9) DataRecorder logs all inputs, decisions, and executions for backtesting. Exit monitoring runs on every cycle checking open positions against TP/SL/time-stop rules.",
+    "integration_points": [
+      {
+        "name": "NASA FIRMS API",
+        "type": "REST",
+        "auth": "MAP_KEY",
+        "cost": "free",
+        "latency": "NRT: ~3 hours from observation; URT (Ultra Real-Time): ~60 seconds. Evaluate URT endpoints for time-critical detection."
+      },
+      {
+        "name": "OpenSky Network API",
+        "type": "REST",
+        "auth": "required: OpenSky account registration (free, 4,000 credits/day)",
+        "cost": "free",
+        "latency": "real-time"
+      },
+      {
+        "name": "USGS Earthquake API",
+        "type": "REST/GeoJSON",
+        "auth": "none",
+        "cost": "free",
+        "latency": "minutes"
+      },
+      {
+        "name": "ExchangeRate API",
+        "type": "REST",
+        "auth": "required: free API key registration (keyless endpoint rate-limits to ~1 req/hour)",
+        "cost": "free",
+        "latency": "daily refresh only — no need to poll faster than hourly since underlying data updates once per day"
+      },
+      {
+        "name": "Yahoo Finance (yfinance)",
+        "type": "Python library (unofficial scraper)",
+        "auth": "none",
+        "cost": "free",
+        "latency": "15-min delayed",
+        "caveat": "yfinance is an unofficial scraper with undocumented rate limits that may break without notice. Recommend Alpha Vantage free tier or CBOE data as primary VIX source, yfinance as fallback only. Note: VIX only updates during US market hours (09:30-16:00 ET)."
+      },
+      {
+        "name": "Gold API",
+        "type": "REST",
+        "auth": "none",
+        "cost": "free",
+        "latency": "real-time"
+      },
+      {
+        "name": "CoinGecko API",
+        "type": "REST",
+        "auth": "recommended: free Demo API key (public endpoint limited to 5-15 req/min; Demo key provides 30 calls/min, 10K/month). Add COINGECKO_API_KEY to env requirements.",
+        "cost": "free (Demo tier)",
+        "latency": "real-time"
+      },
+      {
+        "name": "Alternative.me Fear & Greed",
+        "type": "REST",
+        "auth": "none",
+        "cost": "free",
+        "latency": "daily update"
+      },
+      {
+        "name": "Polymarket Gamma / py-clob-client",
+        "type": "REST + WebSocket",
+        "auth": "API key for trading",
+        "cost": "free",
+        "latency": "real-time"
+      },
+      {
+        "name": "Claude API (Anthropic)",
+        "type": "REST",
+        "auth": "API key",
+        "cost": "~$0.015-0.10 per call depending on model",
+        "latency": "2-10 seconds"
+      },
+      {
+        "name": "Telegram Bot API",
+        "type": "REST",
+        "auth": "bot token",
+        "cost": "free",
+        "latency": "real-time"
+      },
+      {
+        "name": "poly_data",
+        "type": "GitHub dataset",
+        "auth": "none",
+        "cost": "free",
+        "latency": "batch download"
+      },
+      {
+        "name": "polyterm",
+        "type": "CLI tool",
+        "auth": "none",
+        "cost": "free",
+        "latency": "real-time queries"
+      },
+      {
+        "name": "insider-tracker",
+        "type": "Python tool",
+        "auth": "none",
+        "cost": "free",
+        "latency": "real-time monitoring"
+      }
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Core Data Pipeline & Anomaly Detection",
+        "description": "Build the data ingestion layer for all 10 sources with error handling, rate limiting, and local storage. Implement the FIRMS anomaly detection algorithm with 14-day rolling baseline and 3x threshold. Set up the DataRecorder to log all raw data. Validate against known historical events (Oct 7, Kursk, Assad fall).",
+        "deliverables": [
+          "FIRMSCollector with NASA MAP_KEY authentication and region-based queries",
+          "OpenSkyCollector with bounding box aircraft queries",
+          "USGSCollector with GeoJSON parsing and natural/non-natural classification",
+          "FinancialIndicatorCollector aggregating 6 financial sources",
+          "PolymarketCollector fetching active geopolitical contracts",
+          "AnomalyDetectionEngine with configurable baseline window and threshold",
+          "Continuation bias filter (skip if 7-day baseline tripled)",
+          "DataRecorder saving all raw data to local Parquet/JSON",
+          "Historical validation script testing against 270 days of known data"
+        ],
+        "estimated_effort": "2-3 weeks",
+        "dependencies": [
+          "NASA Earthdata account registration",
+          "Python environment setup"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Confirmation Scoring & Claude Decision Engine",
+        "description": "Implement the multi-source ConfirmationScorer with weighted scoring model. Build the ClaudeDecisionEngine with structured prompt template and JSON output parsing. Integrate with PositionSizingEngine for dynamic quarter-Kelly calculations. Test end-to-end signal-to-decision pipeline on historical data.",
+        "deliverables": [
+          "ConfirmationScorer with configurable source weights and minimum confirmation threshold",
+          "ClaudeDecisionEngine with prompt template, input aggregation, and JSON output parsing",
+          "PositionSizingEngine with EV filter, quarter-Kelly, anomaly scaling, and liquidity cap",
+          "End-to-end pipeline test: raw data -> anomaly -> score -> Claude decision -> position size",
+          "Dry-run mode producing detailed trade logs without execution"
+        ],
+        "estimated_effort": "1-2 weeks",
+        "dependencies": [
+          "Phase 1 complete",
+          "Anthropic API key"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Wallet Intelligence Pipeline",
+        "description": "Build the bulk wallet analysis system. Ingest 17K+ wallets from poly_data, classify strategies with Claude, detect insider-like patterns, and generate copytrade signals. Integrate wallet signals into the ClaudeDecisionEngine as an additional input source.",
+        "deliverables": [
+          "WalletScraper ingesting from poly_data with per-wallet metrics extraction",
+          "StrategyClassifier using Claude to map wallets to 11 strategy archetypes",
+          "InsiderDetector flagging suspicious patterns (fresh wallets, cluster funding, date-specific entries)",
+          "CopytradeSignalGenerator with Sharpe > 2.0 and category win rate filters",
+          "Integration of wallet signals into ClaudeDecisionEngine prompt",
+          "Daily batch refresh with incremental wallet updates"
+        ],
+        "estimated_effort": "2-3 weeks",
+        "dependencies": [
+          "Phase 2 complete",
+          "poly_data dataset downloaded"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Execution, Alerts & Live Deployment",
+        "description": "Build the ExecutionEngine with py-clob-client integration, exit rule monitoring, and security hardening. Deploy the AlertSystem via Telegram. Set up the full pipeline on Windows Task Scheduler (15-minute cycle). Begin dry-run testing with real-time data.",
+        "deliverables": [
+          "ExecutionEngine with py-clob-client order placement, dry-run and live modes",
+          "Exit rule monitor (take-profit +50%, stop-loss -30%, time-stop 14 days)",
+          "Telegram AlertSystem with all 6 alert types and rate limiting",
+          "Windows Task Scheduler configuration for 15-minute cycle",
+          "Security setup: dedicated wallet, USDC approval caps, .env protection",
+          "2-week dry-run validation before live capital deployment",
+          "Performance dashboard showing signals, decisions, and simulated PnL"
+        ],
+        "estimated_effort": "1-2 weeks",
+        "dependencies": [
+          "Phase 3 complete",
+          "Polygon wallet with USDC",
+          "Polymarket API keys",
+          "Telegram bot created"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Backtesting Infrastructure & Optimization",
+        "description": "Build statistically valid backtesting framework using recorded data. Implement fill simulation with realistic slippage modeling. Run minimum 1000-window backtests per strategy variant. Optimize anomaly thresholds, confirmation weights, and Kelly fractions based on results. Address the core lesson from source material: data completeness > strategy quality.",
+        "deliverables": [
+          "Backtesting engine with realistic fill simulation (not perfect execution assumption)",
+          "Slippage model calibrated from recorded order book depth data",
+          "Pre-window and post-window data analysis for timing optimization",
+          "Parameter optimization for anomaly thresholds per region",
+          "Confirmation weight tuning based on historical signal quality",
+          "Performance report with Sharpe ratio, max drawdown, win rate by signal type",
+          "Comparison of anomaly-only vs anomaly+wallet vs full-pipeline performance"
+        ],
+        "estimated_effort": "2-3 weeks",
+        "dependencies": [
+          "Phase 4 complete",
+          "Minimum 30 days of recorded live data"
+        ],
+        "note": "DataRecorder must run from Phase 1 day 1, not Phase 4 completion. The 30-day data window starts accumulating at Phase 1 start. Ensure DataRecorder is deployed and collecting data as part of Phase 1 deliverables."
+      }
+    ],
+    "tech_stack": [
+      {
+        "category": "Language",
+        "tool": "Python 3.11+",
+        "purpose": "Primary implementation language for all components"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "NASA FIRMS API",
+        "purpose": "Primary satellite thermal anomaly data"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "OpenSky Network API",
+        "purpose": "Live aircraft tracking"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "USGS Earthquake API",
+        "purpose": "Seismic event detection"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "ExchangeRate API",
+        "purpose": "Currency stress indicators"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "yfinance",
+        "purpose": "VIX and financial data"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "CoinGecko API",
+        "purpose": "Crypto price data"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "Alternative.me API",
+        "purpose": "Crypto fear & greed index"
+      },
+      {
+        "category": "Data Sources",
+        "tool": "Gold API",
+        "purpose": "Gold spot price"
+      },
+      {
+        "category": "AI/LLM",
+        "tool": "Claude API (Anthropic)",
+        "purpose": "Trade decision engine, wallet strategy classification, anomaly interpretation"
+      },
+      {
+        "category": "Execution",
+        "tool": "py-clob-client",
+        "purpose": "Polymarket order execution (official SDK)"
+      },
+      {
+        "category": "Wallet Analysis",
+        "tool": "poly_data",
+        "purpose": "Historical Polymarket trade data (86M+ trades)"
+      },
+      {
+        "category": "Wallet Analysis",
+        "tool": "polyterm",
+        "purpose": "Whale tracking, insider detection, cross-platform arb scanning"
+      },
+      {
+        "category": "Wallet Analysis",
+        "tool": "insider-tracker",
+        "purpose": "ML-based insider wallet detection"
+      },
+      {
+        "category": "Notifications",
+        "tool": "python-telegram-bot",
+        "purpose": "Telegram alert delivery"
+      },
+      {
+        "category": "Data Storage",
+        "tool": "pandas + pyarrow (Parquet)",
+        "purpose": "Efficient time-series data storage and analysis"
+      },
+      {
+        "category": "Scheduling",
+        "tool": "Windows Task Scheduler / cron",
+        "purpose": "15-minute pipeline execution cycle"
+      },
+      {
+        "category": "Security",
+        "tool": "python-dotenv",
+        "purpose": ".env file management for API keys and private keys"
+      },
+      {
+        "category": "HTTP",
+        "tool": "httpx / aiohttp",
+        "purpose": "Async HTTP client for parallel API polling"
+      },
+      {
+        "category": "Monitoring",
+        "tool": "Revoke.cash",
+        "purpose": "USDC approval management and wallet security"
+      }
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "risk": "Small sample size for geopolitical events",
+      "severity": "high",
+      "likelihood": "certain",
+      "mitigation": "Treat system as proof-of-concept with real data, not a statistically validated strategy. Run extended dry-run periods. Do not scale capital until 50+ live signals have been evaluated. Supplement with non-geopolitical anomaly markets (weather, natural disasters) to increase signal count."
+    },
+    {
+      "risk": "NASA FIRMS NRT ~3 hour data delay may reduce edge on fast-moving events; URT (~60s) mitigates but has less coverage",
+      "severity": "medium",
+      "likelihood": "likely",
+      "mitigation": "Evaluate URT endpoints for time-critical regions. Position as swing trading (hours-to-days) not scalping. Cross-reference with real-time sources (OpenSky aircraft, financial indicators) that update faster. Accept that the sharpest Polymarket traders may already be positioned by the time NRT data arrives."
+    },
+    {
+      "risk": "Prediction market liquidity too thin for meaningful position sizes",
+      "severity": "medium",
+      "likelihood": "likely",
+      "mitigation": "Hard cap position size at 2% of market volume. Monitor depth before entry. Prefer markets with >$50K 24h volume. Use limit orders with tight slippage tolerance. Accept smaller positions on thin markets."
+    },
+    {
+      "risk": "Claude directional accuracy degradation or API changes",
+      "severity": "medium",
+      "likelihood": "possible",
+      "mitigation": "Quarter-Kelly sizing absorbs 30% wrong calls. Log all Claude decisions and actual outcomes. Monitor rolling accuracy. If accuracy drops below 55%, pause live trading and re-evaluate prompt engineering. Keep prompt template versioned."
+    },
+    {
+      "risk": "False positive anomaly signals (wildfires, agricultural burns, industrial activity)",
+      "severity": "medium",
+      "likelihood": "likely",
+      "mitigation": "Multi-source confirmation requirement (minimum 2 sources). Claude cross-references anomaly context with known seasonal patterns. Continuation bias filter suppresses signals in regions with elevated baselines. Start with conservative 3x threshold, adjust per region based on backtest."
+    },
+    {
+      "risk": "Malicious dependencies or supply chain attacks on open-source tools",
+      "severity": "critical",
+      "likelihood": "possible",
+      "mitigation": "Audit every dependency before installation. Pin exact versions. Never use main wallet. Use dedicated trading wallet with minimal USDC. Cap approvals via Revoke.cash. Review starred-but-new repos for star-farming. Test in isolated environment before production."
+    },
+    {
+      "risk": "API rate limits or service disruptions on free data sources",
+      "severity": "medium",
+      "likelihood": "likely",
+      "mitigation": "Implement retry logic with exponential backoff. Cache last successful response. Alert on consecutive failures. Design pipeline to degrade gracefully (reduced confirmation count but still functional). Monitor API health and prepare fallback sources."
+    },
+    {
+      "risk": "Overfitting anomaly thresholds and confirmation weights to historical events",
+      "severity": "high",
+      "likelihood": "likely",
+      "mitigation": "Use out-of-sample validation. Keep parameter count minimal (3x threshold is one number, not a curve-fitted model). Walk-forward optimization rather than static backtest. Track performance on events not in training set."
+    },
+    {
+      "risk": "Wallet intelligence signals become stale as market structure evolves",
+      "severity": "medium",
+      "likelihood": "likely",
+      "mitigation": "Daily batch refresh of wallet profiles. Monitor for strategy drift (win rate changes, timing compression like BTC arb lag shrinking from 9.4s to 3.1s). Auto-flag wallets whose recent performance diverges from historical. Rotate copytrade targets monthly."
+    },
+    {
+      "risk": "Regulatory or platform risk — Polymarket received CFTC approval Nov 2025 and re-entered the US market Jan 2026. Risk has shifted from access loss to compliance with CFTC derivatives regulations.",
+      "severity": "high",
+      "likelihood": "possible",
+      "mitigation": "Monitor evolving CFTC compliance requirements for Polymarket. Design architecture to be platform-agnostic where possible (pmxt supports Polymarket + Kalshi + Limitless). Do not over-concentrate capital on single platform. Consult a derivatives attorney before live deployment to ensure compliance with applicable regulations."
+    }
+  ],
+  "success_criteria": [
+    "Generates trade signal within 24 hours of market price moving >5 cents on a geopolitical contract, on 80%+ of such movements exceeding 10 cents",
+    "False positive rate (signals that do not result in a market move within 14 days) is below 40% for multi-source confirmed signals (confirmation_count >= 3)",
+    "Live trading achieves positive expected value over a rolling 30-trade window with at least 60% directional accuracy on anomaly-triggered trades",
+    "Position sizing prevents any single trade loss from exceeding 5% of total bankroll through quarter-Kelly and liquidity caps",
+    "Full pipeline executes in under 90-120 seconds per 15-minute cycle, including all 10 async API calls, anomaly detection, Claude decision (2-10s latency), and order placement",
+    "Data recorder achieves 99%+ uptime capturing complete order book and trade data for all monitored markets",
+    "Wallet intelligence pipeline successfully classifies 90%+ of active wallets (>10 trades) into strategy archetypes with meaningful clustering",
+    "Telegram alerts deliver within 10 seconds of signal generation with complete decision context",
+    "System runs for 30+ consecutive days in dry-run mode without data gaps, crashes, or missed cycles before live capital deployment",
+    "Backtesting framework reproduces historical signal detections (Oct 7, Kursk, Assad) with less than 2 hours timing variance from original analysis"
+  ],
+  "notes": "This system synthesizes approaches from 7 source analyses covering satellite anomaly trading, wallet intelligence, autonomous agent design, mathematical frameworks, open-source tooling, and backtesting methodology. Key insight from source material: the edge is not in the strategy sophistication but in data sources nobody else is monitoring (satellite thermal anomalies) combined with mathematical discipline (Kelly sizing) and automation (Claude decision engine). The 87% of wallets that lose money provide the liquidity for the 0.1% with systematic edge. Critical warning from the bot-failure source: data completeness is more important than strategy quality — the system must record everything to validate execution assumptions. Security is paramount given documented cases of malicious GitHub repos targeting Polymarket traders. Start small ($50-100), validate in dry-run, scale gradually."
+}

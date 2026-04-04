@@ -1,0 +1,2276 @@
+{
+  "collection_id": "x-posts-trading-strategies-curated--362a3ce9",
+  "manifest_id": "x-posts-trading-strategies--1428c413",
+  "created_date": "2026-04-03",
+  "curated_date": "2026-04-04",
+  "status": "curated",
+  "curation_stats": {
+    "raw_count": 45,
+    "duplicates_removed": 1,
+    "filtered_out": 0,
+    "final_count": 44
+  },
+  "metadata": {
+    "description": "Curated trading strategy research from X bookmarks, adapted for Kalshi (CFTC-regulated, US-legal)",
+    "source": "X bookmarks API",
+    "kalshi_adaptation": true,
+    "pipeline_run": "x-posts-trading-strategies-v3"
+  },
+  "items": [
+    {
+      "id": "tweet_2039746395100377447",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/Lummox_eth/status/2039746395100377447",
+      "title": "Bot trading crypto UP/DOWN options on 5/15-min timeframes",
+      "content": "Trading bot prints $5k-$10k every day without any losses\n\nHow it works : \n\n• Work with 5/15-minute Btc/Eth/Sol UP/DOWN \n\n• A single algorithm is used for all transactions.\n\nKeys of its strategy :\n\n-> Entering the deal : The bot is waiting for the option price to drop below 35 cents\n\n-> Averaging the position : If the price continues to fall the bot buys the asset\n\n-> Risk control : The system ensures that the average price for all open positions remains below 99 cents\n\n-> Exit from the transaction : If arbitrage is impossible the position is fixed at the break-even level\n\nExample of the best bot with $1,7M PNL : https://t.co/Z6y9x7s40Y\n\nI have already started copying this bot through an app\n\nOver the past 3 days I made +$180\n\nCopy him : https://t.co/L1N2dYL1Cr\n\n--- Quoted tweet by @LunarResearcher ---\nhttps://t.co/u76FbrZJmt\n\nLinked: https://polymarket.com/@k9q2mx4l8a7zp3r?r=Lummoxeth#oro4qkf\n\nLinked: https://ares.pro/invite/lummox",
+      "summary": "Bot trading crypto UP/DOWN options on 5/15-min timeframes. Entry below 35 cents, averages down on drops, maintains avg price below 99 cents, exits at break-even if arb fails. References $1.7M PnL bot wallet on Polymarket.",
+      "url": "https://x.com/Lummox_eth/status/2039746395100377447",
+      "date": "4/2/2026, 9:46:51 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "crypto",
+        "options",
+        "BTC",
+        "ETH",
+        "SOL",
+        "short-timeframe",
+        "cost-averaging",
+        "prediction-market",
+        "automated-trading",
+        "UP-DOWN-contracts"
+      ],
+      "strategy_type": "options pricing / cost-averaging arbitrage",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto options (UP/DOWN contracts)",
+      "dependencies": [
+        "Claude",
+        "Polymarket API",
+        "ares.pro"
+      ],
+      "metadata": {
+        "tweet_id": "2039746395100377447",
+        "engagement": {
+          "likes": 72,
+          "retweets": 8,
+          "replies": 22
+        },
+        "conversation_id": "2039746395100377447",
+        "has_article_content": true,
+        "media_count": 3,
+        "external_links": [
+          "https://polymarket.com/@k9q2mx4l8a7zp3r?r=Lummoxeth#oro4qkf",
+          "https://ares.pro/invite/lummox"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "love everything on Polymarket | @arespro maker",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi offers crypto price bracket markets (e.g. BTC above/below X) which are analogous to UP/DOWN contracts. Adapt entry thresholds and cost-averaging logic to Kalshi's contract structure and fee model."
+      }
+    },
+    {
+      "id": "tweet_2039777322077933879",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/Dan1ro0/status/2039777322077933879",
+      "title": "HF market-making bot using Stoikov pricing + Bayesian probability for crypto UP/DOWN markets",
+      "content": "HOW DOES THIS QUANT BOT PRINT $20,217 IN PROFIT PER DAY\n\n+$1,031,091 PnL in 2 months on Polymarket\nOnly on short crypto “Up / Down” markets\n\nOn Feb 13, this wallet started running a high-frequency market-making style using Stoikov pricing rule\n\nP(H|D) = P(D|H) · P(H) / P(D)\nBayesian is the part of the system that updates the bot's internal probability before the market has fully repriced the odds\n\nThis Quant Bot's wallet:https://t.co/HoNKD48vix\n\nThe trader put $157,717 into the account and is now up roughly 6.5x on deposit (+654% ROI)\n\nf = (bp - q) / b* - Kelly determines how large the position should be\n\nr = s - qγσ²(T - t) - Stoikov handles quote placement and inventory risk\n\nAn arbitrage bot is more than just buying both outcomes. It is a quantitative system that spots mispricing, determines position size, and manages risk in real time\n\nThis is what that looks like in practice:\n\n$16,888 → $46,133 (+173.16%)\n$13,807 → $31,032 (+124.75%)\n$119,800 → $136,399 (+13.86%)\n\nThe core logic is simple: \n\nhigh-frequency value / market-making style across short crypto markets, constantly recycling small edges across many positions with YES + NO < 100¢\n\n--- Quoted tweet by @Dan1ro0 ---\nhttps://t.co/nKxBmnhJ8m\n\nLinked: https://polymarket.com/@bonereader?via=dan-kwpx",
+      "summary": "High-frequency market-making bot combining Stoikov pricing, Bayesian probability updates, and Kelly criterion for crypto UP/DOWN markets. $157K deposit grew to $1.03M PnL (+654% ROI) in 2 months. Core logic exploits YES+NO spreads below 100 cents.",
+      "url": "https://x.com/Dan1ro0/status/2039777322077933879",
+      "date": "4/2/2026, 11:49:45 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "HFT",
+        "market-making",
+        "Stoikov",
+        "Bayesian",
+        "Kelly-criterion",
+        "quant",
+        "crypto",
+        "UP-DOWN-contracts",
+        "prediction-market",
+        "automated-trading"
+      ],
+      "strategy_type": "high-frequency market making (Stoikov + Bayesian + Kelly)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto UP/DOWN prediction contracts",
+      "dependencies": [
+        "Claude",
+        "Polymarket CLOB API"
+      ],
+      "metadata": {
+        "tweet_id": "2039777322077933879",
+        "engagement": {
+          "likes": 101,
+          "retweets": 9,
+          "replies": 7
+        },
+        "conversation_id": "2039777322077933879",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://polymarket.com/@bonereader?via=dan-kwpx"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Buy at the peak, sell at the bottom, fix profit, bro. smell the green paper. public relations | @zscdao",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi offers crypto price markets. Stoikov market-making and Bayesian updates are platform-agnostic math. Adapt CLOB API calls to Kalshi's REST/WebSocket API. Kalshi has different fee structure and order types to account for."
+      }
+    },
+    {
+      "id": "tweet_2039776473687494784",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/adiix_official/status/2039776473687494784",
+      "title": "PHANTOM X: multi-strategy automated bot (pairs trading, sentiment AI, calendar volatility)",
+      "content": "Chinese engineers wrote a Claude script that turned 1.18 into 3.3M on Polymarket\n\nNobody tells you about them and you still think this is a person who places bets manually.\n\nHere I'll disappoint you this is an automated script written by Chinese engineers.\n\nThey called it PHANTOM X\n\nIt is fully automated through Claude.\n\nTheir account is sovereign2013:\n\nhttps://t.co/uOKs8ZTvwK\n\nResult:\n\n$1,18 → $3,300,000\n37,063 trades.\nWin rate 71%.\n\nThe biggest win: $180,000 on a single bet.\n\nI'm copying their trades here because the PRIORITY mode allows reacting to each of their actions as fast as possible, and I haven't found any bot that can keep up like this:\n\nhttps://t.co/7fytWo4ILo\n\nHow it bots work:\n\nThe bot simultaneously tracks thousands of sports markets on Polymarket and Kalshi, finds discrepancies between the platforms, and enters positions faster than any human could physically manage.\n\nThree strategies in one:\n\n-Pairs Trading the bot sees that YES on the Rockets costs $0.62, while NO on the same match is $0.41.\n\nThe total = $1.03, not $1.00.\n\nThat's a 3% risk-free profit.\n\nThe bot enters automatically within milliseconds.\n\n-Sentiment AI scans Twitter/X and news in real time.\n\nIf a team's coach suddenly gets injured and 50 accounts report it, the bot recalculates the probability within 2 seconds before the market factors it in.\n\n-Calendar + Volatility 15–20 minutes before the game starts, volatility spikes.\n\nThe bot takes positions early and closes them after the first major price movement.\n\nWhy sports is perfect?\n\nSports O/U markets on Polymarket have clear paired contracts OVER and UNDER for a single game.\n\nThey should total $1.00, but due to different reaction speeds of traders, deviations constantly occur.\n\nThis is the most predictable type of arbitrage on the entire platform.\n\nSovereign2013 built $3.3M precisely on this.\n\nWhy a human wouldn't do this?\n\nA human physically cannot monitor 50+ markets simultaneously, react in milliseconds, stay awake 24/7, avoid emotional responses after a losing streak, and simultaneously calculate Z-scores over 60 bars of data.\n\nThe bot does all of this in parallel without breaks.\n\nBy the time a human opens a tab, the arbitrage window has already closed.\n\nThis is why, right now, you should start learning Claude and testing different methods.\n\nManual trading is dying.\n\nThe era of automation has arrived, and whoever masters it now will thank themselves in the future.\n\nIf you're interested in writing your own bot and automating it on Polymarket:\n\n1. Comment the word 'GUIDE'\n2. Like and Retweet this post\n3. Follow me(so that I can message you)\n\nWithin 24 hours, I will send you a full manual on how to write your own bot that can earn $3,200+ per month.\n\nOne of my followers , after reading my article, wrote their own bot that is already showing results of $500 in 6 hours proof in the comments.\n\n--- Quoted tweet by @adiix_official ---\nhttps://t.co/tZJw0URrhg\n\nLinked: https://polymarket.com/@sovereign2013?r=sovereign\n\nLinked: https://ares.pro/wallets/0xee613b3fc183ee44f9da9c05f53e2da107e3debf?a=wallet",
+      "summary": "PHANTOM X bot uses three strategies in one: pairs trading (YES+NO spread arbitrage), sentiment AI (real-time X/news scanning for probability recalculation), and calendar volatility (pre-game spike exploitation). Already operates cross-platform on Polymarket and Kalshi. $1.18 to $3.3M, 37K trades, 71% win rate.",
+      "url": "https://x.com/adiix_official/status/2039776473687494784",
+      "date": "4/2/2026, 11:46:23 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "PHANTOM",
+        "Claude",
+        "scaling",
+        "pairs-trading",
+        "sentiment-AI",
+        "calendar-volatility",
+        "sports",
+        "cross-platform-arb",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "automated prediction trading (pairs, sentiment, calendar volatility)",
+      "platform": "Polymarket (adapt to Kalshi) + Kalshi",
+      "instrument": "prediction market contracts (sports O/U)",
+      "dependencies": [
+        "Claude",
+        "Python",
+        "Polymarket API",
+        "Kalshi API",
+        "X/Twitter API",
+        "news feeds"
+      ],
+      "metadata": {
+        "tweet_id": "2039776473687494784",
+        "engagement": {
+          "likes": 1092,
+          "retweets": 246,
+          "replies": 217
+        },
+        "conversation_id": "2039776473687494784",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://polymarket.com/@sovereign2013?r=sovereign",
+          "https://ares.pro/wallets/0xee613b3fc183ee44f9da9c05f53e2da107e3debf?a=wallet"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Your personal growth now automated. Daily tips to level up",
+          "followers": 0
+        },
+        "kalshi_notes": "This bot already references cross-platform arb between Polymarket and Kalshi. Kalshi sports markets (NBA, NFL, soccer) are directly applicable. The pairs trading and sentiment strategies are fully portable to Kalshi event contracts."
+      }
+    },
+    {
+      "id": "tweet_2039798489522053626",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/w1nklerr/status/2039798489522053626",
+      "title": "Multi-strategy Polymarket bot: spread farming, wallet copytrade, pump sniping, news-edge trading",
+      "content": "I bought Claude for $20 and made $34,513 with it\n\nI created a Trading Bot for Polymarket\n\nWhat the bot does:\n\nSpread farming\nCopytrades top wallets\nPump sniper\nNews edge\n\nOn the very first night the bot made $5,162\nThere were 370 trades and a 73% win rate\n\nWallet: https://t.co/7TihnRPtOk\n\nHere is the core strategy behind the bot:\n\nThe system builds automated workflows for cryptocurrency trading by turning multi agent signals into structured skills that activate under specific conditions\n\nSkill architecture\n\nEach skill is built around core math models such as expected value position sizing Bayesian updates and log return tracking Agents specialize in arbitrage detection token tracking spread farming whale monitoring sentiment analysis and automated execution\n\nProgressive context loading\n\nSkills operate in layers Basic checks for liquidity price gaps and token availability run first Deeper calculations such as probability updates portfolio impact and cross agent confirmation only run when needed to keep execution fast\n\nTrigger detection\n\nSkills activate on events like price dislocations new listings breaking news large wallet activity or mispriced probabilities The system scans dozens of markets and filters out low edge trades automatically\n\nWorkflow execution\n\nOnce triggered the system verifies signals estimates probability calculates edge using expected value sizes positions with capped Kelly updates probabilities in real time tracks portfolio impact and executes trades with strict risk limits\n\nRisk control\n\nEvery trade must pass minimum edge thresholds and position size caps Losing trades are treated as statistical variance not failure\n\nConsistency and learning\n\nAll decisions are rule based and executed automatically The system continuously updates probabilities and execution parameters using historical data and live performance\n\nPerformance snapshot\n\n1672 trades executed with zero human input\nNet profit +$5,162 in first day\nWin rate 73%\nSharpe ratio 2.59\n\nThe system runs autonomously scans markets calculates probabilities and executes trades with no emotional input focusing on long term compounding through disciplined math based execution\n\n--- Quoted tweet by @w1nklerr ---\nhttps://t.co/NBd1QhtILj\n\nLinked: http://t.me/KreoPolyBot?start=ref-defiwinkle",
+      "summary": "Multi-strategy bot combining spread farming, wallet copytrade, pump sniping, and news-edge trading. Uses skill architecture with layered execution: EV sizing, Bayesian updates, capped Kelly, and strict risk limits. 73% win rate, Sharpe 2.59, $5,162 profit first night from 370 trades.",
+      "url": "https://x.com/w1nklerr/status/2039798489522053626",
+      "date": "4/2/2026, 1:13:52 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "spread-farming",
+        "copytrade",
+        "pump-sniper",
+        "news-edge",
+        "multi-agent",
+        "Bayesian",
+        "Kelly-criterion",
+        "automated-trading",
+        "prediction-market",
+        "skill-architecture"
+      ],
+      "strategy_type": "multi-strategy (spread farming, copytrade, pump sniper, news edge)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039798489522053626",
+        "engagement": {
+          "likes": 73,
+          "retweets": 4,
+          "replies": 3
+        },
+        "conversation_id": "2039798489522053626",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "http://t.me/KreoPolyBot?start=ref-defiwinkle"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "DeFi Researcher | Alpha threador | Web3 Developer",
+          "followers": 0
+        },
+        "kalshi_notes": "Spread farming and news-edge strategies transfer directly to Kalshi. Copytrade and pump sniping require Kalshi-specific wallet/order monitoring. Kalshi's event contract categories (politics, economics, crypto) offer analogous spread opportunities."
+      }
+    },
+    {
+      "id": "tweet_2039611662584684697",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/waveking1314/status/2039611662584684697",
+      "title": "Claude bot from single GitHub file (Chinese-language post)",
+      "content": "他告诉Claude“我有1000刀”，一周后变成了45401刀。\n\n这个交易员只用了一个GitHub文件和Claude。\n\n就在第一晚，这个机器人跑出了79%的胜率，狂赚5774刀利润。\n\nPoly官网：https://t.co/7wFrIcE7CC\n\n以下是机器人背后的核心策略：\n\n系统通过将多智能体信号转化为在特定条件下激活的结构化技能，构建了加密货币交易的自动化工作流。\n\n技能架构\n每个技能都围绕核心数学模型构建，比如期望值、仓位大小、贝叶斯更新和对数收益追踪。不同的Agent专门负责套利检测、代币追踪、利差收割、巨鲸监控、情绪分析和自动执行。\n\n递进式加载\n技能分层运行。先进行流动性、价差和代币可用性的基础检查。像概率更新、投资组合影响和跨智能体交叉确认这种深层计算，只有在需要时才会触发，以保证极速执行。\n\n触发检测\n一旦出现价格脱节、新币上线、突发新闻、大单异动或概率定价错误等事件，技能就会自动激活。系统会扫描几十个市场，自动过滤掉低盈亏比的交易。\n\n工作流执行\n一旦触发，系统会自动验证信号、估算概率、用期望值计算优势、通过封顶的凯利公式控制仓位、实时更新概率、追踪投资组合影响，并在严格的风控下执行交易。\n\n风控管理\n每笔交易必须通过最低优势阈值和仓位上限。亏损单被视为统计学上的正常方差，而不是失败。\n\n一致性与自我学习\n所有决策全靠规则驱动并自动执行。系统会利用历史数据和实盘表现，不断更新概率和执行参数。\n\n业绩快照\n0人工干预执行了1580笔交易\n单晚净赚5774刀\n胜率79%\n夏普比率2.59\n\n该系统完全自主运行，自动扫盘、计算概率、执行交易，没有任何情绪波动，纯靠纪律严明的数学逻辑来吃长期复利。\n\n--- Quoted tweet by @waveking1314 ---\nhttps://t.co/Dy8CWkjxpv\n\nLinked: https://polymarket.com/?r=waveking",
+      "summary": "Chinese-language post describing a Claude bot built from a single GitHub file. $1,000 to $45,401 in one week with 79% win rate. Multi-agent skill architecture with EV sizing, Bayesian updates, and capped Kelly. 1,580 trades, Sharpe 2.59.",
+      "url": "https://x.com/waveking1314/status/2039611662584684697",
+      "date": "4/2/2026, 12:51:29 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "Claude",
+        "GitHub",
+        "high-winrate",
+        "multi-agent",
+        "Bayesian",
+        "Kelly-criterion",
+        "automated-trading",
+        "prediction-market",
+        "skill-architecture"
+      ],
+      "strategy_type": "automated prediction trading",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "GitHub repo",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2039611662584684697",
+        "engagement": {
+          "likes": 671,
+          "retweets": 60,
+          "replies": 14
+        },
+        "conversation_id": "2039611662584684697",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://polymarket.com/?r=waveking"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Polymarket signals",
+          "followers": 0
+        },
+        "kalshi_notes": "Generic multi-agent skill architecture is platform-agnostic. Replace Polymarket API calls with Kalshi REST API. Kalshi supports similar event contract types across politics, economics, and crypto."
+      }
+    },
+    {
+      "id": "tweet_2039640437057564810",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/Shelpid_WI3M/status/2039640437057564810",
+      "title": "Claude bot for short-term mispricing extraction on prediction markets",
+      "content": "This trader gave Claude $44 and one question.\n\nNot \"what should I build.\"\nNot \"how do bots work.\"\n\nHe asked: what's the easiest way to consistently extract money from short-term mispricing.\n\nNo lecture. No disclaimer. No theory.\n\nIt said: find small windows where the market is off by a few percent.\nQuietly. Repeatedly. At scale.\n\nThen it dropped a wallet.\n\nstargate5\n$165,618 profit\n16,279  trades\nJoined November 2025\n\nHe almost skipped it.\n\nThen he opened the activity.\n\nNo predictions. No narratives.\nJust micro trades on 5–15 minute windows.\nOver and over and over.\n\nTiny edges. Constant flow.\n\nThe entire strategy:\nscan for mispricing above ~6%\nenter instantly\nredeem at $1\nrepeat\n\nCopy the wallet: https://t.co/sPyFzneClW\n\nHe asked Claude how this keeps working.\n\nIt said: you don't need big wins.\nYou need a small edge\nexecuted thousands of times\nat near-even conditions.\n\nVolume handles the rest.\n\nHe asked: what kind of capital this started with.\n\nClaude: based on sizing — probably under $1,000.\nCompounding did the rest.\n\nHe went through the trades manually.\n\nSame pattern every time:\nshort window\nmispriced odds\nfast execution\ninstant settlement\n\nNo randomness.\nNo luck.\nThe same edge, repeated 16,279 times\nuntil it turned into $165K.\n\nHe asked Claude one last thing.\n\nWhat do you call this strategy?\n\nIt said: capturing the gap between panic pricing\nand actual probability\non repeat.\n\nAt scale, that gap becomes income.\n\nStill running.\n\n--- Quoted tweet by @Shelpid_WI3M ---\nhttps://t.co/x1IGB8PM97\n\nLinked: https://t.me/KreoPolyBot?start=ref-shelpid",
+      "summary": "Short-term mispricing extraction strategy: scan for >6% mispricing, enter instantly, redeem at $1, repeat. Referenced wallet (stargate5) made $165K profit from 16,279 micro-trades on 5-15 minute windows. Pure volume-based edge with no directional prediction.",
+      "url": "https://x.com/Shelpid_WI3M/status/2039640437057564810",
+      "date": "4/2/2026, 2:45:49 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "mispricing",
+        "arbitrage",
+        "short-term",
+        "micro-trading",
+        "mean-reversion",
+        "automated-trading",
+        "prediction-market",
+        "high-frequency"
+      ],
+      "strategy_type": "short-term mispricing arbitrage",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039640437057564810",
+        "engagement": {
+          "likes": 83,
+          "retweets": 10,
+          "replies": 6
+        },
+        "conversation_id": "2039640437057564810",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://t.me/KreoPolyBot?start=ref-shelpid"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Bringing you the latest trends in crypto",
+          "followers": 0
+        },
+        "kalshi_notes": "Mispricing extraction logic is platform-agnostic. Kalshi event contracts in politics, economics, and crypto have similar short-term repricing dynamics. Adapt scanner to Kalshi API endpoints and contract structure. Kalshi settlement is fiat-based (simpler than on-chain)."
+      }
+    },
+    {
+      "id": "tweet_2039427063812132866",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/carm1nee/status/2039427063812132866",
+      "title": "Cross-exchange latency arbitrage: prediction market reprices slower than BTC on Binance",
+      "content": "A Claude bot turned $313 into $2,382,780 on Polymarket in 4 months\n\n26,738 trades. 98% win rate \n\n> I went through the wallet and here's what the bot does:\n\nPolymarket  contracts reprice slower than BTC moves on Binance\n\nThe lag is a few seconds, down from 12+ in 2024\n\nThe bot sits on a Binance WebSocket feed, sub-50ms latency\n\n> Example:\n\nBTC drops 0.6% on Binance, the \"Down\" side should be ~78%, Polymarket still shows 54%\n\nBot pushes an order through Polymarket's CLOB API at 54¢, orderbook catches up to 78¢ seconds later\n\n--\n\nIt reads confirmed price action off one venue and executes against stale pricing on another\n\n$4-5K per trade, same size, 26,738 times\n\nClaude's code had fractional Kelly sizing and a -40% kill switch\n\nI broke this down with code and found two more strategies\n\nArticle below ➦\n\n--- Quoted tweet by @carm1nee ---\nhttps://t.co/0YZNy1Owkv\n\nLinked: https://x.com/carm1nee/status/2039427063812132866/video/1\n\nLinked: https://x.com/carm1nee/status/2039427063812132866/video/1\n\nLinked: https://x.com/carm1nee/status/2039427063812132866/video/1\n\nLinked: https://twitter.com/carm1nee/status/2038608348958834926",
+      "summary": "Cross-exchange latency arbitrage exploiting the lag between BTC price moves on Binance and prediction market contract repricing. Bot uses Binance WebSocket (<50ms) to detect price action, then executes against stale prediction market pricing. $313 to $2.38M over 26,738 trades at 98% win rate with fractional Kelly sizing and -40% kill switch.",
+      "url": "https://x.com/carm1nee/status/2039427063812132866",
+      "date": "4/1/2026, 12:37:57 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "arbitrage",
+        "latency",
+        "cross-exchange",
+        "BTC",
+        "HFT",
+        "Kelly-criterion",
+        "kill-switch",
+        "WebSocket",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "cross-exchange latency arbitrage",
+      "platform": "Polymarket (adapt to Kalshi), Binance",
+      "instrument": "crypto UP/DOWN contracts + BTC spot",
+      "dependencies": [
+        "Claude",
+        "Polymarket CLOB API",
+        "Binance WebSocket API"
+      ],
+      "metadata": {
+        "tweet_id": "2039427063812132866",
+        "engagement": {
+          "likes": 59,
+          "retweets": 2,
+          "replies": 9
+        },
+        "conversation_id": "2039427063812132866",
+        "has_article_content": true,
+        "media_count": 3,
+        "external_links": [
+          "https://x.com/carm1nee/status/2039427063812132866/video/1",
+          "https://twitter.com/carm1nee/status/2038608348958834926"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Researcher & Analyst",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi crypto markets also lag behind spot exchanges. The latency arb concept applies directly: monitor Binance/Coinbase WebSocket for BTC moves, execute on Kalshi crypto event contracts before repricing. Kalshi API supports REST order placement. Lag window may differ from Polymarket."
+      }
+    },
+    {
+      "id": "tweet_2039305824590246144",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/carm1nee/status/2039305824590246144",
+      "title": "AI agent comparison: Claude vs OpenClaw with Kelly sizing and kill switch",
+      "content": "> MIT professor gave two AI agents $1,000 each\n> 48 hours to trade on Polymarket\n> Claude: +1,322% → $14,216\n> OpenClaw: liquidated to zero\n> same market. same timeframe\n> difference wasn't the strategy\n> Claude had Kelly sizing and a kill switch\n> OpenClaw went all in and blew up\n> risk management isn't boring\n> full in article\n\n--- Quoted tweet by @carm1nee ---\nhttps://t.co/0YZNy1Owkv\n\nLinked: https://x.com/carm1nee/status/2039305824590246144/video/1\n\nLinked: https://twitter.com/carm1nee/status/2038608348958834926",
+      "summary": "MIT professor experiment comparing two AI trading agents on prediction markets over 48 hours with $1K each. Claude (+1,322%, $14,216) used Kelly criterion sizing and a kill switch. OpenClaw went all-in and was liquidated. Key lesson: risk management architecture matters more than strategy selection.",
+      "url": "https://x.com/carm1nee/status/2039305824590246144",
+      "date": "4/1/2026, 4:36:11 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "Kelly-criterion",
+        "risk-management",
+        "kill-switch",
+        "agent-comparison",
+        "position-sizing",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "Kelly criterion position sizing with kill switch",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "OpenClaw"
+      ],
+      "metadata": {
+        "tweet_id": "2039305824590246144",
+        "engagement": {
+          "likes": 62,
+          "retweets": 3,
+          "replies": 11
+        },
+        "conversation_id": "2039305824590246144",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/carm1nee/status/2039305824590246144/video/1",
+          "https://twitter.com/carm1nee/status/2038608348958834926"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Researcher & Analyst",
+          "followers": 0
+        },
+        "kalshi_notes": "Kelly criterion and kill switch are universal risk management tools. Directly applicable to Kalshi trading. This item is primarily about risk architecture rather than platform-specific mechanics."
+      }
+    },
+    {
+      "id": "tweet_2039267203007037884",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/0x_Discover/status/2039267203007037884",
+      "title": "Liquidity Sniper terminal: targets overreactions in thin order books",
+      "content": "my Claude built a Liquidity Sniper terminal that eats overreactions\n\n+$3,082 while I was asleep\n\nthin books → fat profits\n\n251 snipes across 500 markets in <2h\n\nevery entry = low liquidity + price overshoot\n\nthe logic is simple:\nlow liquidity → price overreacts\noverreaction → mean reversion\nbot waits → strikes\n\nHurricane FL — panic sell, thin book\nentry $0.35 → $0.42 in 11m\n+$287\n\nTrump OH — news spike, эмоции\nentry $0.59 → revert\n+$194\n\nSenate bill — rumor + no asks\nentry $8.45 → +112%\n+$371\navg revert: 17 min\nin → wait → out\n\nlive feed:\n\nmech Miami flood +15.5% — SNIPE\ninfo Dogecoin +7.9% — SKIP\nmech eth>5k Q2 +5.8% — SNIPE\n\nSKIP = liquidity ok\nSNIPE = thin book + wrong price\n\nmarkets: 500\nscan: every 30s\nwin rate: 88.8%\nsnipes: 251\nP&L curve = stairs up\nno prediction\n\njust liquidity\n\nwhen it's thin — it hits\n\ncopytrade: :https://t.co/IPY41UFgnZ\n\nmarket overreacts\n\nthis bot is already there waiting\n\n--- Quoted tweet by @0x_Discover ---\nhttps://t.co/HWA1R5WtW9\n\nLinked: https://t.me/KreoPolyBot?start=ref-discov",
+      "summary": "Liquidity Sniper terminal exploits mean reversion in thin order books. Scans 500 markets every 30 seconds, enters when low liquidity causes price overshoots, exits on reversion (avg 17 min). 251 snipes in under 2 hours, 88.8% win rate. Works on politics, weather, crypto markets -- purely liquidity-driven, no directional prediction.",
+      "url": "https://x.com/0x_Discover/status/2039267203007037884",
+      "date": "4/1/2026, 2:02:43 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "liquidity-sniping",
+        "order-book",
+        "overreaction",
+        "mean-reversion",
+        "thin-book",
+        "automated-trading",
+        "prediction-market",
+        "politics",
+        "weather",
+        "crypto"
+      ],
+      "strategy_type": "liquidity sniping / overreaction mean reversion",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039267203007037884",
+        "engagement": {
+          "likes": 37,
+          "retweets": 2,
+          "replies": 7
+        },
+        "conversation_id": "2039267203007037884",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://t.me/KreoPolyBot?start=ref-discov"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Writing threads | Alpha researcher | Not financial advice",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi markets in politics, economics, and climate have thin order books -- especially niche contracts. The liquidity sniping / mean reversion strategy is highly applicable. Kalshi order book data is available via API. Politics and weather markets are core Kalshi categories."
+      }
+    },
+    {
+      "id": "tweet_2039134585737400689",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/slash1sol/status/2039134585737400689",
+      "title": "Three competing liquidity capture bots: laddering, non-linear curves, and position merging",
+      "content": "I MADE 3 LIQUIDITY CAPTURE BOTS COMPETE AGAINST EACH OTHER FOR 24 HOURS\n\nSame bankroll with zero direction bets. \nPure order-book exploitation - exactly like this guy below described.\n\nAlso watch the live terminal battle below.\n\n//\n\nLadder Larry - aggressive high-frequency ladder monster -> +$12,450 PnL \n\nCurve Alchemist - master of non-linear order curves -> +$18,920 PnL \n\nMerge Phantom - phantom merger & capital recycling king -> +$9,830 PnL\n\n//\n\nThey didn't try to predict the winner. \nThey simply became the house.\n\nKey takeaways straight from article (the ones that actually print):\n\n-> Top bots run tight 1-cent ladders on both YES and NO at the same time. \n-> Price moves automatically load them heavier on the winning side (structural imbalance). \n-> Merging opposing positions isn't a loss, it's genius capital recycling. \n-> The real edge is in the non-linear volume curve (flat ladders get eaten alive).\n-> Latency + FIFO queue decides who gets the juiciest fills.\n-> One BTC bot alone did +$2.3M in 4 months doing exactly this.\n\nThis isn't trading. \nThis is structurally owning the platform.\n\nDone coding 1000 bots, fighting latency, and eating reversals?\n\nhttps://t.co/5aAg87o8ji copytrading lets you connect your wallet and automatically copy the top liquidity predators + whale bots on Polymarket in one click. \n\nZero code. Zero infrastructure pain. Pure edge.\n\nSave this alpha.\n\n--- Quoted tweet by @bored2boar ---\nhttps://t.co/jlDTleAmk2\n\nLinked: http://kreo.app/@join",
+      "summary": "Three liquidity capture bots competed over 24 hours with zero directional bets: Ladder Larry (HF laddering, +$12,450), Curve Alchemist (non-linear order curves, +$18,920), Merge Phantom (capital recycling, +$9,830). Key insight: run tight 1-cent ladders on both YES+NO, exploit structural imbalance from price moves, merge opposing positions for capital recycling.",
+      "url": "https://x.com/slash1sol/status/2039134585737400689",
+      "date": "3/31/2026, 5:15:45 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "liquidity-capture",
+        "order-book",
+        "HFT",
+        "market-making",
+        "laddering",
+        "position-merging",
+        "non-linear-curves",
+        "automated-trading",
+        "prediction-market",
+        "capital-recycling"
+      ],
+      "strategy_type": "order-book exploitation / liquidity capture / market making",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039134585737400689",
+        "engagement": {
+          "likes": 63,
+          "retweets": 1,
+          "replies": 20
+        },
+        "conversation_id": "2039134585737400689",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "http://kreo.app/@join"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "smoke cigs and post about crypto, ai, vibe coding, prediction markets..",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi uses a central limit order book (CLOB), making laddering and market-making strategies directly applicable. YES+NO position merging works identically on Kalshi. Latency and queue priority dynamics may differ from Polymarket's on-chain CLOB."
+      }
+    },
+    {
+      "id": "tweet_2039342946416283925",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/browomo/status/2039342946416283925",
+      "title": "Multi-agent parliament: 5 specialized AI agents vote on each trade with consensus threshold",
+      "content": "5 AI agents vote before I put a single dollar on Polymarket.\n\nIf at least three disagree, the bet does not go through. In 14 days this system beat a single agent by 23% on ROI.\n\nHere is how it works.\n\nI used to run one agent. One model, one prompt, one context, and no adversarial validation.\n\nIt gave an answer in seconds and was right 60% of the time. But the remaining 40% ate the profit entirely, because it was wrong with the same confidence it had when it was right.\n\nThis is the classic single-agent overconfidence problem. A model does not know how to doubt if it has nobody to argue with.\n\nSo I built a system in Claude Code that I call the parliament.\n\nIt has five agents, and each one has its own specialization: geopolitics, macroeconomics, science, sports, crypto.\n\nBefore every position on Polymarket they all receive the same market, and each one analyzes it through its own lens.\n\nEach agent is a separate system prompt with a strict scope. The geopolitics agent does not see on-chain data. The macroeconomist does not read Twitter. They work in isolated contexts, and this is fundamental: if you give them all the same information, they arrive at the same conclusion, and the whole point is lost.\n\nData is fed through structured input. Each agent receives the Polymarket market as JSON: name, current odds, deadline, trading volume.\n\nOn top of that, each gets its own set of sources:\n\n> geopolitics: diplomatic briefings + sanctions lists\n> macroeconomist: Fed minutes + CPI data\n> crypto agent: whale alerts + sentiment score from Twitter\n\nAfter the analysis comes the vote with a strict consensus threshold: minimum three out of five.\n\nBut this is not just counting hands. Each agent returns a confidence score from 0 to 100 and detailed reasoning.\n\nIf the parliament splits 3:2, the agents in the minority are required to produce a dissent report: a counterargument with specific sources. I read it before confirming the position.\n\nResults over 14 days across 47 markets:\n\n> single agent: +$640\n> parliament: +$1,120\n\nWith fewer bets. It simply filtered out the junk at the gate.\n\n> win rate: 60% → 74%\n> average size of loss dropped by half\n\nThe system refused to enter markets where the agents could not agree among themselves.\n\nBut the most unexpected part involves the science agent, which I added last, almost as an experiment.\n\nIt ended up in the minority more often than any other and voted against on 19 out of 47 markets. When it was the only one voting against while the other four were in favor, it turned out to be right four times out of five.\n\nThose are four positions I would have entered without it and lost a total of $890. One dissenting agent was worth more than the entire rest of the system combined.\n\nThe problem with AI trading is not the quality of the model. The problem is that everyone builds one smart agent and then acts surprised when it confidently loses money.\n\nFive agents forced to argue with each other is not five opinions. It is a built-in mechanism of doubt that a single model does not have and never will. The parliament is not smarter than any of its members. It simply does not let any one of them be confident alone.\n\nThis whole system, honestly, was born from something much simpler. Before the parliament, before the agents, and before any automation, I was just watching smart wallets on Polymarket through a Telegram bot: https://t.co/6oJMPDWj4z\n\nI watched who was consistently earning, broke down their trades, and tried to understand why they entered those specific markets and not the ones next to them.\n\nThe idea for the parliament came from one observation: the five most profitable wallets almost never bet on the same thing at the same time. They thought differently, and that is exactly what made each of them profitable.\n\n--- Quoted tweet by @eng_khairallah1 ---\nhttps://t.co/S2q4o7xcLI\n\nLinked: http://t.me/KreoPolyBot?start=ref-justlock1",
+      "summary": "Multi-agent 'parliament' system with 5 specialized AI agents (geopolitics, macro, science, sports, crypto) each analyzing markets through isolated data contexts. Requires 3/5 consensus to enter, with dissent reports from minority agents. Beat single-agent by 23% ROI over 14 days (47 markets), improved win rate from 60% to 74%, halved average loss size.",
+      "url": "https://x.com/browomo/status/2039342946416283925",
+      "date": "4/1/2026, 7:03:42 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "multi-agent",
+        "ensemble",
+        "consensus",
+        "risk-management",
+        "parliament",
+        "geopolitics",
+        "macroeconomics",
+        "sports",
+        "crypto",
+        "automated-trading",
+        "prediction-market",
+        "adversarial-validation"
+      ],
+      "strategy_type": "multi-agent consensus voting / ensemble",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude Code",
+        "multiple AI agents"
+      ],
+      "metadata": {
+        "tweet_id": "2039342946416283925",
+        "engagement": {
+          "likes": 37,
+          "retweets": 1,
+          "replies": 23
+        },
+        "conversation_id": "2039342946416283925",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "http://t.me/KreoPolyBot?start=ref-justlock1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "prediction market || dm always are open",
+          "followers": 0
+        },
+        "kalshi_notes": "Parliament architecture is fully platform-agnostic. Kalshi's politics, economics, and climate markets map directly to the geopolitics/macro/science agent specializations. Feed Kalshi market JSON instead of Polymarket. The consensus mechanism and dissent reporting are independent of exchange."
+      }
+    },
+    {
+      "id": "tweet_2039281101269504026",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/gippp69/status/2039281101269504026",
+      "title": "Weather market farming: exploiting mispriced weather contracts",
+      "content": "He turned $300 into $20k trading WEATHER on Polymarket.\n\nA student opened Claude, built a system, and started farming mispriced weather markets like a machine.\n\n> 1,782 predictions  \n> biggest win: $1,896  \n> total PnL: $20,171  \n> one niche most traders ignore\n\nWhile everyone else chased politics, crypto, and headlines,\nhe kept exploiting the same weather edge again and again.\n\n> no emotions  \n> no narratives  \n> no guessing  \n> just data  \n> just execution  \n> just repetition\n\nMost people gamble.\n\nSome build systems.\n\n--- Quoted tweet by @N01ennn ---\nhttps://t.co/CGJM7jwIGq\n\nLinked: https://x.com/gippp69/status/2039281101269504026/video/1\n\nLinked: https://x.com/gippp69/status/2039281101269504026/video/1\n\nLinked: https://twitter.com/n01ennn/status/2039054376908546475",
+      "summary": "Weather market farming strategy: $300 to $20,171 across 1,782 predictions by systematically exploiting mispriced weather contracts -- a niche most traders ignore. Purely data-driven with no sentiment or narrative, just repeated execution of the same weather edge. Biggest single win: $1,896.",
+      "url": "https://x.com/gippp69/status/2039281101269504026",
+      "date": "4/1/2026, 2:57:57 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "weather",
+        "niche-markets",
+        "mispricing",
+        "climate",
+        "systematic-trading",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "niche market mispricing (weather)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "weather prediction contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039281101269504026",
+        "engagement": {
+          "likes": 105,
+          "retweets": 6,
+          "replies": 24
+        },
+        "conversation_id": "2039281101269504026",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://x.com/gippp69/status/2039281101269504026/video/1",
+          "https://twitter.com/n01ennn/status/2039054376908546475"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Ambassador @kreoapp | The Insider Hunter | dm open",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi has extensive climate/weather markets (hurricane landfalls, temperature records, NOAA data). This is one of the most directly portable strategies. NOAA and weather service APIs provide the same data edge. Kalshi weather contracts are CFTC-regulated with fiat settlement."
+      }
+    },
+    {
+      "id": "tweet_2039479380368408840",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/slash1sol/status/2039479380368408840",
+      "title": "Chinese dev $5 to $5.5M: NO bets, logic arbitrage, and sports/politics niche",
+      "content": "THIS CHINESE DEV TURNED POLYMARKET INTO A CASH MACHINE WITH CLAUDE\n\nIT'S NOT A BAIT, I'm not exaggerating at all. \n\nHis results are seriously hard to believe: \nDev started only with $5 and scaled it to $5,500,000. \n\nHe's not an insider or friends with any big players.\n \nHe's a programmer who wrote a script at all.\n\nHis profile: https://t.co/pD5upT3H3I \n\nTry to copy trade his edge and millions here: https://t.co/tWKZaJYAMg\n\nI just opened his script and was genuinely surprised: \n- Nothing \"rocket science\" level.\n- No massive databases. \n- No insanely complex infrastructure. \n\nI spent a lot hours breaking down his strategy\n\nAnd here it is -> \n\nHIS FULL STRATEGY:\n\n--> \"Free money\" through NO bets. \nThe bot targets near-impossible outcomes and consistently harvests small, high-probability gains. \nThis isn't gambling, it's systematic risk underwriting in its purest form.\n\n--> Logic arbitrage. \nWhen event A inevitably triggers event B and the market hasn't caught up yet, the bot is already in. \nBy the time you finish reading the headline, the gap has closed. \nHuman reaction speed simply doesn't belong in this game.\n\n--> The real edge is sports and politics. \nThese markets run on retail money, slow reactions, and pure emotion. \nThe bot operates in the gaps between them, quietly extracting profit from every pricing mismatch.\n\n> Scale matters. \n\nTens of thousands of micro-trades every month, each worth almost nothing individually. \nStacked and compounded over time, they build into seven figures.\n\n> Bottom line.\n \nThere's a real bot war playing out on Polymarket right now. \nCrypto markets are already eaten alive by fees and competition, but sports markets are still wide open - pure chaos, easy pickings for anyone willing to automate.\n\nSave this post and try running this strategy through Claude Opus 4.6.\n\nYou'll be surprised.\n\n--- Quoted tweet by @adiix_official ---\nhttps://t.co/tZJw0URrhg\n\nLinked: https://polymarket.com/profile/%40swisstony?via=svyatoslav\n\nLinked: https://t.me/KreoPolyBot?start=ref-join",
+      "summary": "Breakdown of Chinese dev who scaled $5 to $5.5M using three core strategies: harvesting NO bets on near-impossible outcomes (systematic risk underwriting), logic arbitrage (event A triggers event B before market reprices), and exploiting sports/politics markets driven by retail emotion and slow reactions. Tens of thousands of micro-trades compounding over time.",
+      "url": "https://x.com/slash1sol/status/2039479380368408840",
+      "date": "4/1/2026, 4:05:50 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "PHANTOM",
+        "scaling",
+        "NO-bets",
+        "logic-arbitrage",
+        "sports",
+        "politics",
+        "risk-underwriting",
+        "micro-trading",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "automated prediction trading (NO bets, logic arb, sports/politics)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039479380368408840",
+        "engagement": {
+          "likes": 185,
+          "retweets": 8,
+          "replies": 30
+        },
+        "conversation_id": "2039479380368408840",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://polymarket.com/profile/%40swisstony?via=svyatoslav",
+          "https://t.me/KreoPolyBot?start=ref-join"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "smoke cigs and post about crypto, ai, vibe coding, prediction markets..",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi's politics and sports markets are prime targets for NO-bet harvesting and logic arbitrage. CFTC-regulated with fiat settlement. Sports markets (NBA, NFL) and politics markets (elections, policy) are core Kalshi categories with retail-dominated order flow."
+      }
+    },
+    {
+      "id": "tweet_2039323712713810150",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/0xkvro/status/2039323712713810150",
+      "title": "Wallet analysis: parsed 17,000 wallets, mapped 11 strategies, flagged 2 high-performers",
+      "content": "Someone dropped a Polymarket breakdown in my DMs\n\nRan it through Claude. Two nights. Four scripts\n\n$150 → $9,800\n\nSaturday. Late night. Claude. A couple JSONs. $8\n\nBy morning 17,000 wallets parsed. 11 strategies mapped. 2 quiet wallets flagged\n\n~1.1M wallets on Polymarket\n75% lose consistently\nThe 9% who win leave patterns\n\nClaude reads those patterns\n\nOne wallet - fresh address, no history\nDrops $22K into a dead market\nNo volume. No news\n\nThree hours later was announcement hits\nIt was already positioned\n\nWeather lag - 83% win rate\n\nEntries 6–10 minutes before price moves\nEvery day. Almost no one tracks it\n\nBTC lag compressed from 9.4 to 3.1 seconds\nClaude caught it early\n\nSaid \"exit\" — edge gone\n\nEvery morning\n4 prompts\n2 minutes\n17,000 wallets before coffee\n\n$150 → $9,800\nData is public\nCode is 4 scripts\n$0.015 per query\n\n$40 while you were reading this\n\n--- Quoted tweet by @xmayeth ---\nhttps://t.co/SYm8TaW8V0\n\nLinked: https://x.com/0xkvro/status/2039323712713810150/video/1\n\nLinked: https://twitter.com/xmayeth/status/2037915314613010461",
+      "summary": "Wallet analysis pipeline: 4 Claude scripts parse 17,000 prediction market wallets overnight, mapping 11 distinct strategies and flagging high-performing quiet wallets. Identified weather lag (83% win rate, entries 6-10 min before price moves) and BTC lag compression (9.4s to 3.1s, signaling edge decay). $150 to $9,800 using public data at $0.015/query.",
+      "url": "https://x.com/0xkvro/status/2039323712713810150",
+      "date": "4/1/2026, 5:47:16 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "wallet-analysis",
+        "copytrade",
+        "on-chain-analysis",
+        "weather",
+        "BTC",
+        "edge-decay",
+        "data-pipeline",
+        "automated-trading",
+        "prediction-market"
+      ],
+      "strategy_type": "wallet analysis / copytrade / on-chain intelligence",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "Python",
+        "Polymarket API"
+      ],
+      "metadata": {
+        "tweet_id": "2039323712713810150",
+        "engagement": {
+          "likes": 45,
+          "retweets": 2,
+          "replies": 14
+        },
+        "conversation_id": "2039323712713810150",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/0xkvro/status/2039323712713810150/video/1",
+          "https://twitter.com/xmayeth/status/2037915314613010461"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "my predict arc",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi order/trade data is available via API. While Kalshi wallets are not on-chain (centralized exchange), trade history and positioning patterns of top performers can be analyzed similarly. Weather lag and strategy-mapping concepts apply directly."
+      }
+    },
+    {
+      "id": "tweet_2039165211178061967",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/SolSt1ne/status/2039165211178061967",
+      "title": "Agent harness architecture: Bayesian probability + Kelly sizing bot from Claude Code skill system",
+      "content": "My girlfriend asked why I was reading a leaked GitHub repo at 2 AM\n\n\"It's just someone's Python project, go to sleep\"\n\nI cloned claw-code, read the harness architecture, and rebuilt the skill system in 6 hours\n\n$400 -> $9,340 in 11 days\n\nThe orchestration layer was always public. Anthropic just never told you it existe\n\nHere's what I actually did:\n\nWhen claw-code dropped on March 31st, I wasn't interested in the drama. I was interested in the skill folder\n\nThe leaked architecture showed exactly how Claude's agent harness injects context before any user message arrives. Not prompting. Not RAG. Runtime context scoping - the model \"knows its role\" before the conversation starts\n\nI rebuilt the core in Python in one night. Stripped it down to the part that mattered: tool orchestration with typed I/O contracts and scoped agent permissions\n\nThen I aimed it at Polymarket\n\nThe setup:\n\nAgent 1 pulls live contract data every 15 minutes. No headlines, no sentiment - only the raw probability number\n\nAgent 2 runs a Bayesian update against external forecast sources. Compares P(real) against P(market)\n\nKelly sizing: f* = (p*b - q) / b\n\nWhen the spread exceeds 0.07, it enters. Otherwise it does nothing. Most of the time it does nothing\n\n147 contracts scanned per session. Average 2-3 entries per day. No emotion, no override, no \"I have a feeling about this one.\"\n\n11 days. 31 trades. 68.4% win rate. Average win: $340. Average loss: $61. Kelly handles the asymmetry automatically\n\n92% of people who looked at claw-code saw a drama story about a leaked repo. I saw a working architecture document\n\nThe edge was never the model. It was always the harness.\n\n--- Quoted tweet by @Fried_rice ---\nClaude code source code has been leaked via a map file in their npm registry! \n    \n    Code: https://t.co/jBiMoOzt8G https://t.co/rYo5hbvEj8\n\nLinked: https://x.com/SolSt1ne/status/2039165211178061967/video/1\n\nLinked: https://twitter.com/Fried_rice/status/2038894956459290963",
+      "summary": "Rebuilt Claude Code's agent harness (from leaked claw-code repo) as a trading bot with typed I/O contracts and scoped agent permissions. Agent 1 pulls live contract probabilities every 15 min; Agent 2 runs Bayesian updates against external forecasts. Enters when spread >7%, uses Kelly sizing. $400 to $9,340 in 11 days, 31 trades, 68.4% win rate, avg win $340 vs avg loss $61.",
+      "url": "https://x.com/SolSt1ne/status/2039165211178061967",
+      "date": "3/31/2026, 7:17:26 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "agent-harness",
+        "skill-system",
+        "orchestration",
+        "Bayesian",
+        "Kelly-criterion",
+        "Claude-Code",
+        "automated-trading",
+        "prediction-market",
+        "architecture"
+      ],
+      "strategy_type": "agent harness / skill-based orchestration",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude Code",
+        "Python",
+        "GitHub (claw-code)"
+      ],
+      "metadata": {
+        "tweet_id": "2039165211178061967",
+        "engagement": {
+          "likes": 59,
+          "retweets": 1,
+          "replies": 10
+        },
+        "conversation_id": "2039165211178061967",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/SolSt1ne/status/2039165211178061967/video/1",
+          "https://twitter.com/Fried_rice/status/2038894956459290963"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Polymarket believer",
+          "followers": 0
+        },
+        "kalshi_notes": "The agent harness architecture is fully platform-agnostic. Replace Polymarket contract data pulls with Kalshi API. Bayesian probability comparison and Kelly sizing work identically. The 7% spread threshold and entry logic transfer directly to Kalshi event contracts."
+      }
+    },
+    {
+      "id": "tweet_2039373347696328738",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/Hrundel75/status/2039373347696328738",
+      "title": "Autonomous Claude agent: wallet analysis + news + cross-market arb + Kelly sizing",
+      "content": "My Boss fired me yesterday\n\nI needed to find a way to pay the rent\n\nRemembered I got Claude subscription\n\nAsked Claude: \"analyze every top Polymarket wallets from the last 90 days and build me something\"\n\n$25  → $4,237 In one night\n\nit ingested 10,000 wallets cross-referenced win rates, sizing patterns\n\nMarket selection identified 7 traders whose edge wasn't luck\n\nthen it built an autonomous AI agent\n\nnot a script - not an if-then bot\n\nAn agent that reads live news feeds, maps them to open markets\n\nRuns probabilistic inference on crowd mispricing\n\nDetects cross-market arbitrage between correlated outcomes, and sizes positions using Kelly Criterion derived from the wallet patterns it studied\n\nI deployed it at 11:47pm closed the laptop\n\nwoke up to a notification\n\n$25 went $4,237\n\nthe agent made 94 trades while i slept never asked me anything never paused never second-guessed\n\nthat's the entire game information asymmetry at machine speed\n\nWall Street pays $2M/year for a person who does this \n\nI paid $20/month for Claude\n\nCopy it here: https://t.co/gRVOwHpgw9\n\n--- Quoted tweet by @Hrundel75 ---\nhttps://t.co/qND8nYQkX0\n\nLinked: https://t.me/KreoPolyBot?start=dl_0be644d7-45a0-4538-9e43-a74cd6e09503",
+      "summary": "Claude agent analyzed 10K top prediction market wallets over 90 days, cross-referenced win rates and sizing patterns, then built an autonomous agent. The agent reads live news, maps events to markets, runs probabilistic inference on mispricing, detects cross-market arbitrage, and sizes positions using Kelly Criterion. Claimed $25 to $4,237 overnight across 94 trades.",
+      "url": "https://x.com/Hrundel75/status/2039373347696328738",
+      "date": "4/1/2026, 9:04:30 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "wallet-analysis",
+        "autonomous-agent",
+        "news-driven",
+        "Kelly-criterion",
+        "cross-market-arb",
+        "prediction-market",
+        "Claude",
+        "mispricing"
+      ],
+      "strategy_type": "autonomous agent (wallet analysis + news + arb + Kelly)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039373347696328738",
+        "engagement": {
+          "likes": 442,
+          "retweets": 36,
+          "replies": 43
+        },
+        "conversation_id": "2039373347696328738",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://t.me/KreoPolyBot?start=dl_0be644d7-45a0-4538-9e43-a74cd6e09503"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "I'm insane ll Designer, Polymarket enjoyer.",
+          "followers": 0
+        },
+        "kalshi_notes": "Core concepts (wallet analysis, Kelly sizing, cross-market arb, news-driven trading) transfer directly to Kalshi. Kalshi offers event contracts in politics, economics, climate, and crypto. Wallet analysis would need adaptation since Kalshi is not on-chain."
+      }
+    },
+    {
+      "id": "tweet_2039493566750224477",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/carverfomo/status/2039493566750224477",
+      "title": "Low-liquidity market scanning: finding edge in empty rooms",
+      "content": "My card got declined at a gas station. $200 left in my account. 9 days until payday.\n\nI went home and asked Claude the dumbest question I've ever typed: I have $200. What would you do with it if you had 9 days?\n\nClaude didn't give me advice. It gave me a script. Said: load this anywhere. It scans for markets where almost nobody is trading and the edge is too wide for what it is.\n\nI had a $8 robot on my desk collecting dust. Orange box. Tiny screen with eyes. I built it weeks ago as a joke. Loaded the script into it.\n\nThe eyes went wide 41 times in the first week.\n\n14 golf markets. 23 esports matches. 9 goalscorer props. Markets with 11 people in them. Some with 6.\n\nThen the robot flagged a wallet that lives inside these dead rooms.\n\ngatorr. $2,219,147 profit. 684 predictions. Joined November 2025.\nhttps://t.co/itLwfrr0xs\n\nShowed it to my roommate who day trades futures. Lost $4K last month. He stared at the screen and said this is fake.\n\nPulled up the live wallet. He went quiet.\n\nHere is the thing. 50,000 wallets fight over elections for 2% edges. gatorr finds a golf market with 17 people and takes 8% before anyone notices.\n\nNot smarter. Just alone in the room.\n\nI asked Claude why nobody else does this. It said: because people search for the loudest markets. Not the emptiest.\n\nMy card still got declined that week. But the $200 I didn't spend on gas found 3 rooms the robot pointed at.\nhttps://t.co/v1CwlqRCNk\n\nThe orange box is still on my desk. Mostly he just blinks. But when those eyes go wide I stop whatever I'm doing.\n\nThree times this week. Three times it paid.\n\nLinked: https://polymarket.com/@gatorr?via=carverfomo\n\nLinked: https://t.me/KreoPolyBot?start=ref-carverfomo",
+      "summary": "Claude-generated script scans for ultra-low-liquidity prediction markets where few participants trade, finding wider edges in niche categories like golf, esports, and goalscorer props. The strategy exploits the fact that most traders chase high-volume markets while ignoring thinly-traded ones where 6-17 participants create structural mispricings. Flagged top wallet 'gatorr' ($2.2M profit, 684 predictions) operating in these empty markets.",
+      "url": "https://x.com/carverfomo/status/2039493566750224477",
+      "date": "4/1/2026, 5:02:12 PM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "low-liquidity",
+        "niche-markets",
+        "golf",
+        "esports",
+        "copytrade",
+        "prediction-market",
+        "Claude",
+        "edge-detection",
+        "market-scanning"
+      ],
+      "strategy_type": "low-liquidity market scanning + copytrade",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "sports/esports/niche prediction contracts",
+      "dependencies": [
+        "Claude",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2039493566750224477",
+        "engagement": {
+          "likes": 159,
+          "retweets": 11,
+          "replies": 33
+        },
+        "conversation_id": "2039493566750224477",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://polymarket.com/@gatorr?via=carverfomo",
+          "https://t.me/KreoPolyBot?start=ref-carverfomo"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "tracking probabilities | trading narratives",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi offers niche event contracts in climate, sports, economics, and politics. The low-liquidity scanning concept applies directly -- Kalshi markets can be thinly traded with wide spreads especially in less popular categories. Kalshi API supports market discovery and order book depth checks."
+      }
+    },
+    {
+      "id": "tweet_2039371497370800167",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/0xPhilanthrop/status/2039371497370800167",
+      "title": "NBA prediction bot with ~70% accuracy, $435K in 24 hours",
+      "content": "He didn't ignore the Claude leak — he built on top of it.\n\nOne trader used the exposed logic as a blueprint and engineered a Polymarket bot that pulled in $435,517 in just 24 hours by predicting NBA outcomes with ~70% accuracy.\n\nCopytrade → https://t.co/UlvSrUzZGN\n\nwallet: https://t.co/xSXnHh66OD\n\nNo hype. Just execution.\n\nLast 24h results:\n\n+$190,391 on 76ers vs. Heat at 44¢\n+$187,772 on Knicks vs. Rockets at 55¢\n+$103,500 on Cavaliers vs. Lakers at 35¢\n\nInstead of copying code blindly, he extracted the underlying decision framework — probability weighting, rapid updates, market inefficiency detection — and turned it into an edge.\n\nThe wild part?\n\nThe bot only started printing right after the Anthropic leak dropped.\n\n--- Quoted tweet by @0xPhilanthrop ---\nhttps://t.co/epft3Qim6X\n\nLinked: https://t.me/KreoPolyBot?start=ref-53blg718p7\n\nLinked: https://polymarket.com/@feveey",
+      "summary": "Bot predicting NBA outcomes with approximately 70% accuracy on a prediction market platform, generating $435K in 24 hours. The strategy extracts probability weighting, rapid Bayesian updates, and market inefficiency detection from a Claude-based framework. Key trades show large position sizes on games priced at 35-55 cents.",
+      "url": "https://x.com/0xPhilanthrop/status/2039371497370800167",
+      "date": "4/1/2026, 8:57:09 AM",
+      "author": "unknown",
+      "tags": [
+        "bot",
+        "NBA",
+        "sports",
+        "copytrade",
+        "prediction-market",
+        "Claude",
+        "probability-weighting",
+        "market-inefficiency"
+      ],
+      "strategy_type": "sports prediction (NBA)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "sports prediction contracts (NBA)",
+      "dependencies": [
+        "Claude",
+        "Telegram (KreoPolyBot)"
+      ],
+      "metadata": {
+        "tweet_id": "2039371497370800167",
+        "engagement": {
+          "likes": 16,
+          "retweets": 2,
+          "replies": 0
+        },
+        "conversation_id": "2039371497370800167",
+        "has_article_content": true,
+        "media_count": 3,
+        "external_links": [
+          "https://t.me/KreoPolyBot?start=ref-53blg718p7",
+          "https://polymarket.com/@feveey"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Genius, billionaire, playboy, philanthropist.",
+          "followers": 0
+        },
+        "kalshi_notes": "Kalshi offers sports event contracts including NBA games. The probability weighting and market inefficiency detection framework would transfer directly. Kalshi sports markets may have different liquidity profiles and pricing mechanics than Polymarket."
+      }
+    },
+    {
+      "id": "tweet_2039055805626937399",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/bored2boar/status/2039055805626937399",
+      "title": "Why prediction market bots fail: incomplete backtesting data",
+      "content": "Your Polymarket bot is failing for one simple reason:\n\nYour backtest is USELESS.\n\nAnd it's not because your strategy is bad.\nIt's because your data is incomplete.\n\nI built 1,000+ bots and 99% of them failed.\n\nBut this 1% still prints for me DAILY (over $16k public PnL this month).\n\nMost people test using APIs, Binance data, or simplified price feeds and think that's enough.\n\nIt's NOT even close.\n\nYou're missing order book depth, real spreads, and most importantly actual fill behavior.\n\nThat's why your bot looks profitable on paper but breaks the moment you go live.\n\nYou're not simulating reality.\n\nFix is simple, but almost nobody does it.\n\nBuild a recorder and start now.\n\nTrack every tick of every market you trade, including price changes and full order book depth.\n\nAlso record every external data source you rely on like NOAA, ESPN, Binance, or Coinbase.\n\nAnd don't just track the active window.\n\nYou need pre-window and post-window data too, because timing is where most of the edge comes from.\n\nThe biggest mistake is fills.\n\nIf your model assumes perfect execution, it's already wrong.\n\nThat's exactly why people complain about getting only 40% fills live.\n\nYou need scale.\n\nAt least 1000 windows for statistical confidence, which is around 10 days on 15m markets.\n\nNO real data means NO real edge.\n\nJust a strategy that works only in your imagination.\n\nPreparing a full guide for you, dropping in ~24 hours.\n\n--- Quoted tweet by @bored2boar ---\nhttps://t.co/jlDTleAmk2\n\nLinked: https://x.com/bored2boar/status/2039055805626937399/photo/1\n\nLinked: https://twitter.com/bored2boar/status/2038654832819535895",
+      "summary": "Experienced bot developer (1,000+ bots built, 1% success rate) explains why most prediction market bots fail: incomplete backtesting data. Key gaps include missing order book depth, real spreads, and actual fill behavior. Recommends building a data recorder that captures every tick, full order book, external data sources, and pre/post-window data. Minimum 1,000 windows needed for statistical confidence.",
+      "url": "https://x.com/bored2boar/status/2039055805626937399",
+      "date": "3/31/2026, 12:02:42 PM",
+      "author": "unknown",
+      "tags": [
+        "bot-development",
+        "backtesting",
+        "data-quality",
+        "lessons-learned",
+        "prediction-market",
+        "order-book",
+        "fill-simulation",
+        "methodology"
+      ],
+      "strategy_type": "backtesting methodology / bot development advice",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039055805626937399",
+        "engagement": {
+          "likes": 149,
+          "retweets": 13,
+          "replies": 10
+        },
+        "conversation_id": "2039055805626937399",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/bored2boar/status/2039055805626937399/photo/1",
+          "https://twitter.com/bored2boar/status/2038654832819535895"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "On-Chain Investigations / Prediction markets / DeFi moves",
+          "followers": 0
+        },
+        "kalshi_notes": "Backtesting methodology applies universally. Kalshi's API provides order book data that can be recorded for realistic backtesting. The fill behavior gap is equally relevant on Kalshi -- simulating realistic fills against Kalshi's order book is critical before going live."
+      }
+    },
+    {
+      "id": "tweet_2039308895290581254",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/adiix_official/status/2039308895290581254",
+      "title": "5 free GitHub scripts: trading terminal, data recorder, trading bot, wallet analyzer, ML model",
+      "content": "5 free ready-to-use scripts for trading on Polymarket for your Claude\n\nFor a couple of days I was reading these GitHub and tried to write my own bot to check if everything works\n\nIn less than a week I managed to write a bot that turned $100 into $13,200 in 6 days\n\nProfile:\n https://t.co/vTelTL8fPu\n\nCopytrading me:\n\n https://t.co/TqhAtUovR4\n\nIf you want to automate trading on Polymarket - here's everything you need to get started\n\nFrom data recording and wallet analysis to a trading bot and ML model\n\n1. Trading terminal: hotkeys, instant orders, PnL and Telegram alerts - no more wallet confirmations every 5 seconds\n\nGitHub:https://t.co/7ufqYrqHGo\n\n2. Data recorder: logs Polymarket and Binance simultaneously  order book, trades, indicators, everything saved to files with a live dashboard\n\nGitHub:https://t.co/RurJTV7kBY\n\n3. Trading bot: enters on the favorite ~4 minutes before market close with a stop-loss and position sizing based on a confidence formula\n\nGitHub:https://t.co/tlBcSm9ois\n\n4. Wallet analyzer: collects the full trade history of any wallet, splits by market and builds position accumulation charts\n\nGitHub:https://t.co/ot4BpGgfgU\n\n5. ML model: 208 indicators via TAAPI, predicts market direction and calculates fair value\n\nGitHub:https://t.co/OO1iX8c9JL\n\nAll tools are free - run them through Claude to build a full bot or use them separately\n\nAdd this post to your bookmarks so you don't lose this treasure\n\nI hope this information will be useful for you and I will help you change your life\n\nIf you want to see what code Claude wrote for me\n\nJust :\n1.Comment \"AdiiX Bot\"\nhttps://t.co/Ldb3yNm9KF and Retweet.\n3.Follow me @adiix_official (so I can DM you)\n\n--- Quoted tweet by @adiix_official ---\nhttps://t.co/tZJw0URrhg\n\nLinked: https://polymarket.com/@0x812f6302a132c16e91b080eb984f22805701b06a-1773601974007?r=0x812\n\nLinked: https://ares.pro/wallets/0x812f6302a132c16e91b080eb984f22805701b06a?a=wallet\n\nLinked: http://github.com/txbabaxyz/polyterminal\n\nLinked: http://github.com/txbabaxyz/polyrec\n\nLinked: https://github.com/txbabaxyz/4coinsbot\n\nLinked: https://github.com/txbabaxyz/collectmarkets2\n\nLinked: https://github.com/txbabaxyz/mlmodelpoly\n\nLinked: http://2.Like",
+      "summary": "Curated set of 5 free open-source GitHub tools for prediction market trading: (1) trading terminal with hotkeys/instant orders/PnL/Telegram alerts, (2) data recorder for simultaneous order book/trade logging with live dashboard, (3) trading bot that enters near market close with stop-loss and confidence-based sizing, (4) wallet analyzer for trade history and position accumulation charts, (5) ML model with 208 TAAPI indicators for direction prediction and fair value calculation. Author claims $100 to $13,200 in 6 days.",
+      "url": "https://x.com/adiix_official/status/2039308895290581254",
+      "date": "4/1/2026, 4:48:23 AM",
+      "author": "unknown",
+      "tags": [
+        "open-source",
+        "scripts",
+        "terminal",
+        "data-recorder",
+        "Telegram-alerts",
+        "prediction-market",
+        "ML-model",
+        "wallet-analyzer",
+        "GitHub",
+        "toolkit"
+      ],
+      "strategy_type": "open-source trading toolkit",
+      "platform": "Polymarket (adapt to Kalshi), Binance",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "Python",
+        "GitHub repos (polyterminal, polyrec, 4coinsbot, collectmarkets2, mlmodelpoly)",
+        "Telegram",
+        "TAAPI"
+      ],
+      "metadata": {
+        "tweet_id": "2039308895290581254",
+        "engagement": {
+          "likes": 152,
+          "retweets": 27,
+          "replies": 36
+        },
+        "conversation_id": "2039308895290581254",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "https://polymarket.com/@0x812f6302a132c16e91b080eb984f22805701b06a-1773601974007?r=0x812",
+          "https://ares.pro/wallets/0x812f6302a132c16e91b080eb984f22805701b06a?a=wallet",
+          "http://github.com/txbabaxyz/polyterminal",
+          "http://github.com/txbabaxyz/polyrec",
+          "https://github.com/txbabaxyz/4coinsbot",
+          "https://github.com/txbabaxyz/collectmarkets2",
+          "https://github.com/txbabaxyz/mlmodelpoly"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Your personal growth now automated Daily tips to level up",
+          "followers": 0
+        },
+        "kalshi_notes": "The data recorder, terminal, and ML model concepts are platform-agnostic and can be adapted for Kalshi's API. Wallet analysis does not apply to Kalshi (centralized exchange, no on-chain wallets). The trading bot's close-to-expiry strategy maps well to Kalshi's event contracts which also have defined resolution times."
+      }
+    },
+    {
+      "id": "tweet_2038667029180301330",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/kirillk_web3/status/2038667029180301330",
+      "title": "Full automation framework: VPS + Claude + Simmer + strategies + risk + compounding",
+      "content": "Claude + Polymarket — $1K/day automation framework\n\nBuild a Polymarket trading brain powered by Claude and probability math\n\nMost guides teach what to trade — this teaches how to build a system that trades for you\n\nBookmark this so you don't lose it.\n\nSystem structure:\n{ VPS } – runs 24/7\n{ Claude } – reads signals, enters trades\n{ Simmer } – connects to Polymarket\n{ strategies } – fast loop, weather, copytrading\n{ execution } – auto entry, auto exit\n{ risk } – drawdown & loss limits\n{ Telegram } – alerts & logs\n{ compounding } – small edges stack\n\nOnce this runs, you're not trading anymore — you're running infrastructure\n\nHow it makes money:\nfind mispriced probabilities → enter → repricing → exit → repeat\n\nSmall misprice × many trades × risk control = $1K/day framework\n\nAt some point this stops feeling like trading\nand starts feeling like running a machine\n\nFull setup guide ↓\n\n--- Quoted tweet by @kirillk_web3 ---\nhttps://t.co/8QjKuNlvta\n\nLinked: https://x.com/kirillk_web3/status/2038667029180301330/photo/1\n\nLinked: https://twitter.com/kirillk_web3/status/2025933391003066796",
+      "summary": "Complete automation framework architecture for prediction market trading: VPS for 24/7 uptime, Claude for signal analysis and trade entry, Simmer SDK as the platform connector, multiple strategies (fast loop, weather, copytrading), automated execution with entry/exit logic, risk management with drawdown and loss limits, Telegram for alerts/logging, and compounding mechanics. Core loop: find mispriced probabilities, enter, wait for repricing, exit, repeat.",
+      "url": "https://x.com/kirillk_web3/status/2038667029180301330",
+      "date": "3/30/2026, 10:17:51 AM",
+      "author": "unknown",
+      "tags": [
+        "framework",
+        "VPS",
+        "probability",
+        "infrastructure",
+        "Simmer",
+        "compounding",
+        "prediction-market",
+        "Claude",
+        "automation",
+        "risk-management"
+      ],
+      "strategy_type": "probability-based automation framework",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "VPS",
+        "Python",
+        "Polymarket API",
+        "Simmer",
+        "Telegram"
+      ],
+      "metadata": {
+        "tweet_id": "2038667029180301330",
+        "engagement": {
+          "likes": 192,
+          "retweets": 24,
+          "replies": 12
+        },
+        "conversation_id": "2038667029180301330",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/kirillk_web3/status/2038667029180301330/photo/1",
+          "https://twitter.com/kirillk_web3/status/2025933391003066796"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Web3 Creator Focused on @Polymarket and Crypto: Wallet flows, Probabilities, and Repeatable Market Edges.",
+          "followers": 0
+        },
+        "kalshi_notes": "The framework architecture (VPS, Claude, execution, risk, alerts, compounding) is fully platform-agnostic. For Kalshi: replace Simmer SDK with Kalshi API as the connector layer. Kalshi supports REST API for order placement and WebSocket for real-time data. Weather and politics strategies transfer directly to Kalshi's event contract categories."
+      }
+    },
+    {
+      "id": "tweet_2034215658016104956",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/kirillk_web3/status/2034215658016104956",
+      "title": "Most viral prediction market bot guide (24K+ likes)",
+      "content": "Claude Bot on Polymarket — Full Guide\n\nThe same setup turned $1,000 into $1.5M.\n\n2 hours.\nNothing complicated.\n\nBookmark this so you don't lose it. https://t.co/1gppvcdOwq https://t.co/77V2louJBC\n\n--- Quoted tweet by @kirillk_web3 ---\nhttps://t.co/8QjKuNlvta\n\nLinked: https://x.com/kirillk_web3/status/2034215658016104956/video/1\n\nLinked: https://twitter.com/kirillk_web3/status/2025933391003066796",
+      "summary": "The most viral prediction market bot tutorial on X (24K+ likes, 1,935 retweets). Promotes a Claude-powered bot setup that claims $1K to $1.5M returns. Links to video guide and the author's detailed OpenClaw/Clawdbot article. Minimal content in the tweet itself -- value is in the linked resources.",
+      "url": "https://x.com/kirillk_web3/status/2034215658016104956",
+      "date": "3/18/2026, 3:29:41 AM",
+      "author": "unknown",
+      "tags": [
+        "tutorial",
+        "guide",
+        "viral",
+        "prediction-market",
+        "bot",
+        "Claude"
+      ],
+      "strategy_type": "automated prediction trading (tutorial)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2034215658016104956",
+        "engagement": {
+          "likes": 24151,
+          "retweets": 1935,
+          "replies": 248
+        },
+        "conversation_id": "2034215658016104956",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/kirillk_web3/status/2034215658016104956/video/1",
+          "https://twitter.com/kirillk_web3/status/2025933391003066796"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Web3 Creator Focused on @Polymarket and Crypto: Wallet flows, Probabilities, and Repeatable Market Edges.",
+          "followers": 0
+        },
+        "kalshi_notes": "High engagement suggests strong interest in automated prediction market trading. The linked full guide (OpenClaw/Clawdbot) covers strategies transferable to Kalshi. Kalshi is the US-legal alternative with CFTC regulation."
+      }
+    },
+    {
+      "id": "tweet_2039115625914626550",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/sopersone/status/2039115625914626550",
+      "title": "Step-by-step guide: 3 trading strategies for $2-5K/month using Claude and Python",
+      "content": "everything you need to know to earn $2–5k per month:\n\n 1. watch the guide on Claude FULL COURSE\n 2. read the article below\n 3. understand the principles of 3 strategies\n 4. run Python\n\nnothing can stop you https://t.co/oQ7bDyI2FN https://t.co/33Q8wmKwCh\n\n--- Quoted tweet by @Alexo_0x ---\nhttps://t.co/uQxn2I9ahO\n\nLinked: https://x.com/sopersone/status/2039115625914626550/video/1\n\nLinked: https://twitter.com/Alexo_0x/status/2038957845761138773",
+      "summary": "Meta-guide referencing 3 prediction market trading strategies targeting $2-5K/month income using Claude and Python. Points to a Claude full course video and an article by @Alexo_0x covering the strategy principles. Content is primarily a pointer to external resources rather than a standalone breakdown.",
+      "url": "https://x.com/sopersone/status/2039115625914626550",
+      "date": "3/31/2026, 4:00:24 PM",
+      "author": "unknown",
+      "tags": [
+        "guide",
+        "strategies",
+        "income",
+        "prediction-market",
+        "Claude",
+        "Python",
+        "tutorial"
+      ],
+      "strategy_type": "multiple strategies (3 referenced)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2039115625914626550",
+        "engagement": {
+          "likes": 221,
+          "retweets": 29,
+          "replies": 16
+        },
+        "conversation_id": "2039115625914626550",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/sopersone/status/2039115625914626550/video/1",
+          "https://twitter.com/Alexo_0x/status/2038957845761138773"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Inexperienced designer | living stress-free | learning quant trading",
+          "followers": 0
+        },
+        "kalshi_notes": "The 3 strategies referenced are likely adaptable to Kalshi. Follow the linked @Alexo_0x article for specific strategy details. Kalshi Python SDK available for automation."
+      }
+    },
+    {
+      "id": "tweet_2039319426474869070",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/0xRicker/status/2039319426474869070",
+      "title": "Claude Code features for prediction market trading: MCP Servers, CLAUDE.md rules, Skills, Subagents",
+      "content": "Top Claude Code features for Polymarket traders:\n\nClaude Code isn't just a coding assistant - it's the unfair edge Polymarket traders don't know they're missing yet\n\nMCP Servers - connect Polymarket API & real-time order book directly. No copy-paste, live data straight into Claude\n\nCLAUDEmd - set permanent trading rules once: max risk per bet, minimum edge threshold, liquidity filters. Claude follows them every session\n\nSkills - build a \"Polymarket Market Analyzer\" that calculates probabilities and edge on demand\n\nSubagents / Agent Teams - split the workflow: one agent tracks news, one calculates implied probability, one manages position size. All in parallel\n\nPlan Mode - force Claude to map out the full trade logic before touching a single line of code\n\nUltra Think / Effort modes - max reasoning depth for complex political or crypto markets where the edge is razor-thin\n\nThe fastest way to copy-trade anyone: https://t.co/T97GbJOidm\n\nHooks - auto-send Telegram alerts when an order fills or drawdown crosses your limit\n\n--- Quoted tweet by @Bober_smart ---\nhttps://t.co/sPLdaWnscU\n\nLinked: http://kreo.app/0xRicker",
+      "summary": "Breakdown of Claude Code features applied to prediction market trading: MCP Servers for live API/order book data, CLAUDE.md for persistent trading rules (max risk, min edge, liquidity filters), Skills for on-demand market analysis, Subagents for parallel workflows (news tracking, probability calculation, position sizing), Plan Mode for trade logic design, Ultra Think for complex markets, and Hooks for automated Telegram alerts on fills and drawdown.",
+      "url": "https://x.com/0xRicker/status/2039319426474869070",
+      "date": "4/1/2026, 5:30:14 AM",
+      "author": "unknown",
+      "tags": [
+        "tools",
+        "MCP",
+        "Claude-Code",
+        "infrastructure",
+        "CLAUDE.md",
+        "skills",
+        "subagents",
+        "prediction-market",
+        "hooks",
+        "automation"
+      ],
+      "strategy_type": "trading tooling / Claude Code infrastructure",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude Code",
+        "MCP servers",
+        "Polymarket API"
+      ],
+      "metadata": {
+        "tweet_id": "2039319426474869070",
+        "engagement": {
+          "likes": 68,
+          "retweets": 0,
+          "replies": 11
+        },
+        "conversation_id": "2039319426474869070",
+        "has_article_content": true,
+        "media_count": 2,
+        "external_links": [
+          "http://kreo.app/0xRicker"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Researcher & Contributor | Polymarket Maxi | Dm open",
+          "followers": 0
+        },
+        "kalshi_notes": "All Claude Code features described here are platform-agnostic. An MCP server wrapping Kalshi's API would provide the same live data integration. CLAUDE.md trading rules, Skills, Subagents, and Hooks all work identically for Kalshi. This is highly relevant to the user's existing X API MCP Server pattern."
+      }
+    },
+    {
+      "id": "tweet_2039338468065849589",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/RohOnChain/status/2039338468065849589",
+      "title": "Free open-source Bloomberg Terminal alternative (100% local)",
+      "content": "BREAKING: You can now run a Bloomberg Terminal for FREE.\n\nThe closest open-source alternative that exists. \nNo $24,000 subscription. No API costs. 100% local on your machine.\n\nBookmark this. Install it right now. Takes ten minutes. https://t.co/cu1evqs3nN https://t.co/0CSZYxQJ2B\n\n--- Quoted tweet by @RohOnChain ---\nhttps://t.co/LnhDv0lqQe\n\nLinked: https://x.com/RohOnChain/status/2039338468065849589/photo/1\n\nLinked: https://twitter.com/RohOnChain/status/2038631294591287730",
+      "summary": "Free open-source Bloomberg Terminal alternative that runs 100% locally with no API costs. Replaces the $24K/year Bloomberg subscription for financial data analysis. Ten-minute installation. Details in the linked thread by @RohOnChain.",
+      "url": "https://x.com/RohOnChain/status/2039338468065849589",
+      "date": "4/1/2026, 6:45:54 AM",
+      "author": "unknown",
+      "tags": [
+        "tools",
+        "Bloomberg",
+        "open-source",
+        "terminal",
+        "free",
+        "financial-data",
+        "local-first",
+        "data-analysis"
+      ],
+      "strategy_type": "trading data terminal",
+      "platform": "local machine",
+      "instrument": "general financial instruments",
+      "dependencies": [
+        "open-source terminal software"
+      ],
+      "metadata": {
+        "tweet_id": "2039338468065849589",
+        "engagement": {
+          "likes": 1796,
+          "retweets": 268,
+          "replies": 27
+        },
+        "conversation_id": "2039338468065849589",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/RohOnChain/status/2039338468065849589/photo/1",
+          "https://twitter.com/RohOnChain/status/2038631294591287730"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "building my life around quant systems in prediction markets and crypto",
+          "followers": 0
+        },
+        "kalshi_notes": "Platform-agnostic tooling. A local Bloomberg alternative is useful for analyzing financial data that feeds into Kalshi market analysis (economic indicators, crypto prices, etc.). No platform adaptation needed."
+      }
+    },
+    {
+      "id": "tweet_2039388874489618825",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/bored2boar/status/2039388874489618825",
+      "title": "AI drift in bot development: use TOML for structured context to prevent degradation",
+      "content": "AI coding tip most people ignore:\n\nYour model isn't getting worse, it's just drifting.\n\nAs sessions get longer, AI slowly loses structure.\n\nInstructions blur, logic breaks, outputs become inconsistent.\n\nThat's AI drift.\n\nMost people try to fix it with:\n\n• MD files = good for context, bad for structure\n• JSON = strict logic, but messy for long workflows\n\nNeither solves the core problem.\n\nHere's the trick.\n\nUse TOML.\n\nIt sits right in the middle.\n\nReadable like markdown, but structured like JSON.\nClear sections, clean hierarchy, no chaos.\n\nWhen you force AI to operate through TOML, something changes.\n\nIt keeps track of state better.\nLogic stays consistent across steps.\nLess hallucination, less drift over time.\n\nWhy?\n\nBecause you're giving the model both context AND structure in one format.\n\nThat's what it actually needs to stay stable.\n\nIf you're building bots, automations, or anything long-running, this matters a lot.\n\nBad structure = broken outputs.\nClean structure = consistent execution.\n\nMost people blame the model, but it's usually just how you feed it.\n\n--- Quoted tweet by @bored2boar ---\nhttps://t.co/jlDTleAmk2\n\nLinked: https://x.com/bored2boar/status/2039388874489618825/photo/1\n\nLinked: https://twitter.com/bored2boar/status/2038654832819535895",
+      "summary": "Addresses AI drift in bot development -- the phenomenon where AI loses structure and consistency in longer sessions. Recommends TOML as the optimal format for maintaining bot state and logic, arguing it combines the readability of Markdown with the structure of JSON. Key insight: giving the model both context and structure in one format prevents hallucination and drift in long-running automations.",
+      "url": "https://x.com/bored2boar/status/2039388874489618825",
+      "date": "4/1/2026, 10:06:12 AM",
+      "author": "unknown",
+      "tags": [
+        "bot-development",
+        "AI-drift",
+        "methodology",
+        "TOML",
+        "prediction-market",
+        "best-practices",
+        "context-management",
+        "prompt-engineering"
+      ],
+      "strategy_type": "bot development methodology (anti-drift)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039388874489618825",
+        "engagement": {
+          "likes": 24,
+          "retweets": 0,
+          "replies": 4
+        },
+        "conversation_id": "2039388874489618825",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/bored2boar/status/2039388874489618825/photo/1",
+          "https://twitter.com/bored2boar/status/2038654832819535895"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "On-Chain Investigations / Prediction markets / DeFi moves",
+          "followers": 0
+        },
+        "kalshi_notes": "Platform-agnostic methodology advice. TOML-based state management is equally relevant for Kalshi bot development. Aligns with the project's own TOML pipeline spec."
+      }
+    },
+    {
+      "id": "tweet_2039006300441620782",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/theaiportfolios/status/2039006300441620782",
+      "title": "Launch of $50K live portfolio managed by Claude autonomous agents",
+      "content": "The Claude Autonomous Agents have officially arrived\n\nSo we're setting them up with a brand new $50,000 portfolio to see how well they do at investing in stocks\n\nCan they outperform Buffett?\n\nHere's how the portfolio works https://t.co/n7hEqAdZQb\n\nLinked: https://x.com/theaiportfolios/status/2039006300441620782/photo/1",
+      "summary": "Public experiment launching a $50,000 stock portfolio fully managed by Claude autonomous agents, with the goal of outperforming Warren Buffett's returns. High engagement (18.5K likes) suggests strong interest in AI-driven portfolio management. Details of the portfolio construction methodology are in the linked image.",
+      "url": "https://x.com/theaiportfolios/status/2039006300441620782",
+      "date": "3/31/2026, 8:45:59 AM",
+      "author": "unknown",
+      "tags": [
+        "stocks",
+        "portfolio",
+        "autonomous-agent",
+        "Buffett",
+        "live-portfolio",
+        "Claude",
+        "AI-investing",
+        "stock-picking"
+      ],
+      "strategy_type": "AI-driven stock portfolio management",
+      "platform": "stock market",
+      "instrument": "stocks",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039006300441620782",
+        "engagement": {
+          "likes": 18521,
+          "retweets": 1096,
+          "replies": 465
+        },
+        "conversation_id": "2039006300441620782",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/theaiportfolios/status/2039006300441620782/photo/1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "*Not affiliated with Anthropic.",
+          "followers": 0
+        },
+        "kalshi_notes": "Not a prediction market strategy, but the autonomous agent architecture could be applied to Kalshi for event-based portfolio management. Kalshi offers economic indicator contracts that could complement a stock portfolio strategy."
+      }
+    },
+    {
+      "id": "tweet_2039365791666385002",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/theaiportfolios/status/2039365791666385002",
+      "title": "Update: $50K Claude agent portfolio outperforming SPY",
+      "content": "The Claude Autonomous Agents have officially arrived\n\nSo we're setting them up with a brand new $50,000 portfolio to see how well they do at picking in stocks\n\nThe portfolio officially went live & it's already outperforming the $SPY\n\nHere's the set of stocks it picked https://t.co/AmuCu11x87\n\nLinked: https://x.com/theaiportfolios/status/2039365791666385002/photo/1",
+      "summary": "Update on the $50K Claude autonomous agent stock portfolio: now live and outperforming the S&P 500 (SPY). Shows the specific stock picks selected by the Claude agents. Follow-up to the initial portfolio launch announcement, providing early performance evidence.",
+      "url": "https://x.com/theaiportfolios/status/2039365791666385002",
+      "date": "4/1/2026, 8:34:28 AM",
+      "author": "unknown",
+      "tags": [
+        "stocks",
+        "portfolio",
+        "SPY",
+        "autonomous-agent",
+        "Claude",
+        "AI-investing",
+        "performance-update",
+        "stock-picking"
+      ],
+      "strategy_type": "AI-driven stock picking",
+      "platform": "stock market",
+      "instrument": "stocks",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039365791666385002",
+        "engagement": {
+          "likes": 3765,
+          "retweets": 220,
+          "replies": 77
+        },
+        "conversation_id": "2039365791666385002",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/theaiportfolios/status/2039365791666385002/photo/1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "*Not affiliated with Anthropic.",
+          "followers": 0
+        },
+        "kalshi_notes": "Stock portfolio strategy, not directly a prediction market play. However, Kalshi offers stock market-related event contracts (e.g., will SPY close above/below X) which could complement this approach."
+      }
+    },
+    {
+      "id": "tweet_2034488606400651507",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/futurist_lens/status/2034488606400651507",
+      "title": "Bottleneck thesis: supply chain bottlenecks move sequentially -- chips to memory to photonics",
+      "content": "This is not the chart of BTC.\nThis is $SNDK.\n\nThis is how bottlenecks move.\n\nFirst chips → $NVDA $AMD\nThen memory → $SNDK $MU\n\nNext up: Photonics.\n\n$AAOI $AXTI $LITE $COHR $TSEM\n\nBottlenecks don't limp higher.\nThey explode. https://t.co/iL7DvXgZro\n\nLinked: https://x.com/futurist_lens/status/2034488606400651507/photo/1",
+      "summary": "Sector rotation thesis based on supply chain bottleneck propagation: bottlenecks move sequentially through the tech stack. First chips (NVDA, AMD), then memory (SNDK, MU), and the thesis argues photonics is next (AAOI, AXTI, LITE, COHR, TSEM). Claims bottlenecks produce explosive rather than gradual price moves. Includes chart comparison showing SNDK's pattern.",
+      "url": "https://x.com/futurist_lens/status/2034488606400651507",
+      "date": "3/18/2026, 9:34:17 PM",
+      "author": "unknown",
+      "tags": [
+        "stocks",
+        "photonics",
+        "semiconductors",
+        "sector-rotation",
+        "thesis",
+        "supply-chain",
+        "AI-infrastructure",
+        "NVDA",
+        "AMD",
+        "AAOI"
+      ],
+      "strategy_type": "bottleneck thesis / sector rotation",
+      "platform": "stock market",
+      "instrument": "stocks (semiconductor / photonics)",
+      "dependencies": [],
+      "metadata": {
+        "tweet_id": "2034488606400651507",
+        "engagement": {
+          "likes": 507,
+          "retweets": 89,
+          "replies": 19
+        },
+        "conversation_id": "2034488606400651507",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/futurist_lens/status/2034488606400651507/photo/1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Spotting 10x disruptive stocks before the crowd. Photonics, Space, AI Infra/Energy, Defense, Robotics",
+          "followers": 0
+        },
+        "kalshi_notes": "Not a prediction market strategy. However, Kalshi may offer event contracts related to tech sector performance or economic indicators that could be traded alongside this thesis. The bottleneck propagation model could inform Kalshi bets on semiconductor supply chain events."
+      }
+    },
+    {
+      "id": "tweet_2038574044606558237",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/MoonDevOnYT/status/2038574044606558237",
+      "title": "Open-source AI agent swarm for trading: multi-model consensus, exchange manager, RBI framework",
+      "content": "The $31 Billion Edge: Use the New AI Swarm GitHub to Automate Your Alpha\n\nmost traders are walking into a digital slaughterhouse because they are fighting against ai agent swarms with a manual button and a prayer. this is the new regime of the market where the big firms have already moved past simple algorithms and into the realm of digital soldiers that never sleep. i spent hundreds of thousands of dollars on developers in the past for apps thinking i would never be able to code myself. through losing money with liquidations and over trading i knew i had to automate my trading so i learned to code live on youtube for the world to see\n\ncode is the great equalizer because it allows a regular person in a bedroom with a whiteboard to compete with wall street. if you are still clicking buttons by hand you are playing a game that is already rigged against you. i used to be the guy staring at the charts at three in the morning just hoping for a bounce only to wake up to a liquidation email. why do we trade by hand when we know for a fact that when emotions hit you cannot think logically which is a fact backed by a stanford professor \n\nthe trap that most people fall into is thinking they can hire their way to success or find a magic bot that prints a billion dollars overnight. i realized that with bots you must iterate to success which is why i decided to learn everything live. now i have fully automated systems trading for me instead of getting liquidated every time the market wicks. the core of this system is the rbi framework which stands for research and back test and implement \n\nmost people spend their lives looking for a shortcut but the only real edge is building a list of great trading ideas and testing them constantly. if an idea worked in the past it is much more likely to work in the future. i have seen people with zero coding knowledge learn to back test their strategies within fifteen days and completely change their lives. one good trading bot can wipe out every bad financial decision you have made in your entire life because success becomes repeatable once it is automated \n\nthe problem with most ai on the internet is that it is pure fugazi or fake promises that never actually execute in a live market. i just pushed a massive update to my open source github that adds over twenty different ai agents for trading. these are not just simple scripts but fully functional agents that can handle everything from sentiment analysis to funding arbitrage. i am putting all of this out for free because i was wrong about open source being bad and i think this code needs to be in the hands of the people\n\nwe just added support for the newest models like gpt 5 nano and gpt 5 mini and even claude 4 point 5 before they were even fully available to the public. i built a model registry that allows you to easily update these models as they drop every couple of months. this ensures that your trading system is always using the sharpest intelligence available in the world. the key is having a testing framework that can query every single one of these models with a simple prompt to verify they are working \n\nthe real magic happens when you move beyond a single model and into the realm of the swarm. most traders think that an ai can just tell them when to buy or sell but that is a dead end. llms alone cannot trade for you but they can be used as a corrective second layer on top of a proven strategy. this is why i built the swarm agent which queries multiple models from different companies in parallel to get a unified answer \n\nimagine asking claude and gpt and gemini and deepseek and llama the same question at the exact same time. the swarm agent collects all of those responses and then uses a consensus reviewer to give you a final decision. this removes the bias of any single model and gives you a diverse perspective on your trading decisions. if seven models say yes and one says no you have a much higher confidence level than just blindly following one ai \n\nthis layer of intelligence is what protects you from taking stupid trades when your strategy triggers. we are layering these agents on top of quant logic that we already trust. the agent acts as a gate or a final layer that can ratify or refuse a trade based on the current market regime. i built this because tools do not replace edges but they certainly amplify them once you find an anomaly in the market \n\none of the most powerful tools we just added is the exchange manager which allows you to switch between exchanges with a single line of code. most of our trading has been on chain on solana but i wanted to implement hyperliquid support for perps and leverage. the exchange manager acts as a router that handles the differences between on chain contract addresses and exchange symbols. now you can run the same agent on solana for spot trading and hyperliquid for leverage with zero coding changes in the agent itself \n\nthis makes the system future proof because we can add more exchanges like base chain or poly market as the opportunities arise. the goal is to be able to route different tokens to different exchanges based on liquidity and fees. i want to make switching exchanges as easy as changing a single value in your config file. this is how we stay ahead of the game and move faster than the people who are still hard coding every single function \n\ni also built a specific agent for housecoin which is based on the thesis that one house equals one housecoin. this agent uses the dca strategy to accumulate housecoin when the price is below the sma but only after consulting the ai swarm. i believe every real estate agent and homeowner in the world will eventually need housecoin as a hedge. real estate is a three hundred trillion dollar market and having an agent that can smart dca into that position is a massive edge \n\nthe housecoin agent is a perfect example of a research based strategy being automated. it tracks the twenty day and five minute smas while respecting daily spending caps and trading hours. the ai decision layer analyzes fifty five bars of price data before each trade to confirm the signal. this is the type of sophisticated system that used to be reserved for the billionaires like jim simons\n\njim simons ran up a net worth of thirty one billion dollars by realizing there are patterns in the market that robots can trade but humans can never. he simply executed his own rbi framework for years on end and built a system of testing and deploying. my goal is to make automating your trading simple so you can do it as a regular person without a big team. jim changed bloodlines by creating generational wealth and i believe code can do the same for you if you put in the work \n\nthe biggest risk you can ever take is to not learn how to automate your trading if you are already a trader. hand traders lose money because they are human beings built with emotions that clash with logical decision making. if you are committed to building a provable edge then you need to embrace these principles. join me in the discord and grab the code on github to start building your own swarms today \n\nthis is a rare once in a decade opportunity to rethink how we interact with the web and the markets. ai agents are clearly the future and the entire workforce will be replaced or at least using these flows. i will keep contributing to this open source framework and placing all of my agents there for free. code is the great equalizer and i want to make sure the people have the tools to win\n\nLinked: https://x.com/MoonDevOnYT/status/2038574044606558237/video/1",
+      "summary": "Open-source AI agent swarm framework for automated trading with 20+ agents. Key innovations: multi-model consensus (queries Claude, GPT, Gemini, DeepSeek, Llama in parallel with a consensus reviewer), exchange manager for routing between chains/exchanges with zero code changes, and the RBI framework (Research, Backtest, Implement). Agents serve as a corrective layer on top of quant logic, acting as a gate that can ratify or refuse trades based on market regime. Mentions Polymarket as a planned exchange target.",
+      "url": "https://x.com/MoonDevOnYT/status/2038574044606558237",
+      "date": "3/30/2026, 4:08:21 AM",
+      "author": "unknown",
+      "tags": [
+        "swarm",
+        "multi-agent",
+        "alpha",
+        "open-source",
+        "GitHub",
+        "multi-model-consensus",
+        "exchange-manager",
+        "RBI-framework",
+        "crypto",
+        "automation",
+        "DCA"
+      ],
+      "strategy_type": "AI agent swarm / multi-agent trading",
+      "platform": "general (Solana, HyperLiquid, Polymarket planned)",
+      "instrument": "general (crypto / financial markets)",
+      "dependencies": [
+        "GitHub repo",
+        "AI agents (Claude, GPT, Gemini, DeepSeek, Llama)",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2038574044606558237",
+        "engagement": {
+          "likes": 29,
+          "retweets": 2,
+          "replies": 4
+        },
+        "conversation_id": "2038574044606558237",
+        "has_article_content": true,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/MoonDevOnYT/status/2038574044606558237/video/1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "i build trading bots daily on a private automated traders zoom",
+          "followers": 0
+        },
+        "kalshi_notes": "The exchange manager architecture is designed for multi-platform routing and could integrate Kalshi as a target exchange. The multi-model consensus approach is platform-agnostic and valuable for any prediction market or trading strategy. The RBI framework (Research, Backtest, Implement) is a solid development methodology for Kalshi bot development."
+      }
+    },
+    {
+      "id": "tweet_2039017567206191240",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/0xsachi/status/2039017567206191240",
+      "title": "Curated open-source AI agent repos: Paperclip, MiroFish, Hermes (Nous Research), OpenClaw",
+      "content": "Some of the best open source repos to try this weekend:\n\n1. Paperclip : https://t.co/3L6aDGr48u\n\n2. Mirofish : https://t.co/RsbxfrLRbr\n\n3. Hermes: https://t.co/i4N7XmVqhO\n\n4. Openclaw: https://t.co/lZ2li1B8uw\n\nLinked: https://github.com/paperclipai/paperclip\n\nLinked: https://github.com/666ghj/MiroFish\n\nLinked: https://github.com/nousresearch/hermes-agent\n\nLinked: https://github.com/openclaw/openclaw",
+      "summary": "Curated list of four open-source AI agent repositories relevant to autonomous trading: Paperclip, MiroFish, Hermes (Nous Research), and OpenClaw. These frameworks provide foundations for building automated trading agents and can be adapted for prediction market strategies.",
+      "url": "https://x.com/0xsachi/status/2039017567206191240",
+      "date": "3/31/2026, 9:30:45 AM",
+      "author": "unknown",
+      "tags": [
+        "open-source",
+        "Paperclip",
+        "MiroFish",
+        "Hermes",
+        "OpenClaw",
+        "AI-agents",
+        "GitHub",
+        "frameworks",
+        "autonomous-trading"
+      ],
+      "strategy_type": "open-source agent frameworks",
+      "platform": "general",
+      "instrument": "general",
+      "dependencies": [
+        "GitHub",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2039017567206191240",
+        "engagement": {
+          "likes": 1909,
+          "retweets": 255,
+          "replies": 45
+        },
+        "conversation_id": "2039017567206191240",
+        "has_article_content": false,
+        "media_count": 0,
+        "external_links": [
+          "https://github.com/paperclipai/paperclip",
+          "https://github.com/666ghj/MiroFish",
+          "https://github.com/nousresearch/hermes-agent",
+          "https://github.com/openclaw/openclaw"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Open-source AGI",
+          "followers": 0
+        }
+      }
+    },
+    {
+      "id": "tweet_2039344379824144642",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/AiWithSaira/status/2039344379824144642",
+      "title": "10 Claude prompts for personal quant analysis",
+      "content": "GOODBYE, FUND MANAGERS. GOODBYE, BLOOMBERG TERMINAL.\n\nThe $24,000/year in subscriptions is over.\nClaude has just turned my laptop into a private quantitative analyst.\n\nHere are 10 prompts to build your own hedge fund at home ↓",
+      "summary": "A collection of 10 Claude prompts designed to replicate quantitative analysis capabilities typically requiring Bloomberg Terminal ($24K/yr) and professional fund managers. Positions Claude as a replacement for expensive institutional-grade financial analysis tools accessible to retail traders.",
+      "url": "https://x.com/AiWithSaira/status/2039344379824144642",
+      "date": "4/1/2026, 7:09:23 AM",
+      "author": "unknown",
+      "tags": [
+        "prompts",
+        "quant",
+        "hedge-fund",
+        "Bloomberg-replacement",
+        "Claude",
+        "retail-trading",
+        "quantitative-analysis"
+      ],
+      "strategy_type": "quantitative analysis prompts",
+      "platform": "general",
+      "instrument": "stocks / general",
+      "dependencies": [
+        "Claude"
+      ],
+      "metadata": {
+        "tweet_id": "2039344379824144642",
+        "engagement": {
+          "likes": 377,
+          "retweets": 128,
+          "replies": 57
+        },
+        "conversation_id": "2039344379824144642",
+        "has_article_content": false,
+        "media_count": 0,
+        "external_links": [],
+        "profile": {
+          "username": "",
+          "bio": "Art, AI, culture & nature lover. Free woman. World citizen | DM for collaborations.",
+          "followers": 0
+        }
+      }
+    },
+    {
+      "id": "tweet_2034252537973350724",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/pyquantnews/status/2034252537973350724",
+      "title": "75 videos, books, references about Renaissance Technologies / Medallion Fund",
+      "content": "Renaissance Technologies is the best trading firm that ever existed.\n\nHere are 75 YouTube videos, books, and references covering everything known about the firm: https://t.co/M8tFMHuJ3f\n\nLinked: https://x.com/pyquantnews/status/2034252537973350724/photo/1",
+      "summary": "Comprehensive curated collection of 75 educational resources (YouTube videos, books, references) covering everything publicly known about Renaissance Technologies and the Medallion Fund. Valuable as background research for understanding systematic quantitative trading approaches at the highest level.",
+      "url": "https://x.com/pyquantnews/status/2034252537973350724",
+      "date": "3/18/2026, 5:56:14 AM",
+      "author": "unknown",
+      "tags": [
+        "Renaissance",
+        "quant",
+        "education",
+        "Medallion",
+        "systematic-trading",
+        "Jim-Simons",
+        "reference-collection"
+      ],
+      "strategy_type": "quantitative trading education",
+      "platform": "general",
+      "instrument": "general (quant trading)",
+      "dependencies": [],
+      "metadata": {
+        "tweet_id": "2034252537973350724",
+        "engagement": {
+          "likes": 378,
+          "retweets": 72,
+          "replies": 3
+        },
+        "conversation_id": "2034252537973350724",
+        "has_article_content": false,
+        "media_count": 1,
+        "external_links": [
+          "https://x.com/pyquantnews/status/2034252537973350724/photo/1"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Where finance practitioners get started with Python for quant finance, algorithmic trading, and data analysis | Tweets & threads with free Python code & tools.",
+          "followers": 0
+        }
+      }
+    },
+    {
+      "id": "tweet_2037604599398322682",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/adiix_official/status/2037604599398322682",
+      "title": "Comprehensive guide to the 0x8dxd Polymarket arbitrage bot ($313 to $2.38M)",
+      "content": "A complete guide to the arbitrage bot that made crypto history. How it works, why it wins 98% of trades, what the strategy actually is, and how you can build your own with a single Claude prompt.",
+      "summary": "Comprehensive guide to the 0x8dxd prediction market arbitrage bot that turned $313 into $2.38M in 4 months using latency arbitrage on BTC/ETH short-duration contracts. Covers 4 bot strategies (latency arb 85-98% win rate, oracle arb 78-85%, news-driven 60-75%, market making 2-5%/mo), the pricing lag mechanism (compressed from 12s to 2.7s), Kelly-based risk management, and a step-by-step build guide using Claude. NOTE: Polymarket is not available to US residents; adapt strategies to Kalshi which offers similar event contracts.",
+      "url": "https://x.com/adiix_official/status/2037604599398322682",
+      "date": "3/27/2026, 11:56:08 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "bot",
+        "latency-arbitrage",
+        "oracle-arbitrage",
+        "market-making",
+        "news-trading",
+        "Kelly-criterion",
+        "BTC",
+        "ETH",
+        "risk-management",
+        "tutorial",
+        "viral",
+        "prediction-markets",
+        "Claude-generated-code"
+      ],
+      "strategy_type": "latency arbitrage (CEX price lag exploitation)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto UP/DOWN prediction contracts (5-min, 15-min BTC/ETH)",
+      "dependencies": [
+        "Claude",
+        "Polymarket CLOB API",
+        "Binance WebSocket",
+        "Python",
+        "MetaMask"
+      ],
+      "metadata": {
+        "tweet_id": "2037604599398322682",
+        "engagement": {
+          "likes": 4583,
+          "retweets": 545,
+          "replies": 187
+        },
+        "conversation_id": "2037604599398322682",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2037587707539423232"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Your personal growth now automated. Daily tips to level up",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Kalshi offers similar crypto event contracts (BTC/ETH price brackets) but with different mechanics. Latency arb window may differ on Kalshi's centralized order book. Kalshi API replaces Polymarket CLOB API. No MetaMask/Polygon needed - Kalshi uses USD deposits directly."
+      }
+    },
+    {
+      "id": "tweet_2038654832819535895",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/bored2boar/status/2038654832819535895",
+      "title": "Experience report: building 1,000+ prediction market bots - liquidity capture beats direction",
+      "content": "Most people on Polymarket approach trading the wrong way.\n\nThey try to predict direction, react to news, or optimize indicators.\n\nThat approach feels logical, but it consistently underperforms against the systems that dominate the leaderboard.",
+      "summary": "Experience report from building over 1,000 prediction market bots, concluding that profitable bots use liquidity capture (market making) rather than directional prediction. Covers bid laddering across UP/DOWN contracts, spread capture via non-linear order distribution curves, inventory management through position merging, and queue priority mechanics. Best documented result: $13K in 2 months (~$8K/month). Key insight: controlling liquidity flow beats reacting to it.",
+      "url": "https://x.com/bored2boar/status/2038654832819535895",
+      "date": "3/30/2026, 9:29:23 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "bot",
+        "market-making",
+        "liquidity",
+        "bid-ladder",
+        "spread-capture",
+        "inventory-management",
+        "prediction-markets",
+        "order-book-mechanics",
+        "non-linear-distribution"
+      ],
+      "strategy_type": "automated market making / liquidity capture",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto UP/DOWN prediction contracts",
+      "dependencies": [
+        "Claude",
+        "Polymarket CLOB API",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2038654832819535895",
+        "engagement": {
+          "likes": 165,
+          "retweets": 13,
+          "replies": 10
+        },
+        "conversation_id": "2038654832819535895",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038285074324402176"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "On-Chain Investigations / Prediction markets / DeFi moves",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Market making strategy is directly transferable to Kalshi. Kalshi's order book supports similar bid-ladder mechanics. Key difference: Kalshi uses USD not USDC, and contract structures may have different tick sizes. Merging mechanic (Yes+No=$1) also applies to Kalshi event contracts."
+      }
+    },
+    {
+      "id": "tweet_2038622884642398503",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/LunarResearcher/status/2038622884642398503",
+      "title": "Analysis of 14,000 Polymarket wallets: 87% lose money, top 0.1% extracted $3.7B",
+      "content": "92% of Polymarket traders lose money. The top 0.1% extracted $3.7 billion. I reverse-engineered their playbook using Claude API, on-chain data, and 12 open-source tools. Every formula. Every tool. Every pattern they don't want you to see.",
+      "summary": "Analysis of 14,000 prediction market wallets revealing that 87% lose money while the top 0.1% extracted $3.7B. Provides 3 core mathematical formulas (Expected Value filtering at >5% threshold, Kelly Criterion with quarter-Kelly sizing, Bayesian Updating), a 12-tool open-source toolkit organized in 4 layers (data: poly_data/py-clob-client/pmxt; intelligence: polyterm/insider-tracker/MiroShark; execution: poly-maker/agents/copy-trading; infrastructure: Polysights), and a 20-line Claude-based trading brain. Includes critical security warnings about malicious GitHub repos.",
+      "url": "https://x.com/LunarResearcher/status/2038622884642398503",
+      "date": "3/30/2026, 7:22:26 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "wallet-analysis",
+        "open-source-tools",
+        "EV",
+        "Kelly-criterion",
+        "Bayesian",
+        "security",
+        "toolkit",
+        "data-analysis",
+        "prediction-markets",
+        "pmxt",
+        "polyterm",
+        "poly-maker",
+        "malware-warning"
+      ],
+      "strategy_type": "multi-strategy (EV filtering, Kelly sizing, Bayesian updates, wallet analysis)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts (all categories)",
+      "dependencies": [
+        "Claude API",
+        "poly_data",
+        "py-clob-client",
+        "pmxt",
+        "polyterm",
+        "insider-tracker",
+        "poly-maker",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2038622884642398503",
+        "engagement": {
+          "likes": 695,
+          "retweets": 59,
+          "replies": 23
+        },
+        "conversation_id": "2038622884642398503",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038619484722733056"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "gamble on prediction markets | dms open...",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "The 3 core formulas (EV, Kelly, Bayesian) are platform-agnostic and directly apply to Kalshi. pmxt library already supports Kalshi alongside Polymarket. polyterm includes cross-platform arb scanning vs Kalshi. The wallet analysis methodology would need adaptation since Kalshi is not on-chain. Kalshi has its own API for market data and execution."
+      }
+    },
+    {
+      "id": "tweet_2038608348958834926",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/carm1nee/status/2038608348958834926",
+      "title": "3 Polymarket wallets mapped to Wall Street legends: Taleb, Simons, and Soros playbooks",
+      "content": "How 3 Polymarket wallets are running the exact playbooks of Taleb, Simons, and Soros, and the code to track them",
+      "summary": "Maps 3 top prediction market wallets to classic Wall Street trading archetypes: Hans323 runs Taleb's barbell/tail-risk strategy ($92K on 8% weather odds yielding $1.11M), 0x8dxd mirrors Simons' statistical arbitrage ($313 to $2.38M via latency arb on thousands of micro-trades), and Magamyman follows Soros-style geopolitical information edge ($800K on military strike predictions with 93% win rate, investigated by CNN). Includes Python code snippets for each strategy type.",
+      "url": "https://x.com/carm1nee/status/2038608348958834926",
+      "date": "3/30/2026, 6:24:40 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "Taleb",
+        "Simons",
+        "Soros",
+        "barbell",
+        "weather",
+        "latency-arbitrage",
+        "geopolitical",
+        "on-chain-analysis",
+        "tail-risk",
+        "prediction-markets",
+        "Python-snippets"
+      ],
+      "strategy_type": "multi-strategy (barbell/tail risk, latency arbitrage, information edge)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts (weather, crypto, geopolitical)",
+      "dependencies": [
+        "Claude",
+        "Polymarket API",
+        "NOAA weather data",
+        "Binance API",
+        "Dune Analytics",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2038608348958834926",
+        "engagement": {
+          "likes": 109,
+          "retweets": 6,
+          "replies": 11
+        },
+        "conversation_id": "2038608348958834926",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038546626923376640"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Researcher & Analyst",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "All three strategy archetypes are applicable to Kalshi. Kalshi offers weather contracts (temperature, hurricane), crypto price contracts, and geopolitical/politics contracts. The barbell strategy (buying cheap tail-risk contracts) is directly transferable. Kalshi's weather markets resolve on similar NOAA station data. Geopolitical contracts on Kalshi are CFTC-regulated, adding a layer of legitimacy."
+      }
+    },
+    {
+      "id": "tweet_2025933391003066796",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/kirillk_web3/status/2025933391003066796",
+      "title": "Complete A-Z guide to building an automated Polymarket Clawdbot (OpenClaw)",
+      "content": "This is a complete A–Z breakdown of how automated OpenClaw systems compound small probabilistic edges into daily income.\n\nBookmark this page so you don't lose this article.",
+      "summary": "Complete step-by-step guide to building an automated prediction market bot using OpenClaw/Clawdbot. Covers VPS hosting setup, OpenClaw installation, Telegram integration for remote control, Simmer SDK connection (supports both Polymarket and Kalshi), and trading skill selection including weather trader, copytrading, signal sniper, fast loop (5-min BTC), and AI divergence strategies. Includes detailed configuration parameters for both conservative weather strategy and aggressive 5-minute BTC fast loop, plus a $1,000/day structured approach requiring $15K-$25K capital.",
+      "url": "https://x.com/kirillk_web3/status/2025933391003066796",
+      "date": "2/23/2026, 5:58:55 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "bot",
+        "OpenClaw",
+        "Clawdbot",
+        "tutorial",
+        "VPS-setup",
+        "weather",
+        "fast-loop",
+        "BTC",
+        "copytrading",
+        "Simmer",
+        "step-by-step",
+        "Telegram-bot",
+        "prediction-markets"
+      ],
+      "strategy_type": "multi-strategy (price deviation arbitrage, weather mispricing, copytrading)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto UP/DOWN contracts, weather temperature brackets",
+      "dependencies": [
+        "OpenClaw",
+        "Claude/ChatGPT",
+        "Simmer SDK",
+        "Telegram",
+        "VPS",
+        "Python",
+        "Node.js"
+      ],
+      "metadata": {
+        "tweet_id": "2025933391003066796",
+        "engagement": {
+          "likes": 1293,
+          "retweets": 128,
+          "replies": 50
+        },
+        "conversation_id": "2025933391003066796",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2025133320690917376"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Web3 Creator Focused on @Polymarket and Crypto: Wallet flows, Probabilities, and Repeatable Market Edges.",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Simmer SDK already supports Kalshi alongside Polymarket, making this guide partially transferable. Weather trading strategy is directly applicable as Kalshi offers temperature contracts. BTC fast-loop strategy would need adaptation to Kalshi's crypto contract mechanics. Kalshi uses USD deposits (no Polygon/USDC needed), simplifying the funding step for US users."
+      }
+    },
+    {
+      "id": "tweet_2018453276279070952",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/w1nklerr/status/2018453276279070952",
+      "title": "Personal account of creating an HFT bot for Polymarket using Claude",
+      "content": "I think many people have heard about ClawdBot - how people write a script and it earns them money. I also got interested and decided to look into it",
+      "summary": "Personal account of creating an HFT bot for prediction markets using Claude. Author analyzed a profitable bot wallet and reverse-engineered its strategy: exploiting latency between external BTC predictions and contract prices (>0.3% divergence, <100ms execution). Includes the exact Claude prompt used to generate the Python bot with async WebSocket architecture, risk management (0.5% per trade, 2% daily loss limit), and reported income ranges ($20-30/hr for simple arb, $400-700/day for market making). Setup took 20-40 minutes following guides.",
+      "url": "https://x.com/w1nklerr/status/2018453276279070952",
+      "date": "2/2/2026, 2:35:36 PM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "bot",
+        "HFT",
+        "latency-arbitrage",
+        "BTC",
+        "Claude-prompt",
+        "async-websocket",
+        "prediction-markets",
+        "beginner-friendly",
+        "income-estimates"
+      ],
+      "strategy_type": "HFT latency arbitrage",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "crypto UP/DOWN contracts (15-min BTC)",
+      "dependencies": [
+        "Claude",
+        "Polymarket API",
+        "TradingView",
+        "CryptoQuant",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2018453276279070952",
+        "engagement": {
+          "likes": 1841,
+          "retweets": 183,
+          "replies": 72
+        },
+        "conversation_id": "2018453276279070952",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2018378210413613057"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "DeFi Researcher | Alpha threador | Web3 Developer",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "HFT latency arbitrage concept applies to Kalshi's crypto contracts, though Kalshi's order matching and latency profile differs from Polymarket's CLOB. The Claude prompt structure for generating the bot is reusable - swap Polymarket API calls for Kalshi API. Risk parameters (0.5% per trade, 2% daily loss) are platform-agnostic best practices."
+      }
+    },
+    {
+      "id": "tweet_2039054376908546475",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/N01ennn/status/2039054376908546475",
+      "title": "Deep dive into prediction market weather temperature markets as a low-competition niche",
+      "content": "Why most people overlook this\n\nEveryone chases elections > Crypto prices > Fed decisions > Cultural moments\n\nMeanwhile, a small group of traders quietly stacks wins on something nobody talks about: the weather",
+      "summary": "Deep dive into prediction market weather temperature markets as a low-competition, high-edge niche. Weather markets resolve on specific ICAO airport stations (not city averages), creating systematic mispricing from retail traders using wrong data sources. Key edge: NOAA forecasts are 85-90% accurate at 1-2 days while markets price at 15-40%. Profiles top weather traders: BeefSlayer ($49K profit, returns up to 49,744%) and Handsanitizer23 ($66K profit from larger positions). No insider advantage possible in weather - the fairest market category available.",
+      "url": "https://x.com/N01ennn/status/2039054376908546475",
+      "date": "3/31/2026, 11:57:01 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "weather",
+        "temperature",
+        "ICAO-stations",
+        "mispricing",
+        "low-competition",
+        "weatherbot",
+        "NOAA",
+        "prediction-markets",
+        "no-insider-advantage",
+        "Kelly-criterion"
+      ],
+      "strategy_type": "weather market mispricing exploitation",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "weather temperature brackets",
+      "dependencies": [
+        "NOAA/Weather.gov",
+        "Visual Crossing API",
+        "Polymarket API",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2039054376908546475",
+        "engagement": {
+          "likes": 48,
+          "retweets": 3,
+          "replies": 20
+        },
+        "conversation_id": "2039054376908546475",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2039029453540532224"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "all in @Polymarket | AI degen",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Kalshi offers weather/climate event contracts and is CFTC-regulated, making this a prime adaptation target for US-based traders. The ICAO station resolution methodology and NOAA data sourcing apply identically. Kalshi weather contracts may have different bucket sizes and liquidity profiles. The core edge (retail mispricing vs accurate NOAA forecasts) is platform-independent."
+      }
+    },
+    {
+      "id": "tweet_2038636119558939004",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/Shelpid_WI3M/status/2038636119558939004",
+      "title": "Analysis of swisstony's $5.63M profit exploiting football favorite bias on prediction markets",
+      "content": "His name is swisstony. And the way he did it rewrites everything you think you know about prediction markets",
+      "summary": "Analysis of swisstony's $5.63M profit on prediction markets by exploiting football (soccer) market inefficiencies. Strategy: systematically bet on La Liga/UCL favorites priced at 36-46 cents when true historical probability is 60%+, exploiting retail traders' psychological bias toward underdogs. Uses Kelly Criterion for massive position sizing ($400K+ single bets). Claude-built edge scanner runs every 5 minutes comparing market odds to historical win rates. Largest verified single football win: $1.12M on Real Madrid. Also includes profitable 'No' bets on overpriced favorites.",
+      "url": "https://x.com/Shelpid_WI3M/status/2038636119558939004",
+      "date": "3/30/2026, 8:15:01 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "sports",
+        "football",
+        "La-Liga",
+        "UCL",
+        "favorite-bias",
+        "Kelly-criterion",
+        "edge-scanner",
+        "prediction-markets",
+        "underdog-bias",
+        "Claude-scanner"
+      ],
+      "strategy_type": "sports mispricing (favorite bias exploitation)",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "football/soccer match outcome contracts",
+      "dependencies": [
+        "Claude",
+        "Polymarket API",
+        "historical sports data"
+      ],
+      "metadata": {
+        "tweet_id": "2038636119558939004",
+        "engagement": {
+          "likes": 59,
+          "retweets": 5,
+          "replies": 3
+        },
+        "conversation_id": "2038636119558939004",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038632548679483392"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Bringing you the latest trends in #crypto",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Kalshi offers sports event contracts including major leagues. The favorite-bias exploitation strategy is transferable since the psychological bias (retail overweighting underdogs) is platform-independent. Kalshi sports contracts are CFTC-regulated. The Claude edge scanner prompt is reusable - substitute Kalshi API for market data. Kelly sizing math is identical."
+      }
+    },
+    {
+      "id": "tweet_2037192322660655132",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/kirillk_web3/status/2037192322660655132",
+      "title": "Business-building guide for prediction market infrastructure (Automation-as-a-Service)",
+      "content": "This is a complete A–Z breakdown of How to build a $1M/year business around Prediction Markets infrastructure — not by trading, but by building the infrastructure behind them.",
+      "summary": "Business-building guide for prediction market infrastructure rather than trading directly. Claude-generated $1M/year business plan built around 'Automation as a Service': selling bot subscriptions ($200-500/mo), private tools ($1-5K/mo), dashboards ($5-10K setup), and institutional solutions ($10K+/mo) to traders. Covers niche selection across HF crypto, sports, politics, weather, entertainment, and economics. Uses Claude + Composio integration layer for connecting to 250+ APIs. Argues prediction markets in 2026 are like crypto in 2018 with infrastructure being the real opportunity. Mentions both Polymarket and Kalshi as target platforms.",
+      "url": "https://x.com/kirillk_web3/status/2037192322660655132",
+      "date": "3/26/2026, 8:37:53 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "business-model",
+        "infrastructure",
+        "automation-as-a-service",
+        "Composio",
+        "multi-niche",
+        "productization",
+        "prediction-markets",
+        "SaaS",
+        "revenue-model"
+      ],
+      "strategy_type": "infrastructure business (automation-as-a-service)",
+      "platform": "Polymarket, Kalshi (adapt to Kalshi)",
+      "instrument": "prediction market infrastructure (all categories)",
+      "dependencies": [
+        "Claude",
+        "Composio",
+        "Polymarket API",
+        "Kalshi API",
+        "API-Sports",
+        "Python"
+      ],
+      "metadata": {
+        "tweet_id": "2037192322660655132",
+        "engagement": {
+          "likes": 494,
+          "retweets": 36,
+          "replies": 11
+        },
+        "conversation_id": "2037192322660655132",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2031675421524201472"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Web3 Creator Focused on @Polymarket and Crypto: Wallet flows, Probabilities, and Repeatable Market Edges.",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "This article already references Kalshi alongside Polymarket. The infrastructure/SaaS business model is equally applicable to Kalshi. Kalshi is CFTC-regulated and available to US residents, making it the primary target platform. All product categories (bot subscriptions, scanners, dashboards, execution engines) apply to Kalshi. The Composio integration layer and pmxt library support Kalshi natively."
+      }
+    },
+    {
+      "id": "tweet_2039282251159011513",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/helicerat0x/status/2039282251159011513",
+      "title": "NASA FIRMS satellite thermal anomaly data for geopolitical prediction market trading",
+      "content": "every satellite image you'll need is free. every line of code is copy-paste\n\neveryone on prediction markets reads the news.",
+      "summary": "Novel approach using NASA FIRMS satellite thermal anomaly data to trade geopolitical prediction markets. Built a free 10-source data stack (NASA FIRMS, OpenSky aircraft tracking, USGS earthquakes, exchange rates, VIX, gold, crypto fear/greed, Open-Meteo weather) to detect anomalies before news breaks. Backtested on 270 days across Gaza (detected Oct 7 as 11x anomaly), Kursk (detected Ukraine offensive 4 days early), and Syria (detected Assad's fall 3 weeks early). $500 became $7,778 on 16 trades (11 wins, 5 losses). Uses dynamic Kelly sizing with Claude for cross-referencing all data sources. Key limitation: 4-6 hour FIRMS delay means swing trading, not HFT.",
+      "url": "https://x.com/helicerat0x/status/2039282251159011513",
+      "date": "4/1/2026, 3:02:31 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "bot",
+        "satellite",
+        "geopolitical",
+        "NASA-FIRMS",
+        "anomaly-detection",
+        "Kelly-criterion",
+        "novel-data-source",
+        "GitHub-repo",
+        "prediction-markets",
+        "alternative-data",
+        "OSINT",
+        "VIX",
+        "gold"
+      ],
+      "strategy_type": "satellite data anomaly detection + geopolitical trading",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "geopolitical prediction contracts",
+      "dependencies": [
+        "Claude API",
+        "NASA FIRMS API",
+        "OpenSky Network",
+        "USGS API",
+        "py-clob-client",
+        "Python",
+        "Telegram"
+      ],
+      "metadata": {
+        "tweet_id": "2039282251159011513",
+        "engagement": {
+          "likes": 116,
+          "retweets": 14,
+          "replies": 17
+        },
+        "conversation_id": "2039282251159011513",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038267624526651392"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "always striving and prospering. @Polymarket philosopher",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "Kalshi offers geopolitical and politics event contracts where this satellite-based approach is directly applicable. Kalshi has contracts on military actions, government policy, and international events. The entire data stack (NASA FIRMS, OpenSky, USGS, VIX, gold) is platform-independent. Replace py-clob-client with Kalshi's API client. Kalshi's regulated status adds legal clarity for US-based geopolitical trading."
+      }
+    },
+    {
+      "id": "tweet_2038903376453259756",
+      "source_type": "x_bookmarks",
+      "source_ref": "https://x.com/gippp69/status/2038903376453259756",
+      "title": "Claude as structural auditor: 6 non-predictive edges in prediction markets",
+      "content": "Most people use AI in prediction markets the wrong way.\n\nThey want Claude to act like a prophet.",
+      "summary": "Framework for using Claude as a structural market auditor rather than a predictor across prediction markets. Identifies 6 systematic non-predictive edges: (1) base rate neglect by crowds overreacting to narratives, (2) cross-market inconsistency between related contracts, (3) mechanical price moves from thin liquidity mistaken for information, (4) cross-platform structural comparison (Polymarket vs Kalshi vs sportsbooks), (5) crowd overpaying for certainty on high-confidence contracts, and (6) time decay mispricing where markets remain expensive as resolution approaches. Includes Python code snippets for each edge type. Key insight: edge comes from consistency, not intelligence.",
+      "url": "https://x.com/gippp69/status/2038903376453259756",
+      "date": "3/31/2026, 1:57:00 AM",
+      "author": "unknown",
+      "tags": [
+        "article",
+        "structural-edge",
+        "probability-mispricing",
+        "market-making",
+        "Claude-reasoning",
+        "non-predictive",
+        "prediction-markets",
+        "base-rates",
+        "cross-market",
+        "time-decay",
+        "calibration"
+      ],
+      "strategy_type": "structural edge detection / probability mispricing",
+      "platform": "Polymarket (adapt to Kalshi)",
+      "instrument": "prediction market contracts (all categories)",
+      "dependencies": [
+        "Claude",
+        "Polymarket API",
+        "external data feeds"
+      ],
+      "metadata": {
+        "tweet_id": "2038903376453259756",
+        "engagement": {
+          "likes": 57,
+          "retweets": 4,
+          "replies": 9
+        },
+        "conversation_id": "2038903376453259756",
+        "has_article_content": true,
+        "media_count": 0,
+        "external_links": [
+          "http://x.com/i/article/2038650258989682688"
+        ],
+        "profile": {
+          "username": "",
+          "bio": "Ambassador @kreoapp | The Insider Hunter | dm open",
+          "followers": 0
+        },
+        "kalshi_adaptation_notes": "All 6 structural edges are directly applicable to Kalshi. The article already mentions Kalshi as a cross-platform comparison target (edge #4). Kalshi's CFTC-regulated markets in politics, economics, climate, and crypto are ideal for base-rate analysis, cross-market consistency checks, and time-decay exploitation. The Claude auditor framework is platform-agnostic."
+      }
+    }
+  ]
+}

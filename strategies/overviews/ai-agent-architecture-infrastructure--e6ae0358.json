@@ -1,0 +1,851 @@
+{
+  "overview_id": "e6ae0358",
+  "title": "AI Agent Architecture & Infrastructure",
+  "created_date": "2026-04-03T08:21:29.549Z",
+  "status": "complete",
+  "sources": [
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039776473687494784",
+      "title": "PHANTOM: automated Claude script by Chinese engineers. $1.18 to $3.3M on Polymarket. Referenced wallet and breakdown in linked article."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039611662584684697",
+      "title": "Claude bot from single GitHub file. $1,000 to $45,401 in one week. 79% win rate, $5,774 profit first night. (Chinese-language post.)"
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039342946416283925",
+      "title": "Multi-agent parliament: 5 specialized AI agents (geopolitics, macro, science, sports, crypto) vote on each trade. 3+ agreement required. Beat single-agent by 23% ROI over 14 days. Solves overconfidence problem."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039165211178061967",
+      "title": "Rebuilt trading bot from Claude Code (claw-code) harness and skill system, cloned from leaked GitHub repo. $400 to $9,340 in 11 days."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039319426474869070",
+      "title": "Claude Code features for Polymarket: MCP Servers (live API/order book), CLAUDE.md (trading rules: max risk, min edge, liquidity filters), Skills (market analyzer), Subagents (parallel news/probability/position), Plan Mode, Ultra Think."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039006300441620782",
+      "title": "Launch of $50K live portfolio managed by Claude autonomous agents. Can they outperform Buffett? 18.5K likes. Explains portfolio system."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039365791666385002",
+      "title": "Update: $50K Claude agent portfolio outperforming SPY. Specific stock picks shown."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2038574044606558237",
+      "title": "AI swarm for trading alpha. Big firms use agent swarms vs manual traders. GitHub repo. Author builds bots daily on live Zoom, learned to code after liquidations."
+    }
+  ],
+  "summary": "This overview synthesizes 8 sources covering the emerging landscape of AI agent architectures applied to autonomous trading. The material spans single-agent bots (PHANTOM, GitHub-file bot), multi-agent consensus systems (parliament voting, AI swarms), Claude Code infrastructure patterns (harness/skill system, MCP servers, CLAUDE.md, subagents), and live portfolio management experiments. Key architectural themes include: runtime context scoping via agent harnesses, multi-model consensus as a replacement for single-model confidence, progressive skill loading for latency-sensitive execution, and the Kelly criterion as the dominant position sizing framework. The sources collectively demonstrate a shift from manual trading toward fully autonomous agent systems operating across prediction markets (Polymarket/Kalshi), crypto, and equities.",
+  "concepts": [
+    {
+      "name": "PHANTOM Autonomous Trading Script",
+      "category": "architecture",
+      "description": "A fully automated Claude-powered trading bot built by Chinese engineers that operates across Polymarket and Kalshi simultaneously. Represents the apex example of single-agent autonomous trading with $1.18 to $3.3M returns across 37,063 trades.",
+      "key_details": [
+        "71% win rate across 37,063 trades",
+        "Largest single win: $180,000",
+        "Monitors thousands of sports markets simultaneously on Polymarket and Kalshi",
+        "Executes within milliseconds of detecting discrepancies",
+        "Runs 24/7 without breaks or emotional interference",
+        "Calculates Z-scores over 60 bars of data in parallel",
+        "Account name: sovereign2013"
+      ],
+      "source_items": [
+        "2039776473687494784"
+      ],
+      "relationships": [
+        "Pairs Trading Arbitrage",
+        "Sentiment-Driven Rebalancing",
+        "Calendar and Volatility Timing",
+        "Cross-Platform Arbitrage Detection"
+      ]
+    },
+    {
+      "name": "Pairs Trading Arbitrage",
+      "category": "strategy",
+      "description": "Exploiting pricing discrepancies between YES and NO contracts on the same event across platforms. When YES + NO != $1.00, the bot captures the spread as risk-free profit.",
+      "key_details": [
+        "Example: YES at $0.62 + NO at $0.41 = $1.03, yielding 3% risk-free profit",
+        "Sports O/U markets are ideal because OVER and UNDER should sum to $1.00",
+        "Deviations occur due to different reaction speeds of traders",
+        "Most predictable type of arbitrage on prediction market platforms",
+        "Requires millisecond execution to capture before window closes"
+      ],
+      "source_items": [
+        "2039776473687494784"
+      ],
+      "relationships": [
+        "PHANTOM Autonomous Trading Script",
+        "Cross-Platform Arbitrage Detection",
+        "Millisecond Execution Architecture"
+      ]
+    },
+    {
+      "name": "Sentiment-Driven Rebalancing",
+      "category": "technique",
+      "description": "AI-powered real-time scanning of Twitter/X and news sources to detect information asymmetries before the market prices them in. The system recalculates probability within seconds of detecting breaking information.",
+      "key_details": [
+        "Scans Twitter/X and news feeds in real time",
+        "Example trigger: 50 accounts reporting a coach injury",
+        "Recalculates probability within 2 seconds",
+        "Acts before the market factors in the new information",
+        "Used as one of three strategies in PHANTOM alongside arbitrage and volatility"
+      ],
+      "source_items": [
+        "2039776473687494784",
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "PHANTOM Autonomous Trading Script",
+        "Bayesian Probability Updates",
+        "Multi-Agent Signal Pipeline"
+      ]
+    },
+    {
+      "name": "Calendar and Volatility Timing",
+      "category": "strategy",
+      "description": "Systematic exploitation of predictable volatility spikes that occur 15-20 minutes before sporting events begin. The bot takes positions early and exits after the first major price movement.",
+      "key_details": [
+        "Entry window: 15-20 minutes before game start",
+        "Volatility spikes are predictable and recurring",
+        "Exit trigger: first major price movement after event begins",
+        "Combines time-based signals with price action"
+      ],
+      "source_items": [
+        "2039776473687494784"
+      ],
+      "relationships": [
+        "PHANTOM Autonomous Trading Script",
+        "Millisecond Execution Architecture"
+      ]
+    },
+    {
+      "name": "Multi-Agent Skill Architecture",
+      "category": "architecture",
+      "description": "A system where each trading capability is encapsulated as a discrete skill built around a core mathematical model. Different agents specialize in different functions (arbitrage detection, token tracking, spread harvesting, whale monitoring, sentiment analysis, execution).",
+      "key_details": [
+        "Each skill wraps a core math model: expected value, position sizing, Bayesian updates, log-return tracking",
+        "Agents specialize: arbitrage detection, token tracking, spread harvesting, whale monitoring, sentiment analysis, auto-execution",
+        "Skills are modular and independently deployable",
+        "1,580 trades executed with zero human intervention",
+        "$1,000 to $45,401 in one week",
+        "79% win rate, Sharpe ratio 2.59",
+        "Single-night profit: $5,774"
+      ],
+      "source_items": [
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Progressive Skill Loading",
+        "Claude Code Skill System",
+        "Kelly Criterion Position Sizing",
+        "Bayesian Probability Updates"
+      ]
+    },
+    {
+      "name": "Progressive Skill Loading",
+      "category": "technique",
+      "description": "A layered execution model where skills activate in tiers. Basic checks (liquidity, spread, token availability) run first. Deep computations (probability updates, portfolio impact, cross-agent confirmation) trigger only when needed, optimizing for execution speed.",
+      "key_details": [
+        "Tier 1: liquidity checks, spread validation, token availability",
+        "Tier 2: probability updates, portfolio impact assessment, cross-agent confirmation",
+        "Deep calculations only fire when basic conditions are met",
+        "Designed for speed-critical trading where milliseconds matter",
+        "Reduces computational overhead for the majority of market scans that result in no action"
+      ],
+      "source_items": [
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Multi-Agent Skill Architecture",
+        "Trigger Detection System",
+        "Millisecond Execution Architecture"
+      ]
+    },
+    {
+      "name": "Trigger Detection System",
+      "category": "technique",
+      "description": "Event-driven activation mechanism that monitors markets for specific conditions: price dislocations, new token listings, breaking news, large order anomalies, or probability mispricing. Automatically filters out low expected-value trades.",
+      "key_details": [
+        "Monitors for: price disconnection, new listings, breaking news, large orders, probability mispricing",
+        "Scans dozens of markets simultaneously",
+        "Auto-filters low risk/reward ratio trades",
+        "Feeds into the progressive skill loading pipeline",
+        "Acts as the entry gate for the entire execution workflow"
+      ],
+      "source_items": [
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Progressive Skill Loading",
+        "Multi-Agent Skill Architecture",
+        "Automated Execution Workflow"
+      ]
+    },
+    {
+      "name": "Automated Execution Workflow",
+      "category": "architecture",
+      "description": "End-to-end automated pipeline from signal detection through trade execution: validate signal, estimate probability, calculate edge via expected value, size position via capped Kelly, update probabilities in real-time, track portfolio impact, execute under strict risk controls.",
+      "key_details": [
+        "Steps: signal validation -> probability estimation -> EV edge calculation -> capped Kelly sizing -> real-time probability update -> portfolio impact tracking -> execution",
+        "All decisions are rule-driven and auto-executed",
+        "System continuously updates parameters from historical and live performance data",
+        "Losses treated as statistical variance, not failure",
+        "Self-learning loop: updates execution parameters from outcomes"
+      ],
+      "source_items": [
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Bayesian Probability Updates",
+        "Risk Management Framework",
+        "Multi-Agent Skill Architecture"
+      ]
+    },
+    {
+      "name": "Multi-Agent Parliament / Consensus Voting",
+      "category": "architecture",
+      "description": "A governance architecture where 5 specialized AI agents (geopolitics, macroeconomics, science, sports, crypto) independently analyze each trading opportunity and vote. A minimum of 3/5 agreement is required to enter a position. Designed to solve the single-agent overconfidence problem.",
+      "key_details": [
+        "5 agents with distinct specializations and isolated contexts",
+        "Consensus threshold: minimum 3 out of 5 agents must agree",
+        "Each agent returns confidence score (0-100) plus detailed reasoning",
+        "Minority agents must produce dissent reports with specific sources",
+        "14-day results: +$1,120 (parliament) vs +$640 (single agent) across 47 markets",
+        "Win rate improved from 60% to 74%",
+        "Average loss size dropped by 50%",
+        "System refused to enter markets where agents could not agree",
+        "Inspired by observing that top 5 Polymarket wallets rarely bet on the same thing simultaneously"
+      ],
+      "source_items": [
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Isolated Context Scoping",
+        "Dissent Report Mechanism",
+        "AI Swarm Consensus",
+        "Single-Agent Overconfidence Problem"
+      ]
+    },
+    {
+      "name": "Isolated Context Scoping",
+      "category": "technique",
+      "description": "Deliberately restricting each agent's information access to prevent convergence on identical conclusions. Each agent receives different data sources matching its specialization, ensuring genuine diversity of analysis.",
+      "key_details": [
+        "Geopolitics agent: diplomatic briefings + sanctions lists (no on-chain data)",
+        "Macroeconomist agent: Fed minutes + CPI data (no Twitter)",
+        "Crypto agent: whale alerts + Twitter sentiment score",
+        "Sports and science agents receive domain-specific sources",
+        "Fundamental principle: if all agents see the same data, they reach the same conclusion, defeating the purpose",
+        "Each agent is a separate system prompt with strict scope",
+        "Market data delivered as structured JSON: name, current odds, deadline, trading volume"
+      ],
+      "source_items": [
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "Claude Code Subagents",
+        "Runtime Context Injection"
+      ]
+    },
+    {
+      "name": "Dissent Report Mechanism",
+      "category": "technique",
+      "description": "When the parliament splits (e.g., 3:2), minority agents are required to produce structured counterarguments with specific sources. This creates a built-in doubt mechanism that surfaces risks a majority view might overlook.",
+      "key_details": [
+        "Minority agents must produce counterargument with specific sources",
+        "Human reviews dissent report before confirming position",
+        "Science agent was in minority most often (19 of 47 markets)",
+        "When science agent was sole dissenter against 4 others, it was right 4 out of 5 times",
+        "Those 4 correct dissents saved $890 in losses",
+        "One dissenting agent proved more valuable than the rest of the system combined",
+        "Acts as built-in mechanism of doubt that single models cannot achieve"
+      ],
+      "source_items": [
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "Single-Agent Overconfidence Problem",
+        "Risk Management Framework"
+      ]
+    },
+    {
+      "name": "Single-Agent Overconfidence Problem",
+      "category": "risk-management",
+      "description": "The fundamental limitation where a single AI model expresses identical confidence whether correct or incorrect. Without adversarial validation, wrong predictions are indistinguishable from right ones, causing the 40% loss rate to consume all profits.",
+      "key_details": [
+        "Single agent correct ~60% of the time",
+        "Wrong predictions carry same confidence as correct ones",
+        "40% error rate eats entire profit from 60% win rate",
+        "Root cause: model cannot self-doubt without adversarial input",
+        "Solution: multiple agents with different data forced to argue",
+        "Parliament is not smarter than any member - it prevents any one from being confident alone"
+      ],
+      "source_items": [
+        "2039342946416283925"
+      ],
+      "relationships": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "AI Swarm Consensus",
+        "Dissent Report Mechanism"
+      ]
+    },
+    {
+      "name": "Runtime Context Injection (Agent Harness)",
+      "category": "architecture",
+      "description": "The core architecture pattern from Claude Code (claw-code) where the harness injects context before any user message arrives. This is not prompting or RAG - it is runtime context scoping where the model 'knows its role' before the conversation starts.",
+      "key_details": [
+        "Discovered from leaked claw-code GitHub repo (March 31st)",
+        "Harness injects context before user message arrives",
+        "Distinct from prompting and RAG approaches",
+        "Runtime context scoping: model knows its role pre-conversation",
+        "Core innovation is in the skill folder of the codebase",
+        "Rebuilt in Python in 6 hours by stripping to essential: tool orchestration with typed I/O contracts and scoped agent permissions",
+        "The edge is in the harness, not the model"
+      ],
+      "source_items": [
+        "2039165211178061967"
+      ],
+      "relationships": [
+        "Claude Code Skill System",
+        "Tool Orchestration with Typed I/O",
+        "Claude Code Subagents",
+        "Isolated Context Scoping"
+      ]
+    },
+    {
+      "name": "Tool Orchestration with Typed I/O",
+      "category": "architecture",
+      "description": "Agent tools connected through typed input/output contracts with scoped permissions. Each agent has explicitly defined capabilities and data access, preventing uncontrolled behavior and enabling composable agent pipelines.",
+      "key_details": [
+        "Typed I/O contracts between tools",
+        "Scoped agent permissions control what each agent can access and do",
+        "Enables composable pipelines where agent outputs feed into other agents",
+        "Stripped-down core of the Claude Code harness architecture",
+        "Key to making the system reliable for live trading"
+      ],
+      "source_items": [
+        "2039165211178061967"
+      ],
+      "relationships": [
+        "Runtime Context Injection (Agent Harness)",
+        "Claude Code Skill System",
+        "Multi-Agent Skill Architecture"
+      ]
+    },
+    {
+      "name": "Bayesian Probability Updates",
+      "category": "technique",
+      "description": "Continuous updating of market probability estimates by comparing P(real) from external forecast sources against P(market) from current contract prices. The spread between these probabilities defines the trading edge.",
+      "key_details": [
+        "Agent pulls live contract data every 15 minutes",
+        "Runs Bayesian update against external forecast sources",
+        "Compares P(real) vs P(market)",
+        "Minimum spread threshold of 0.07 required to enter",
+        "When spread < 0.07, system does nothing (most of the time)",
+        "147 contracts scanned per session, average 2-3 entries per day",
+        "Core math model in the multi-agent skill architecture"
+      ],
+      "source_items": [
+        "2039165211178061967",
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "Automated Execution Workflow",
+        "Multi-Agent Skill Architecture"
+      ]
+    },
+    {
+      "name": "Kelly Criterion Position Sizing",
+      "category": "technique",
+      "description": "Mathematical position sizing using the Kelly formula f* = (p*b - q) / b, where p is probability of winning, q is probability of losing, and b is the odds. Used with caps to prevent over-concentration. Handles win/loss asymmetry automatically.",
+      "key_details": [
+        "Formula: f* = (p*b - q) / b",
+        "Capped version used to prevent over-leverage",
+        "Handles asymmetry automatically: average win $340 vs average loss $61",
+        "31 trades over 11 days, 68.4% win rate",
+        "$400 to $9,340 result",
+        "Core to both the harness bot and the skill architecture bot",
+        "Combined with minimum edge thresholds before any position is taken"
+      ],
+      "source_items": [
+        "2039165211178061967",
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Bayesian Probability Updates",
+        "Risk Management Framework",
+        "Automated Execution Workflow"
+      ]
+    },
+    {
+      "name": "MCP Servers for Live Data",
+      "category": "infrastructure",
+      "description": "Model Context Protocol servers that connect Polymarket API and real-time order book data directly into Claude's context. Eliminates copy-paste workflows and provides live market data as structured input.",
+      "key_details": [
+        "Connects Polymarket API directly to Claude",
+        "Real-time order book data available in context",
+        "No copy-paste required - live data streams into the model",
+        "Enables automated market scanning and monitoring",
+        "Foundation for building autonomous trading systems within Claude Code"
+      ],
+      "source_items": [
+        "2039319426474869070"
+      ],
+      "relationships": [
+        "Claude Code Skill System",
+        "Claude Code Subagents",
+        "CLAUDE.md Configuration",
+        "Runtime Context Injection (Agent Harness)"
+      ]
+    },
+    {
+      "name": "CLAUDE.md Configuration",
+      "category": "infrastructure",
+      "description": "Persistent configuration file that sets permanent trading rules across all Claude sessions. Acts as the governance layer defining risk limits, edge requirements, and market filters that the agent must follow.",
+      "key_details": [
+        "Set once, enforced every session",
+        "Max risk per bet configuration",
+        "Minimum edge threshold requirement",
+        "Liquidity filters to avoid illiquid markets",
+        "Claude follows these rules as persistent constraints",
+        "Acts as the regulatory layer for autonomous trading behavior"
+      ],
+      "source_items": [
+        "2039319426474869070"
+      ],
+      "relationships": [
+        "Risk Management Framework",
+        "MCP Servers for Live Data",
+        "Runtime Context Injection (Agent Harness)"
+      ]
+    },
+    {
+      "name": "Claude Code Skill System",
+      "category": "infrastructure",
+      "description": "Reusable, named capabilities (skills) that can be invoked on demand. Example: a 'Polymarket Market Analyzer' skill that calculates probabilities and edge. Skills encapsulate complex workflows into single callable units.",
+      "key_details": [
+        "Skills are named, reusable analysis modules",
+        "Example: Polymarket Market Analyzer for probability and edge calculation",
+        "Can be triggered on demand or by other agents",
+        "Encapsulate complex multi-step workflows",
+        "Core component of the claw-code harness architecture",
+        "Skills activate based on context matching"
+      ],
+      "source_items": [
+        "2039319426474869070",
+        "2039165211178061967"
+      ],
+      "relationships": [
+        "Runtime Context Injection (Agent Harness)",
+        "Multi-Agent Skill Architecture",
+        "Progressive Skill Loading",
+        "Claude Code Subagents"
+      ]
+    },
+    {
+      "name": "Claude Code Subagents",
+      "category": "infrastructure",
+      "description": "Parallel agent teams within Claude Code where each subagent handles a distinct aspect of the trading workflow. Enables concurrent analysis across news tracking, probability calculation, and position management.",
+      "key_details": [
+        "Subagent 1: tracks news and information",
+        "Subagent 2: calculates implied probability",
+        "Subagent 3: manages position sizing",
+        "All run in parallel for faster execution",
+        "Each has scoped permissions and isolated context",
+        "Can be composed into pipelines where outputs feed downstream"
+      ],
+      "source_items": [
+        "2039319426474869070"
+      ],
+      "relationships": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "Isolated Context Scoping",
+        "Claude Code Skill System",
+        "Tool Orchestration with Typed I/O"
+      ]
+    },
+    {
+      "name": "Plan Mode and Ultra Think",
+      "category": "infrastructure",
+      "description": "Claude Code execution modes that force structured reasoning before action. Plan Mode requires mapping full trade logic before writing code. Ultra Think / Effort modes maximize reasoning depth for complex markets with thin edges.",
+      "key_details": [
+        "Plan Mode: forces Claude to map out full trade logic before touching code",
+        "Ultra Think: maximum reasoning depth for complex analysis",
+        "Useful for political and crypto markets with razor-thin edges",
+        "Prevents premature execution based on shallow analysis",
+        "Can be combined with subagents for deep parallel analysis"
+      ],
+      "source_items": [
+        "2039319426474869070"
+      ],
+      "relationships": [
+        "Claude Code Skill System",
+        "Claude Code Subagents",
+        "Bayesian Probability Updates"
+      ]
+    },
+    {
+      "name": "Hooks for Alert Automation",
+      "category": "infrastructure",
+      "description": "Event-driven hooks in Claude Code that automatically trigger actions based on trading events. Example: sending Telegram alerts when orders fill or when drawdown exceeds a threshold.",
+      "key_details": [
+        "Auto-send Telegram alerts on order fills",
+        "Drawdown monitoring with threshold-based alerts",
+        "Event-driven architecture: hook fires on specific conditions",
+        "Enables monitoring without manual checking",
+        "Part of the broader Claude Code infrastructure stack"
+      ],
+      "source_items": [
+        "2039319426474869070"
+      ],
+      "relationships": [
+        "CLAUDE.md Configuration",
+        "Risk Management Framework",
+        "MCP Servers for Live Data"
+      ]
+    },
+    {
+      "name": "Autonomous Portfolio Management",
+      "category": "architecture",
+      "description": "Full delegation of portfolio construction and management to Claude autonomous agents. Live experiment with $50K real capital in stocks, benchmarked against Buffett and SPY.",
+      "key_details": [
+        "$50,000 real capital deployed",
+        "Portfolio went live and immediately outperformed SPY",
+        "Specific stock picks made autonomously by Claude agents",
+        "Benchmarked against Warren Buffett performance",
+        "18,500+ likes indicating strong community interest",
+        "Represents the stock market application of Claude agent trading",
+        "Not affiliated with Anthropic"
+      ],
+      "source_items": [
+        "2039006300441620782",
+        "2039365791666385002"
+      ],
+      "relationships": [
+        "Risk Management Framework",
+        "Claude Code Skill System",
+        "CLAUDE.md Configuration"
+      ]
+    },
+    {
+      "name": "AI Swarm Consensus",
+      "category": "architecture",
+      "description": "Querying multiple AI models from different companies (Claude, GPT, Gemini, DeepSeek, Llama) in parallel on the same trading question, then using a consensus reviewer to produce a final unified decision. Removes single-model bias.",
+      "key_details": [
+        "Queries Claude, GPT, Gemini, DeepSeek, Llama simultaneously",
+        "Consensus reviewer aggregates responses into final decision",
+        "Removes bias of any single model provider",
+        "If 7 models say yes and 1 says no, higher confidence than any single model",
+        "Acts as corrective second layer on top of proven quant strategy",
+        "LLMs alone cannot trade; they serve as gate/filter layer",
+        "Agent ratifies or refuses trades based on current market regime",
+        "Supports GPT-5 Nano, GPT-5 Mini, Claude 4.5"
+      ],
+      "source_items": [
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "Single-Agent Overconfidence Problem",
+        "Model Registry Pattern"
+      ]
+    },
+    {
+      "name": "RBI Framework (Research, Backtest, Implement)",
+      "category": "technique",
+      "description": "Systematic methodology for developing trading strategies: Research ideas, Backtest them against historical data, Implement only those that pass. Success becomes repeatable through automation. Inspired by Jim Simons' approach.",
+      "key_details": [
+        "Research: build list of trading ideas continuously",
+        "Backtest: test each idea against historical data",
+        "Implement: deploy only strategies that prove profitable in backtest",
+        "If an idea worked in the past, more likely to work in the future",
+        "Inspired by Jim Simons ($31B net worth)",
+        "People with zero coding knowledge learned to backtest within 15 days",
+        "One good bot can wipe out every bad financial decision through repeatable success"
+      ],
+      "source_items": [
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "Automated Execution Workflow",
+        "AI Swarm Consensus",
+        "Exchange Manager Pattern"
+      ]
+    },
+    {
+      "name": "Exchange Manager Pattern",
+      "category": "infrastructure",
+      "description": "A routing layer that abstracts exchange differences, allowing the same agent to run on multiple exchanges (Solana for spot, Hyperliquid for leverage) with a single config change. Handles differences between on-chain contract addresses and exchange symbols.",
+      "key_details": [
+        "Single line of code to switch exchanges",
+        "Routes between on-chain (Solana) and CEX (Hyperliquid) seamlessly",
+        "Handles contract address vs symbol mapping automatically",
+        "Future-proof: can add Base chain, Polymarket, etc.",
+        "Routes tokens to exchanges based on liquidity and fees",
+        "Switching exchanges = changing single config value",
+        "Zero coding changes needed in the agent itself"
+      ],
+      "source_items": [
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "AI Swarm Consensus",
+        "RBI Framework (Research, Backtest, Implement)",
+        "MCP Servers for Live Data"
+      ]
+    },
+    {
+      "name": "Model Registry Pattern",
+      "category": "infrastructure",
+      "description": "A centralized registry for AI models that allows easy swapping and updating as new models release. Includes a testing framework that verifies each model with a simple prompt to confirm it is working correctly.",
+      "key_details": [
+        "Easy model updates as new versions drop every few months",
+        "Supports multiple providers: OpenAI, Anthropic, Google, DeepSeek, Meta",
+        "Testing framework queries each model with verification prompt",
+        "Ensures trading system always uses the most capable available model",
+        "Decouples agent logic from specific model versions"
+      ],
+      "source_items": [
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "AI Swarm Consensus",
+        "Exchange Manager Pattern"
+      ]
+    },
+    {
+      "name": "Cross-Platform Arbitrage Detection",
+      "category": "strategy",
+      "description": "Simultaneous monitoring of the same events across multiple prediction market platforms (Polymarket and Kalshi) to detect pricing discrepancies. The speed advantage of automated detection is the core edge.",
+      "key_details": [
+        "Monitors same events on Polymarket and Kalshi simultaneously",
+        "Detects when combined YES/NO prices deviate from $1.00",
+        "Millisecond execution required to capture arbitrage windows",
+        "Sports markets are most predictable arbitrage source",
+        "Human physically cannot monitor 50+ markets simultaneously",
+        "By the time a human opens a tab, the arbitrage window has closed"
+      ],
+      "source_items": [
+        "2039776473687494784"
+      ],
+      "relationships": [
+        "PHANTOM Autonomous Trading Script",
+        "Pairs Trading Arbitrage",
+        "Millisecond Execution Architecture"
+      ]
+    },
+    {
+      "name": "Millisecond Execution Architecture",
+      "category": "architecture",
+      "description": "System design optimized for sub-second trade execution. Critical for arbitrage strategies where pricing discrepancies exist for only brief windows. Requires parallel market monitoring, pre-calculated positions, and direct API connections.",
+      "key_details": [
+        "Enters positions within milliseconds of detecting discrepancy",
+        "Parallel monitoring of 50+ markets simultaneously",
+        "24/7 operation without breaks",
+        "Z-score calculations over 60 bars run in parallel with monitoring",
+        "Direct API connections eliminate manual interaction latency",
+        "Progressive loading ensures only necessary computations run"
+      ],
+      "source_items": [
+        "2039776473687494784",
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "PHANTOM Autonomous Trading Script",
+        "Progressive Skill Loading",
+        "Cross-Platform Arbitrage Detection",
+        "MCP Servers for Live Data"
+      ]
+    },
+    {
+      "name": "Risk Management Framework",
+      "category": "risk-management",
+      "description": "Comprehensive risk controls applied across all agent architectures: minimum edge thresholds, position size caps, loss treatment as statistical variance, drawdown monitoring, and liquidity filters.",
+      "key_details": [
+        "Minimum edge threshold before entry (0.07 spread in harness bot)",
+        "Capped Kelly criterion prevents over-concentration",
+        "Losses treated as statistical variance, not system failure",
+        "Daily spending caps and trading hour restrictions (swarm)",
+        "Drawdown alerts via hooks",
+        "Liquidity filters configured in CLAUDE.md",
+        "Max risk per bet as persistent constraint",
+        "Average loss size reduced 50% with parliament system"
+      ],
+      "source_items": [
+        "2039165211178061967",
+        "2039611662584684697",
+        "2039342946416283925",
+        "2039319426474869070",
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "Kelly Criterion Position Sizing",
+        "CLAUDE.md Configuration",
+        "Hooks for Alert Automation",
+        "Multi-Agent Parliament / Consensus Voting"
+      ]
+    },
+    {
+      "name": "DCA with AI Gate",
+      "category": "strategy",
+      "description": "Dollar-cost averaging strategy augmented with an AI swarm approval layer. The agent accumulates a position when price is below SMA, but only after the AI consensus confirms the signal. Combines systematic entry with intelligent filtering.",
+      "key_details": [
+        "Tracks 20-day and 5-minute SMAs",
+        "Buys when price is below SMA",
+        "AI swarm must confirm before execution",
+        "Daily spending caps limit exposure",
+        "Trading hours restrictions",
+        "Analyzes 55 bars of price data before each trade",
+        "Example: HouseCoin agent based on 1 house = 1 HouseCoin thesis"
+      ],
+      "source_items": [
+        "2038574044606558237"
+      ],
+      "relationships": [
+        "AI Swarm Consensus",
+        "RBI Framework (Research, Backtest, Implement)",
+        "Risk Management Framework"
+      ]
+    },
+    {
+      "name": "Self-Learning Parameter Updates",
+      "category": "technique",
+      "description": "Systems that continuously update their probability estimates and execution parameters based on historical data and live trading performance. Creates a feedback loop where the system improves from its own trading results.",
+      "key_details": [
+        "Updates probability estimates from outcomes",
+        "Adjusts execution parameters from live performance data",
+        "All decisions rule-driven and auto-executed",
+        "Historical data feeds back into probability models",
+        "Bayesian framework naturally incorporates new evidence",
+        "Distinct from static rules: the system evolves"
+      ],
+      "source_items": [
+        "2039611662584684697"
+      ],
+      "relationships": [
+        "Bayesian Probability Updates",
+        "Automated Execution Workflow",
+        "RBI Framework (Research, Backtest, Implement)"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Multi-Agent Consensus Architectures",
+      "description": "Systems that use multiple AI agents or models to achieve better trading decisions than any single agent. The core insight is that diverse, isolated perspectives produce higher-quality decisions than a single confident model. Three variants emerge: specialized agent parliament (domain experts vote), cross-model swarm (same question to different LLMs), and multi-agent skill pipeline (specialized functional agents in sequence).",
+      "concept_names": [
+        "Multi-Agent Parliament / Consensus Voting",
+        "AI Swarm Consensus",
+        "Isolated Context Scoping",
+        "Dissent Report Mechanism",
+        "Single-Agent Overconfidence Problem",
+        "Multi-Agent Skill Architecture"
+      ]
+    },
+    {
+      "name": "Claude Code as Trading Infrastructure",
+      "description": "The Claude Code platform provides a complete infrastructure stack for building autonomous trading systems: MCP Servers for live data, CLAUDE.md for persistent rules, Skills for reusable analysis modules, Subagents for parallel execution, Hooks for event-driven alerts, and Plan Mode / Ultra Think for deep reasoning. The leaked claw-code harness revealed the underlying architecture of runtime context injection and typed tool orchestration.",
+      "concept_names": [
+        "Runtime Context Injection (Agent Harness)",
+        "Claude Code Skill System",
+        "Claude Code Subagents",
+        "MCP Servers for Live Data",
+        "CLAUDE.md Configuration",
+        "Plan Mode and Ultra Think",
+        "Hooks for Alert Automation",
+        "Tool Orchestration with Typed I/O"
+      ]
+    },
+    {
+      "name": "Autonomous Execution Pipelines",
+      "description": "End-to-end automated systems that operate without human intervention, from market scanning through trade execution. These systems share common patterns: trigger detection, signal validation, probability estimation, edge calculation, position sizing via Kelly criterion, and execution with risk controls. The key differentiator is that losses are treated as statistical variance rather than failures.",
+      "concept_names": [
+        "Automated Execution Workflow",
+        "Progressive Skill Loading",
+        "Trigger Detection System",
+        "Millisecond Execution Architecture",
+        "PHANTOM Autonomous Trading Script",
+        "Self-Learning Parameter Updates"
+      ]
+    },
+    {
+      "name": "Mathematical Edge Frameworks",
+      "description": "The quantitative foundations underlying all agent trading systems. Every successful system in the sources uses some combination of Bayesian probability updates, Kelly criterion position sizing, expected value calculations, and statistical edge thresholds. The math is the actual edge; the AI is the execution mechanism.",
+      "concept_names": [
+        "Kelly Criterion Position Sizing",
+        "Bayesian Probability Updates",
+        "Pairs Trading Arbitrage",
+        "Cross-Platform Arbitrage Detection",
+        "Risk Management Framework"
+      ]
+    },
+    {
+      "name": "Platform Abstraction and Future-Proofing",
+      "description": "Infrastructure patterns that decouple trading logic from specific exchanges, models, or data sources. The exchange manager routes between on-chain and centralized exchanges. The model registry allows swapping AI providers. MCP servers abstract data sources. These patterns ensure systems survive platform changes.",
+      "concept_names": [
+        "Exchange Manager Pattern",
+        "Model Registry Pattern",
+        "MCP Servers for Live Data",
+        "RBI Framework (Research, Backtest, Implement)"
+      ]
+    },
+    {
+      "name": "Live Portfolio Experiments",
+      "description": "Real-money deployments of AI agent trading systems, providing empirical evidence of performance. Results span prediction markets ($1.18 to $3.3M, $1K to $45K, $400 to $9.3K) and equities ($50K portfolio outperforming SPY). These experiments demonstrate the transition from theoretical to production autonomous trading.",
+      "concept_names": [
+        "PHANTOM Autonomous Trading Script",
+        "Autonomous Portfolio Management",
+        "DCA with AI Gate"
+      ]
+    }
+  ],
+  "key_findings": [
+    "The harness/orchestration layer matters more than the model itself. Multiple sources emphasize that the 'edge is in the harness, not the model' - runtime context injection, skill loading, and tool orchestration create the actual competitive advantage.",
+    "Multi-agent consensus consistently outperforms single-agent systems. The parliament architecture improved win rate from 60% to 74% and reduced average loss by 50%. The AI swarm approach removes single-model bias. Both architectures solve the fundamental overconfidence problem.",
+    "Dissenting minority agents are disproportionately valuable. The science agent in the parliament was a lone dissenter on 19/47 markets, yet when it was the only agent voting against 4 others, it was right 4 out of 5 times - saving $890 and outvaluing the rest of the system combined.",
+    "Progressive/lazy skill loading is critical for speed-sensitive trading. Running full analysis on every market scan is computationally wasteful. The tiered approach (basic checks first, deep computation only when triggered) enables scanning hundreds of markets per session while maintaining millisecond execution.",
+    "Kelly criterion with caps is the universal position sizing method across all sources. Every profitable system uses some variant of Kelly for sizing, always with caps to prevent over-concentration. The formula naturally handles win/loss asymmetry.",
+    "Prediction markets (Polymarket/Kalshi) are the dominant proving ground for AI agents, appearing in 5 of 8 sources. Sports over/under markets are identified as the most predictable arbitrage source because paired contracts should sum to $1.00 but frequently deviate.",
+    "Claude Code's infrastructure stack (MCP + CLAUDE.md + Skills + Subagents + Hooks) provides a complete autonomous trading framework without requiring custom infrastructure. The leaked claw-code repo confirmed the runtime architecture.",
+    "The RBI framework (Research, Backtest, Implement) mirrors Jim Simons' approach and is presented as the only sustainable methodology. Strategies are tested historically before deployment, and only provably profitable patterns are automated.",
+    "All successful systems operate with minimal human intervention. PHANTOM ran 37,063 trades autonomously. The GitHub-file bot executed 1,580 trades with zero human input. The emphasis is on system design, not manual oversight.",
+    "Emotional elimination is a primary design goal. Multiple sources cite liquidations, 3AM chart-watching, and emotional decision-making as the problems automation solves. The systems are explicitly designed to be incapable of fear or greed."
+  ],
+  "knowledge_gaps": [
+    "No source provides verifiable evidence (e.g., on-chain transaction logs, brokerage statements) for the claimed returns. All performance figures are self-reported via social media posts.",
+    "Risk of catastrophic loss is not addressed. All sources show positive results but none discuss worst-case scenarios, black swan events, or what happens when the market structure changes.",
+    "Regulatory and legal implications of fully autonomous AI trading agents are not discussed in any source. Questions around market manipulation, bot-trading policies on Polymarket/Kalshi, and securities law are absent.",
+    "Infrastructure costs and latency requirements are never quantified. Running multiple AI models in parallel, maintaining MCP servers, and achieving millisecond execution all have real costs that could erode returns.",
+    "The leaked claw-code harness architecture is referenced but its actual implementation details beyond the high-level description are not provided. The specific typed I/O contracts and permission scoping mechanisms are not documented.",
+    "No source addresses model degradation or concept drift - what happens when the AI models are updated and their behavior changes, potentially invalidating tuned trading parameters.",
+    "The $50K Claude portfolio experiment provides no details on the actual portfolio construction methodology, rebalancing frequency, or risk management rules being applied.",
+    "Survivorship bias is not addressed. These are the success stories that went viral; the failures of similar systems are invisible."
+  ],
+  "open_questions": [
+    "What is the optimal number of agents in a consensus system? The parliament uses 5, the swarm queries 7+. Is there a point of diminishing returns, and does it depend on market type?",
+    "How does the parliament/swarm architecture perform during black swan events where all agents' training data is equally unprepared?",
+    "Can the Claude Code harness architecture (runtime context injection + skill system) be replicated with open-source models, or is there something specific to Claude's architecture that makes it work?",
+    "What is the actual latency profile of MCP server connections to exchange APIs? Is it fast enough for the millisecond arbitrage described in PHANTOM?",
+    "How do self-learning parameter updates avoid overfitting to recent market conditions? What prevents the Bayesian updates from adapting to noise rather than signal?",
+    "Is the 0.07 spread threshold for the harness bot optimal, or was it determined empirically? How sensitive are returns to this parameter?",
+    "What happens when multiple PHANTOM-style bots compete for the same arbitrage opportunities? Does the edge collapse as more automated systems enter?",
+    "Can the dissent report mechanism be automated (i.e., the system acts on dissent without human review) without degrading its value? The human-in-the-loop review seems to be a key safety feature.",
+    "How would these architectures perform in truly adversarial environments where other AI agents are specifically trying to exploit their patterns?",
+    "What is the minimum capital requirement for each architecture to be profitable after accounting for API costs, compute, and transaction fees?"
+  ]
+}

@@ -1,0 +1,335 @@
+{
+  "overview_id": "5ea2845d",
+  "title": "Alternative Data Anomaly Detection & Geopolitical Trading",
+  "created_date": "2026-04-03T14:30:00.000Z",
+  "status": "complete",
+  "sources": [
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039479380368408840",
+      "title": "Chinese dev NO bets + logic arbitrage"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039323712713810150",
+      "title": "17K wallet analysis pipeline"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038608348958834926",
+      "title": "Soros archetype geopolitical edge"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039282251159011513",
+      "title": "NASA FIRMS satellite anomaly detection"
+    }
+  ],
+  "summary": "This overview synthesizes 4 research items covering alternative data anomaly detection and geopolitical event trading on prediction markets, with a focus on mapping these approaches to Kalshi's regulated US event contract categories. The core discovery is a 10-source free data stack anchored by NASA FIRMS satellite thermal anomaly data, which backtested across 270 days detected Gaza (11x anomaly), Kursk (4 days early), and Syria (3 weeks early), generating $7,778 from $500 on 16 trades. Complementary strategies include Soros-archetype geopolitical information edge trading ($800K, 93% win rate), logic arbitrage exploiting causal event chains before market repricing, and wallet-level behavioral analysis revealing edge decay patterns (BTC lag compression 9.4s to 3.1s). All strategies converge on Kalshi's politics, economics, and geopolitical event contracts as the US-legal execution venue, though the 4-6 hour FIRMS data delay constrains these to swing-style positioning rather than high-frequency approaches.",
+  "concepts": [
+    {
+      "name": "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+      "category": "data source",
+      "description": "Repurposing NASA's Fire Information for Resource Management System (FIRMS) -- originally designed for wildfire monitoring -- as a geopolitical event detector for Kalshi prediction markets. VIIRS satellite scans the planet every 6 hours, logging thermal events with coordinates, intensity (megawatts), and timestamps. Anomalies in non-wildfire regions signal military conflict, infrastructure destruction, or industrial catastrophe.",
+      "key_details": [
+        "Free API via firms.modaps.eosdis.nasa.gov with single MAP_KEY registration",
+        "VIIRS satellite provides global coverage every 6 hours with 4-6 hour publication delay",
+        "Anomaly detection: 14-day rolling average baseline, flag at 3x threshold",
+        "Gaza Oct 7: baseline 6.4 fires/day, detected 69 fires (11.1x anomaly) at 34 MW max FRP",
+        "Kursk: detected Ukrainian offensive 4 days before official confirmation (0 baseline to 16 fires)",
+        "Syria: 3 weeks of escalating thermal signal before Assad regime collapse",
+        "Fire Radiative Power (FRP) in megawatts distinguishes severity: brushfire vs bombardment vs industrial explosion",
+        "Continuation bias failure mode: permanently elevated regions lose anomaly signal; fix by skipping when 7-day baseline itself triples",
+        "Kalshi mapping: geopolitical escalation contracts, military action YES/NO, regime change timelines, sanctions trigger events",
+        "Constraint: 4-6 hour delay makes this swing-trade positioning, not HFT -- must target contracts with multi-day resolution windows"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Dynamic Kelly with Signal Strength Scaling",
+        "Claude Cross-Referencing Engine",
+        "Anomaly Detection Statistical Framework"
+      ]
+    },
+    {
+      "name": "Multi-Source Geopolitical Data Stack",
+      "category": "architecture",
+      "description": "A 10-source free data pipeline fusing satellite, seismic, financial, and sentiment data into a composite tension score (0-100) for geopolitical event trading. Each source covers a different information modality, and the stack's power comes from cross-correlation: a FIRMS thermal spike confirmed by OpenSky military traffic and a RUB crash is qualitatively different from FIRMS alone.",
+      "key_details": [
+        "10 sources: NASA FIRMS, OpenSky Network (aircraft tracking), USGS Earthquakes, Open-Meteo weather, Exchange Rate API (RUB/IRR/TRY/CNY vs USD), Alternative.me crypto fear/greed, CoinGecko BTC/ETH (risk proxy), Gold API, Yahoo Finance VIX, prediction market gamma",
+        "Total cost: $0/month -- 9 of 10 sources require no API key",
+        "Runs every 15 minutes via cron/Task Scheduler, 40-second full cycle",
+        "VIX above 25 = elevated, above 30 = panic; used as confirmation not trigger",
+        "Currency crashes (5%+ overnight) in RUB/IRR/TRY signal conflict events before news breaks",
+        "Kalshi-specific: tension score maps to Kalshi categories -- politics (sanctions), economics (Fed response to crisis), geopolitical events (military action, regime change)",
+        "Outperforms $24K/year Bloomberg Terminal for satellite-based conflict detection specifically because Bloomberg lacks fire data",
+        "Each source has different latency: OpenSky real-time, FIRMS 4-6hr, USGS minutes, exchange rates continuous, VIX market hours only"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Claude Cross-Referencing Engine",
+        "Dynamic Kelly with Signal Strength Scaling",
+        "Logic Arbitrage via Causal Event Chains"
+      ]
+    },
+    {
+      "name": "Soros-Archetype Geopolitical Information Edge",
+      "category": "strategy",
+      "description": "Trading geopolitical prediction markets by arriving in the correct position before the crowd, modeled after the Magamyman wallet pattern on Polymarket. The archetype concentrates capital into high-conviction geopolitical bets with apparent advance knowledge of military and political events. CNN investigation and academic scrutiny confirm the pattern is real but raise questions about information sources.",
+      "key_details": [
+        "Magamyman: $800K deployed on US military strike predictions with 93% win rate on bets over $10K",
+        "Investigated by CNN and Columbia Law School for suspicious timing",
+        "Trades placed hours before unannounced military operations (Oct 2024, June 2025, Feb 2026)",
+        "Bubblemaps analysis: 6 linked wallets, $1.2M on Feb 28 strike, funded within 24 hours, betting on exact date",
+        "$529M flowed through Iran-related markets in one week (4th largest market cluster ever)",
+        "Columbia Law School and Univ. of Haifa estimate $143M total profit by informed traders 2024-2026",
+        "Key signal distinction: specific-date markets vs broad 'will X happen' markets -- precision indicates quality of information",
+        "Kalshi relevance: Kalshi hosts politics and geopolitical contracts where similar edge may exist; CFTC regulation adds both legitimacy and scrutiny",
+        "Alternative data stack (FIRMS + OpenSky + currencies) provides a legal, publicly available approximation of this information edge without insider access"
+      ],
+      "source_items": [
+        "tweet_2038608348958834926"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Multi-Source Geopolitical Data Stack",
+        "Regulatory and Legal Considerations",
+        "Wallet Behavioral Analysis Pipeline"
+      ]
+    },
+    {
+      "name": "Logic Arbitrage via Causal Event Chains",
+      "category": "strategy",
+      "description": "Exploiting causal dependencies between events before prediction markets reprice the downstream consequences. When event A triggers event B with high probability, a trader who recognizes the causal chain can position on event B contracts while the market still prices them at pre-A levels. This is particularly powerful in politics and geopolitics where cascading consequences are predictable but markets price events independently.",
+      "key_details": [
+        "Core mechanism: event A triggers event B, but market for B has not yet repriced to reflect A",
+        "Political example: party wins primary -> candidate X becomes nominee -> policy Y likelihood increases; each step takes time to reprice",
+        "Geopolitical example: sanctions announced -> currency crash -> regime instability -> military action probability increases",
+        "Works because prediction markets are fragmented -- Kalshi contracts on related events are priced independently by different participants",
+        "Speed advantage measured in minutes to hours, not milliseconds -- accessible without HFT infrastructure",
+        "Requires mapping the full causal graph of political/geopolitical event dependencies",
+        "Kalshi advantage: Kalshi's structured event categories (politics, economics, geopolitical) naturally create causal chains across contract types",
+        "Chinese dev NO bets pattern: identifying overpriced YES contracts on events that become impossible once a prerequisite event resolves differently"
+      ],
+      "source_items": [
+        "tweet_2039479380368408840"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Soros-Archetype Geopolitical Information Edge",
+        "Kalshi Event Category Mapping",
+        "Claude Cross-Referencing Engine"
+      ]
+    },
+    {
+      "name": "Wallet Behavioral Analysis Pipeline",
+      "category": "technique",
+      "description": "Parsing thousands of prediction market wallets at scale using LLMs to extract behavioral patterns, map strategies, and identify edge decay signatures. The pipeline reveals how trading edges compress over time and which behavioral signals precede profitable trades, providing a meta-layer of intelligence about market microstructure.",
+      "key_details": [
+        "17,000 wallets parsed with Claude at $0.015/query ($8 total API cost) in a single night",
+        "11 distinct strategies mapped from wallet behavior patterns",
+        "Weather lag pattern: 83% win rate with entries 6-10 minutes before price moves, indicating consistent information edge",
+        "BTC lag compression: 9.4 seconds to 3.1 seconds over observed period, quantifying edge decay rate",
+        "Edge decay is measurable and predictable: as more participants discover a signal, the time advantage compresses linearly then exponentially",
+        "Fresh wallet + large position in dead market = insider signal (flagged by ML + heuristics)",
+        "Category filtering critical: wallet with 91% win rate on crypto but 15% on politics should only be studied for crypto patterns",
+        "Kalshi implication: while Kalshi wallets are not on-chain, similar behavioral analysis can be applied to order flow patterns and market microstructure"
+      ],
+      "source_items": [
+        "tweet_2039323712713810150"
+      ],
+      "relationships": [
+        "Soros-Archetype Geopolitical Information Edge",
+        "Edge Decay and Signal Compression",
+        "Dynamic Kelly with Signal Strength Scaling"
+      ]
+    },
+    {
+      "name": "Dynamic Kelly with Signal Strength Scaling",
+      "category": "technique",
+      "description": "A modified Kelly Criterion position sizing framework where bet size scales with the number of confirming data sources and anomaly magnitude. Unlike static Kelly which uses a single probability estimate, dynamic Kelly integrates signal confidence from the multi-source stack to modulate exposure from aggressive (multi-source confirmation) to minimal (single weak signal).",
+      "key_details": [
+        "Base formula: f* = (p * b - q) / b where b = (1 - P_market) / P_market",
+        "Always use Quarter Kelly (25% of full Kelly) as the ceiling -- 50 years of trading history shows full Kelly destroys emotionally",
+        "Dynamic scaling: 11x FIRMS anomaly + 6 confirming sources -> Kelly 50% of quarter allocation; random 3x blip + 1 source -> Kelly 3%",
+        "False alarm cost $41 (small position on weak signal); real signal made $470 (scaled position on strong signal)",
+        "Backtest results: $500 to $7,778 on 16 trades (11 wins, 5 losses) over 270 days",
+        "Signal strength inputs: FIRMS anomaly magnitude, number of confirming sources, VIX level, currency move magnitude, OpenSky military traffic count",
+        "Kalshi application: position sizing must also account for Kalshi's fee structure and contract-specific liquidity depth"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513",
+        "tweet_2038608348958834926"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Anomaly Detection Statistical Framework"
+      ]
+    },
+    {
+      "name": "Claude Cross-Referencing Engine",
+      "category": "architecture",
+      "description": "Using Claude as the analytical brain that ingests all 10 data sources simultaneously, cross-references signals across modalities (satellite, financial, seismic, sentiment), and outputs structured trade decisions as JSON. Replaces thousands of lines of rule-based correlation logic with natural language reasoning about causal relationships between heterogeneous signals.",
+      "key_details": [
+        "Receives tension score plus raw data from all 10 sources; outputs JSON with contract, direction, estimated probability, edge, and signal strength",
+        "Approximately 70% directional accuracy on geopolitical signals -- sufficient for profitability with Kelly sizing",
+        "Cross-referencing example: FIRMS thermal spike in Iran + RUB crash + VIX spike + OpenSky military traffic = high-confidence geopolitical trade",
+        "20-50 line integration replaces 4,000+ lines of rule-based trading logic",
+        "Cost: $20/month subscription or API at $0.015/query",
+        "Kalshi integration: Claude maps geopolitical signals to specific Kalshi contract categories and identifies which contracts have sufficient liquidity",
+        "Critical for logic arbitrage: Claude reasons about causal chains (event A -> event B) that rule-based systems cannot express"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513",
+        "tweet_2039479380368408840"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Logic Arbitrage via Causal Event Chains",
+        "Dynamic Kelly with Signal Strength Scaling",
+        "Kalshi Event Category Mapping"
+      ]
+    },
+    {
+      "name": "Anomaly Detection Statistical Framework",
+      "category": "technique",
+      "description": "The statistical methodology underlying signal extraction from noisy alternative data: compute a rolling baseline and flag deviations exceeding a threshold. Deliberately simple -- the 14-day rolling average with 3x threshold caught every major geopolitical event in the 270-day backtest. Sophistication comes from multi-source confirmation, not from complex single-source models.",
+      "key_details": [
+        "14-day rolling average as baseline for any time-series signal",
+        "3x baseline threshold triggers anomaly flag -- deliberately simple and robust",
+        "Caught every major geopolitical event in 270-day backtest: Gaza, Kursk, Syria",
+        "Continuation bias failure mode: region permanently on fire ceases to be anomalous; fix by skipping when 7-day baseline itself triples",
+        "Fire Radiative Power (FRP in MW) adds severity dimension beyond binary fire count",
+        "Generalizable beyond FIRMS: same framework applies to seismic data, currency moves, flight pattern changes",
+        "Works for first spike detection (swing trade entry), not for continuation trading",
+        "Trade-off: simpler model = fewer false negatives but more false positives; multi-source confirmation filters the false positives"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Multi-Source Geopolitical Data Stack",
+        "Dynamic Kelly with Signal Strength Scaling"
+      ]
+    },
+    {
+      "name": "Edge Decay and Signal Compression",
+      "category": "technique",
+      "description": "The measurable phenomenon of trading edges shrinking over time as more participants discover and exploit them. The wallet analysis pipeline quantified this directly: BTC latency arbitrage lag compressed from 9.4 seconds to 3.1 seconds, and weather lag strategies show 83% win rate with 6-10 minute leads that will inevitably compress. Understanding decay rate is critical for strategy lifecycle management.",
+      "key_details": [
+        "BTC lag compressed from 9.4 seconds to 3.1 seconds -- a 67% reduction in edge window",
+        "73% of latency arb profits now go to bots with sub-100ms execution",
+        "Weather lag currently at 6-10 minutes before price moves with 83% win rate -- this will compress",
+        "Edge lifecycle: discovery -> exploitation -> compression -> death; each stage is measurable",
+        "FIRMS satellite data edge is early in lifecycle -- few prediction market traders use it, but the source post itself accelerates discovery",
+        "Kalshi implication: edges on Kalshi may be more durable than Polymarket due to smaller participant base and different demographic (US-only, regulated)",
+        "Counter-strategy: continuously discover new data sources and causal chains rather than defending a single edge"
+      ],
+      "source_items": [
+        "tweet_2039323712713810150",
+        "tweet_2039282251159011513"
+      ],
+      "relationships": [
+        "Wallet Behavioral Analysis Pipeline",
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Kalshi Event Category Mapping"
+      ]
+    },
+    {
+      "name": "Kalshi Event Category Mapping",
+      "category": "architecture",
+      "description": "The strategic mapping of alternative data signals to Kalshi's specific regulated event contract categories. Kalshi offers politics, economics, and geopolitical event contracts as a CFTC-regulated US exchange, making it the legal execution venue for US-based traders. The mapping determines which data sources provide actionable edge for which contract types.",
+      "key_details": [
+        "Kalshi categories with alt-data mapping: politics (sanctions triggers, election consequences, policy cascades), economics (Fed response to crisis, GDP impacts, trade disruption), geopolitical (military action, regime change, conflict escalation)",
+        "FIRMS satellite data -> military action contracts, conflict escalation, regime stability",
+        "OpenSky aircraft tracking -> military mobilization contracts, evacuation events",
+        "USGS seismic data -> nuclear test detection, industrial catastrophe",
+        "Exchange rate crashes (RUB/IRR/TRY) -> sanctions effectiveness, economic crisis contracts",
+        "VIX + gold -> broad risk sentiment confirmation for any geopolitical contract",
+        "Logic arbitrage chains: Kalshi's structured categories create natural causal chains (politics -> economics -> geopolitical)",
+        "Kalshi vs Polymarket: Kalshi is US-legal and CFTC-regulated but has lower liquidity; position sizing must account for thinner order books",
+        "Contract resolution specificity: Kalshi contracts may resolve on different criteria than Polymarket equivalents -- must verify resolution sources"
+      ],
+      "source_items": [
+        "tweet_2039282251159011513",
+        "tweet_2039479380368408840",
+        "tweet_2038608348958834926"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Logic Arbitrage via Causal Event Chains",
+        "Regulatory and Legal Considerations",
+        "Claude Cross-Referencing Engine"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Satellite and Alternative Data as Geopolitical Intelligence",
+      "description": "Free, publicly available data sources -- satellite thermal imaging, aircraft tracking, seismic feeds, currency movements -- provide a legitimate alternative to insider information for geopolitical event trading. The 10-source stack detected every major conflict event in a 270-day backtest, and the cost of zero dollars positions this as a democratized intelligence capability previously available only to state actors and Bloomberg subscribers.",
+      "concept_names": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection for Kalshi",
+        "Multi-Source Geopolitical Data Stack",
+        "Anomaly Detection Statistical Framework",
+        "Soros-Archetype Geopolitical Information Edge"
+      ]
+    },
+    {
+      "name": "Causal Chain Exploitation on Kalshi",
+      "description": "Prediction markets price events independently, but geopolitical and political events are causally linked. Logic arbitrage exploits the repricing delay between cause and consequence across Kalshi's structured contract categories. Combined with LLM reasoning about causal graphs, this creates a systematically exploitable edge that operates on minutes-to-hours timescales accessible without HFT infrastructure.",
+      "concept_names": [
+        "Logic Arbitrage via Causal Event Chains",
+        "Kalshi Event Category Mapping",
+        "Claude Cross-Referencing Engine"
+      ]
+    },
+    {
+      "name": "Signal Lifecycle and Edge Durability",
+      "description": "Every trading edge has a measurable lifecycle from discovery through exploitation to compression and death. The wallet analysis pipeline quantified this directly with BTC lag decay from 9.4 to 3.1 seconds. For Kalshi-targeted strategies, understanding where each signal sits in its lifecycle determines position sizing, strategy allocation, and the urgency of discovering replacement signals.",
+      "concept_names": [
+        "Edge Decay and Signal Compression",
+        "Wallet Behavioral Analysis Pipeline",
+        "Dynamic Kelly with Signal Strength Scaling"
+      ]
+    },
+    {
+      "name": "Regulated Market Execution and Risk Framework",
+      "description": "Kalshi's CFTC-regulated status creates both opportunity (legal US access, institutional credibility) and constraint (regulatory scrutiny, fee structure, liquidity limitations). The risk framework must account for thinner order books than Polymarket, geopolitical trading's inherent regulatory sensitivity, and the need for dynamic position sizing that scales with signal confidence across multiple confirming data sources.",
+      "concept_names": [
+        "Kalshi Event Category Mapping",
+        "Dynamic Kelly with Signal Strength Scaling",
+        "Soros-Archetype Geopolitical Information Edge"
+      ]
+    }
+  ],
+  "key_findings": [
+    "NASA FIRMS satellite thermal anomaly data detected the Oct 7 Gaza attack (11.1x baseline), Kursk offensive 4 days early, and Assad's fall 3 weeks early -- all from a free API that no prediction market trader was using, generating $7,778 from $500 across 16 trades (11W/5L) in backtesting.",
+    "The Soros-archetype wallet (Magamyman) deployed $800K on military strike predictions with 93% win rate, was investigated by CNN and Columbia Law School, and demonstrates that geopolitical information edges produce outsized returns -- the alternative data stack provides a legal approximation of this edge using publicly available signals.",
+    "Logic arbitrage exploiting causal event chains (event A triggers event B before market B reprices) operates on minutes-to-hours timescales, making it accessible without HFT infrastructure and particularly suited to Kalshi's structured politics/economics/geopolitical contract categories.",
+    "Edge decay is quantitatively measurable: BTC latency arbitrage compressed from 9.4 to 3.1 seconds, weather prediction leads show 83% win rate at 6-10 minutes, and 73% of arb profits now flow to sub-100ms bots -- every signal has a finite exploitable lifetime.",
+    "The complete 10-source geopolitical data stack costs $0/month and runs a 40-second scan cycle every 15 minutes, outperforming a $24K/year Bloomberg Terminal specifically for satellite-based conflict detection because Bloomberg lacks fire data.",
+    "Dynamic Kelly sizing scaled by signal strength and confirming source count produced $41 losses on false alarms but $470 gains on true signals -- the asymmetry comes from position size modulation, not from prediction accuracy (which was approximately 70%).",
+    "Wallet-level behavioral analysis of 17,000 wallets at $8 total API cost revealed 11 distinct strategy archetypes and quantified edge decay patterns, providing a meta-intelligence layer about which strategies are being discovered and compressed by competing participants."
+  ],
+  "knowledge_gaps": [
+    "Which specific Kalshi event categories and contract types map best to satellite thermal anomaly signals? FIRMS detects military conflict and industrial catastrophe, but Kalshi's exact contract taxonomy, resolution criteria, and historical liquidity per category have not been analyzed.",
+    "Regulatory considerations for geopolitical trading on Kalshi are unexamined: the CFTC's stance on using satellite data for trading, the legal boundary between 'alternative data analysis' and 'material non-public information' in the context of government satellite feeds, and how CNN-style investigations of informed trading might affect Kalshi participants.",
+    "Data latency vs market speed mismatch: FIRMS has a 4-6 hour delay from event to publication, but no analysis exists of how quickly Kalshi geopolitical contracts reprice after news breaks. If Kalshi markets fully reprice within 1-2 hours of news, the FIRMS signal may arrive too late. The window between FIRMS data availability and full market repricing on Kalshi is unknown.",
+    "Kalshi's liquidity depth on geopolitical contracts is not characterized: Polymarket geopolitical markets had $10K-$100K volume where $2K orders moved price 3-5%. If Kalshi's geopolitical contracts are similarly or more thinly traded, position sizing constraints may dramatically reduce strategy capacity.",
+    "No cross-validation between the satellite anomaly approach and the wallet behavioral analysis approach: do the same events that FIRMS detects early also show unusual wallet activity on Kalshi? Are the signals redundant or complementary?",
+    "The logic arbitrage causal chain framework lacks a systematic catalog of proven political and geopolitical causal chains with historical reprice timing data. Without this catalog, the strategy relies on ad-hoc reasoning rather than systematic exploitation."
+  ],
+  "open_questions": [
+    "How durable is the FIRMS satellite edge on Kalshi given that the source X post itself accelerates discovery? Is Kalshi's smaller and more sophisticated participant base likely to compress this edge faster or slower than Polymarket's larger retail base?",
+    "Can the multi-source tension score (0-100) be calibrated against historical Kalshi geopolitical contract resolutions to create a systematic, backtestable trading rule with defined entry/exit thresholds?",
+    "What is the optimal architecture for combining FIRMS anomaly detection with logic arbitrage -- should the satellite signal trigger a search for downstream causal chain contracts on Kalshi, or should causal chain monitoring run independently with satellite data as a confirmation layer?",
+    "How should Kalshi's fee structure and settlement mechanics be incorporated into the dynamic Kelly sizing framework, and at what edge threshold does a Kalshi geopolitical trade become unprofitable after fees?"
+  ]
+}

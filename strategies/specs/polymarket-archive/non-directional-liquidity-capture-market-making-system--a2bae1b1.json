@@ -1,0 +1,413 @@
+{
+  "spec_id": "a2bae1b1-1b71-42aa-bcff-452155199b83",
+  "title": "Non-Directional Liquidity Capture & Market Making System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "1.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039777322077933879",
+      "title": "HF market-making bot using Stoikov pricing + Bayesian probability for crypto UP/DOWN markets. $157K deposit to $1.03M PnL (+654% ROI). Kelly criterion for position sizing.",
+      "relevance": "HF market-making with Stoikov pricing + Bayesian probability, $157K to $1.03M, Kelly criterion sizing"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039134585737400689",
+      "title": "Three competing liquidity bots over 24h: Ladder Larry (HF laddering, +$12,450), Curve Alchemist (non-linear curves, +$18,920), Merge Phantom (capital recycling, +$9,830). Zero directional bets.",
+      "relevance": "3 competing liquidity bots: Ladder Larry (laddering), Curve Alchemist (non-linear curves), Merge Phantom (capital recycling) — comparative results"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038654832819535895",
+      "title": "Experience report from building 1,000+ Polymarket bots. Liquidity capture beats prediction. Covers bid laddering, spread capture, inventory management.",
+      "relevance": "1,000+ bot experience report — why liquidity capture beats prediction, bid laddering mechanics, inventory management, spread capture"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038903376453259756",
+      "title": "Structural edge detection: Claude finds mispricings by comparing market-implied vs external probabilities, non-predictive approach.",
+      "relevance": "Structural edge detection: Claude finds mispricings by comparing market-implied vs external probabilities, non-predictive approach"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039798489522053626",
+      "title": "Multi-strategy Polymarket bot: spread farming, wallet copytrade, pump sniping, news-edge trading. 73% win rate, 370 trades first night, $5,162 profit.",
+      "relevance": "Multi-strategy bot including spread farming — practical implementation with 73% win rate"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2037604599398322682",
+      "title": "Comprehensive guide to the 0x8dxd Polymarket arbitrage bot. Covers 4 main bot strategies including market making, Polymarket CLOB pricing mechanics, Kelly-based risk management.",
+      "relevance": "Market making as one of 4 core strategies, pricing mechanics on Polymarket CLOB"
+    }
+  ],
+  "overview": {
+    "description": "A fully non-directional market-making system for Polymarket binary contracts (crypto UP/DOWN) that profits exclusively from liquidity provision, spread capture, and structural order-book mechanics. The system places simultaneous bid ladders on both YES and NO sides of a contract, captures the bid-ask spread on every matched trade, manages inventory through position merging (capital recycling), and uses Stoikov-Avellaneda optimal quoting with Bayesian probability updates and Kelly criterion position sizing. The system never takes a directional bet — all profit derives from being the liquidity layer that other participants trade against. Non-linear order curve distribution concentrates volume at high-fill-probability price levels. Opposing YES+NO positions are continuously merged to recycle capital back into the order book.",
+    "objectives": [
+      "Capture bid-ask spread on both YES and NO contracts simultaneously without directional exposure",
+      "Implement Stoikov-Avellaneda reservation price model for optimal quote placement and inventory-aware pricing",
+      "Use Bayesian probability updates (P(H|D) = P(D|H)*P(H)/P(D)) to maintain internal fair-value estimate before market reprices",
+      "Deploy non-linear order curve distribution that allocates more volume to high-fill-probability price levels near current mid",
+      "Implement position merging engine that automatically combines opposing YES+NO holdings into $1 settlement, recycling freed capital",
+      "Maintain market-neutral inventory at all times with hard inventory skew limits",
+      "Achieve consistent 2-5% monthly return on deployed capital through spread capture and structural imbalance accumulation",
+      "Operate autonomously 24/7 across multiple concurrent crypto UP/DOWN contract windows"
+    ],
+    "constraints": [
+      "Zero directional bets — the system must never take a net directional position intentionally",
+      "All profit must derive from spread capture, structural imbalance, and capital recycling — not outcome prediction",
+      "Must operate within Polymarket CLOB API rate limits and order submission constraints",
+      "All ladder orders must be placed as maker (limit) orders only. Taker orders (market orders or limit orders crossing the spread) incur Polymarket's 2% taker fee which eliminates the spread edge entirely. Order refresh logic must cancel-and-replace rather than crossing the spread. Maker fee is 0%.",
+      "Requires low-latency infrastructure: order placement must complete within 100ms to maintain FIFO queue priority. A co-located or geographically proximate cloud instance (e.g., AWS us-east-1) is required to achieve this target",
+      "Minimum $500 deployed capital for meaningful fill frequency; optimal at $5,000-$50,000 for full ladder deployment",
+      "Cannot backtest accurately — fills depend on real-time counterparty interaction, requiring live paper-mode validation",
+      "Must handle sudden market reversals that can load inventory heavily on the losing side",
+      "Position merging may incur small per-merge losses (typically 0.5-2 cents per merged pair) — this is intentional capital recycling cost"
+    ],
+    "assumptions": [
+      "Polymarket crypto UP/DOWN contracts maintain sufficient liquidity (>$50,000 per market) for bid ladder deployment",
+      "Bid-ask spreads remain wide enough (minimum 2-3 cents) to cover transaction costs and generate positive expected value",
+      "FIFO queue priority at each price level rewards low-latency order placement",
+      "Structural imbalance effect persists: trending price naturally fills more orders on the winning side than the losing side",
+      "Position merging (YES + NO = $1.00 settlement) remains available as a Polymarket mechanic",
+      "Multiple concurrent contract windows (5-min, 15-min BTC/ETH) provide continuous trading opportunities",
+      "Binance/Coinbase WebSocket feeds remain available for real-time reference price tracking"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "StoikovPricingEngine",
+        "description": "Core quoting engine implementing the Stoikov-Avellaneda optimal market-making model. Computes reservation price and optimal spread based on inventory position, volatility, and time to contract expiry. Reservation price formula: r = s - q*gamma*sigma^2*(T-t), where r=reservation price, s=mid price, q=inventory position, gamma=risk aversion parameter, sigma=volatility estimate, T=expiry time, t=current time. Optimal spread formula: delta = gamma*sigma^2*(T-t) + (2/gamma)*ln(1 + gamma/kappa), where kappa is the market order arrival rate estimated from trailing fill frequency. Both formulas are required — the reservation price determines quote center, the optimal spread determines quote width. Outputs bid and ask prices for both YES and NO sides.",
+        "parameters": {
+          "gamma_risk_aversion": "0.1 (conservative) to 0.5 (aggressive) — controls how aggressively quotes skew away from inventory",
+          "sigma_volatility_window": "Rolling 60-second realized volatility from Binance WebSocket feed",
+          "T_minus_t": "Time remaining in current contract window (300s for 5-min, 900s for 15-min contracts)",
+          "kappa_arrival_rate": "Estimated market order arrival rate per second, computed from rolling fill count over trailing 60s. Recalibrated every 30 seconds. Required for the optimal spread formula.",
+          "min_spread": "0.02 (2 cents) — never quote tighter than this to ensure positive EV after fees",
+          "max_spread": "0.08 (8 cents) — wider spreads in high-volatility regimes"
+        }
+      },
+      {
+        "name": "BayesianProbabilityUpdater",
+        "description": "Maintains internal fair-value probability estimate for each contract using Bayesian updates. Ingests signals from reference price feeds (Binance, Coinbase), order flow imbalance, and historical base rates. Updates before the market has fully repriced. Formula: P(H|D) = P(D|H) * P(H) / P(D). Prior P(H) initialized from current mid-price. Likelihood P(D|H) computed from CEX price movement magnitude and direction relative to contract strike. Evidence P(D) is the normalizing constant across all hypotheses.",
+        "parameters": {
+          "prior_source": "CEX-derived probability computed from distance between current BTC/ETH spot price and contract strike price using short-term log-normal model. Polymarket mid-price used only as sanity check (flag if divergence > 10%) — anchoring to external reference data avoids reflexive feedback loop from quoting on the same market used for the prior",
+          "likelihood_model": "Log-normal price movement model calibrated to trailing 24h BTC/ETH volatility",
+          "update_frequency": "Every 500ms or on each CEX price tick, whichever is more frequent",
+          "forgetting_factor": "After each Bayesian update, posterior blended toward uniform prior: posterior_adjusted = (1 - 0.05) * posterior + 0.05 * 0.50. At 5% per 500ms cycle, beliefs have half-life of ~6.6s, ensuring rapid adaptation to new CEX price movements",
+          "min_divergence_threshold": "0.03 (3 percentage points) — minimum Bayesian-vs-market divergence before adjusting quotes"
+        }
+      },
+      {
+        "name": "BidLadderManager",
+        "description": "Places and maintains laddered limit orders across multiple price levels on both YES and NO sides simultaneously. Deploys orders in 1-cent increments spanning a configurable range around the current mid-price. Manages order lifecycle: placement, amendment, cancellation, and fill tracking. Ensures FIFO queue priority by placing orders early when new contract windows open.",
+        "parameters": {
+          "ladder_depth": "10-15 price levels per side (YES and NO independently)",
+          "level_spacing": "0.01 (1 cent) between adjacent ladder rungs",
+          "ladder_range_yes": "From mid-price minus 10 cents to mid-price minus 1 cent on YES bids",
+          "ladder_range_no": "NO-side ladder computed as function of current YES ladder top, NOT independently. Spread feasibility constraint: at all times, YES_bid_max + NO_bid_max <= 1.00 - min_target_spread (e.g., if min_target_spread = 0.02, then YES_bid_max + NO_bid_max <= 0.98). Violating this means both sides could fill at combined cost >= $1.00, guaranteeing a loss",
+          "order_refresh_interval": "Every 2 seconds or on significant mid-price movement (>1 cent), whichever comes first",
+          "early_placement_target": "Place orders within 50ms of new contract window opening to maximize FIFO priority"
+        }
+      },
+      {
+        "name": "NonLinearCurveDistributor",
+        "description": "Computes non-linear order size distribution across the bid ladder. Allocates more capital to price levels near the current mid (high fill probability) and exponentially less to distant levels (low fill probability). Uses a modified Gaussian or power-law curve centered on the mid-price. This was the key differentiator in the Curve Alchemist bot which outperformed flat-ladder Ladder Larry by 52% ($18,920 vs $12,450 in 24h).",
+        "parameters": {
+          "distribution_type": "power_law (preferred) or gaussian",
+          "power_law_exponent": "1.5 — controls how steeply volume drops off from mid. Higher = more concentrated near mid",
+          "center_level_allocation": "15-20% of total ladder capital at the level closest to mid",
+          "tail_level_allocation": "2-3% of total ladder capital at the most distant level",
+          "total_ladder_capital_pct": "60-80% of available capital deployed across the full ladder at any time",
+          "rebalance_trigger": "Redistribute when mid-price moves by more than 2 cents or on order fill"
+        }
+      },
+      {
+        "name": "InventoryManager",
+        "description": "Tracks net inventory position across YES and NO contracts. Enforces hard limits on directional skew. When inventory exceeds thresholds, skews quotes to attract fills that reduce exposure (widening the spread on the overweight side, tightening on the underweight side). Feeds inventory state into the Stoikov pricing engine via the q parameter.",
+        "parameters": {
+          "max_inventory_skew": "0.3 — maximum absolute value of (YES_position - NO_position) / total_capital",
+          "soft_warning_threshold": "0.15 — begin skewing quotes to rebalance at this level",
+          "hard_halt_skew_threshold": "0.4 — halt new order placement on the overweight side entirely. Note: this is normalized inventory skew, distinct from RiskController.max_drawdown_kill_switch which is equity drawdown (-40% from peak). Both are monitored independently",
+          "skew_factor": "For every 0.01 above soft threshold, widen overweight-side spread by 0.5 cents",
+          "inventory_decay_target": "Reduce skew to below 0.10 within 60 seconds of breach via quote adjustment"
+        }
+      },
+      {
+        "name": "PositionMergeEngine",
+        "description": "Continuously scans for opposing YES and NO positions that can be merged into guaranteed $1.00 settlement. Merging frees locked capital for redeployment into new ladder orders. Accepts small per-merge losses (buying YES at 0.52 + NO at 0.50 = $1.02 cost, merged for $1.00 = $0.02 loss) as an intentional capital recycling cost. The freed capital compounds through additional spread captures. This was the Merge Phantom strategy — it produced lower raw PnL ($9,830/24h) but highest capital efficiency.",
+        "parameters": {
+          "merge_trigger": "Merge when both YES and NO positions exist with combined cost <= $1.02 (max 2-cent loss per merge)",
+          "merge_frequency": "Check every 5 seconds and after every fill event",
+          "max_merge_loss_per_unit": "0.02 (2 cents) — reject merges that would cost more than this",
+          "min_merge_batch_size": "10 units — batch merges for gas/API efficiency",
+          "capital_recycle_priority": "Freed capital is immediately available for ladder redeployment within the same contract window"
+        }
+      },
+      {
+        "name": "SpreadCaptureTracker",
+        "description": "Monitors and records every spread capture event. A spread capture occurs when the bot buys on one side at price P_buy and the opposing side fills at a price where P_buy_yes + P_buy_no < 1.00, locking in a guaranteed profit of (1.00 - P_buy_yes - P_buy_no) per share. Tracks realized spread per trade, cumulative spread PnL, and effective spread width over time. Provides real-time profitability metrics.",
+        "parameters": {
+          "min_target_spread": "0.02 (2 cents) — minimum captured spread to consider a trade set profitable",
+          "spread_tracking_window": "Rolling 1-hour and 24-hour cumulative spread capture metrics",
+          "effective_spread_alert": "Alert when average realized spread drops below 1.5 cents (approaching unprofitable territory)"
+        }
+      },
+      {
+        "name": "KellySizer",
+        "description": "Computes risk-budget cap for each ladder level using a Kelly-derived heuristic. In a market-making context, the standard binary Kelly formula f = (b*p - q) / b is applied as an upper bound on notional exposure per level, not as a theoretically optimal directional wager. Here b is the expected spread payout, p is the estimated fill probability from Bayesian updater, and q = 1-p. The true optimal size is bounded by the inventory risk model in InventoryManager. Uses fractional Kelly (0.25x full Kelly) for safety. Ensures no single position exceeds 8% of total portfolio.",
+        "parameters": {
+          "kelly_fraction": "0.25 — use quarter-Kelly for conservative sizing that survives variance",
+          "max_single_position_pct": "0.08 (8% of total portfolio) — hard cap regardless of Kelly output",
+          "min_edge_for_bet": "0.02 (2 percentage points spread edge) — do not size any position where estimated spread edge < 2%",
+          "recalculation_frequency": "On every Bayesian probability update (every 500ms)"
+        }
+      },
+      {
+        "name": "RiskController",
+        "description": "Top-level risk management layer with kill switches and circuit breakers. Monitors portfolio-level drawdown, daily PnL, and per-market exposure. Automatically halts trading when thresholds are breached. Sends alerts via configured notification channel.",
+        "parameters": {
+          "daily_loss_limit": "-0.20 (-20% of starting daily capital) — halt all trading for remainder of day",
+          "max_drawdown_kill_switch": "-0.40 (-40% from peak equity) — full system shutdown, require manual restart",
+          "per_market_max_exposure": "0.15 (15% of total capital in any single contract)",
+          "max_concurrent_markets": "4 — limit simultaneous active ladders to manage complexity",
+          "notification_channel": "Telegram bot API — alert on every threshold breach and daily summary"
+        }
+      },
+      {
+        "name": "MarketDataFeed",
+        "description": "Aggregates real-time data from multiple sources. Binance and Coinbase WebSocket feeds provide reference crypto prices for Bayesian updates. Polymarket CLOB API provides order book state, fill notifications, and contract metadata. Computes real-time mid-price, realized volatility, order flow imbalance, and book depth metrics.",
+        "parameters": {
+          "binance_ws_endpoint": "wss://stream.binance.com:9443/ws/btcusdt@trade for BTC, ethusdt@trade for ETH",
+          "coinbase_ws_endpoint": "wss://advanced-trade-ws.coinbase.com/v1 — Coinbase Advanced Trade WebSocket, subscribe to BTC-USD and ETH-USD ticker channel",
+          "polymarket_clob_endpoint": "Polymarket CLOB REST + WebSocket API for order management and book snapshots",
+          "price_update_latency_target": "<50ms from exchange tick to internal state update",
+          "volatility_window": "60-second rolling realized volatility (standard deviation of log returns)",
+          "book_depth_levels": "20 levels on each side for spread and imbalance computation"
+        }
+      },
+      {
+        "name": "ContractWindowScheduler",
+        "description": "Manages the lifecycle of trading across multiple contract windows. Monitors upcoming contract openings (5-min and 15-min BTC/ETH UP/DOWN), pre-computes initial ladder parameters, and triggers early order placement to secure FIFO queue priority. Handles graceful wind-down as contracts approach expiry.",
+        "parameters": {
+          "supported_durations": [
+            "5-minute",
+            "15-minute"
+          ],
+          "supported_assets": [
+            "BTC",
+            "ETH"
+          ],
+          "pre_open_preparation": "Begin ladder computation 5 seconds before contract opens",
+          "wind_down_period": "Cancel all open orders 30 seconds before contract expiry to avoid settlement risk",
+          "max_overlapping_windows": "4 — can run ladders on multiple concurrent contract windows"
+        }
+      }
+    ],
+    "data_flow": "MarketDataFeed ingests Binance/Coinbase WebSocket ticks and Polymarket CLOB book state -> BayesianProbabilityUpdater computes internal fair-value probability from reference price movement -> StoikovPricingEngine uses Bayesian probability, current inventory (from InventoryManager), and volatility to compute reservation price and optimal bid/ask quotes -> NonLinearCurveDistributor allocates capital across price levels using power-law weighting -> KellySizer caps individual level sizes based on edge estimate -> BidLadderManager places/amends orders on Polymarket CLOB for both YES and NO sides -> Fill events update InventoryManager and SpreadCaptureTracker -> PositionMergeEngine scans for mergeable opposing positions and recycles capital -> RiskController monitors portfolio-level metrics and can halt the entire pipeline -> ContractWindowScheduler orchestrates startup/shutdown across contract lifecycles.",
+    "integration_points": [
+      "Polymarket CLOB API — order placement, amendment, cancellation, fill notifications, book snapshots, position queries, contract metadata",
+      "Binance WebSocket API — real-time BTC/ETH price ticks for Bayesian probability updates and volatility computation",
+      "Coinbase WebSocket API — secondary reference price feed for cross-validation",
+      "Polymarket CLOB merge endpoint — position redemption/merging via py_clob_client merge_positions API (preferred). Polygon RPC retained as fallback only if CLOB merge is unavailable — requires ChainInteractionManager for gas estimation, nonce tracking, and reorg handling",
+      "Telegram Bot API — real-time alerts on risk threshold breaches, daily PnL summaries, system health",
+      "Claude API — optional structural mispricing detection: compare market-implied probability vs Bayesian fair value to identify when spreads are abnormally wide (edge opportunity) vs abnormally narrow (pause quoting)"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Core Pricing & Data Infrastructure",
+        "description": "Implement MarketDataFeed (Binance WebSocket + Polymarket CLOB integration), BayesianProbabilityUpdater, and StoikovPricingEngine. Validate that the system can ingest real-time price data, maintain an internal probability estimate, and compute Stoikov reservation prices correctly. Output: a running system that logs computed bid/ask prices in real-time without placing orders.",
+        "deliverables": [
+          "MarketDataFeed module with <50ms latency from Binance tick to internal state",
+          "BayesianProbabilityUpdater with configurable prior, likelihood model, and update frequency",
+          "StoikovPricingEngine computing reservation price r = s - q*gamma*sigma^2*(T-t)",
+          "Unit tests validating pricing output against known scenarios",
+          "Logging infrastructure for all computed prices and probability updates",
+          "Latency profiling: instrument per-component processing time (data ingestion, Bayesian update, Stoikov computation, order serialization, API round-trip) to establish baseline latency budget and identify bottlenecks"
+        ],
+        "duration": "3-5 days"
+      },
+      {
+        "phase": 2,
+        "name": "Order Management & Ladder Deployment",
+        "description": "Implement BidLadderManager, NonLinearCurveDistributor, and KellySizer. Connect to Polymarket CLOB API for order placement. Deploy bid ladders on both YES and NO sides with non-linear volume distribution. Validate FIFO queue priority by measuring order placement latency at contract window open.",
+        "deliverables": [
+          "BidLadderManager with 1-cent spaced ladders, 10-15 levels deep on each side",
+          "NonLinearCurveDistributor with power-law (exponent 1.5) volume allocation",
+          "KellySizer enforcing quarter-Kelly with 8% max single position cap",
+          "Order lifecycle management: place, amend, cancel with <100ms execution",
+          "Paper-mode order simulation for validation without real capital"
+        ],
+        "duration": "3-5 days"
+      },
+      {
+        "phase": 3,
+        "name": "Inventory & Position Merge System",
+        "description": "Implement InventoryManager with skew tracking and quote-skewing logic. Build PositionMergeEngine for automatic capital recycling. Implement SpreadCaptureTracker for real-time profitability monitoring. Validate that the system maintains market-neutral inventory and successfully merges opposing positions.",
+        "deliverables": [
+          "InventoryManager with soft (0.15) and hard (0.40) skew thresholds",
+          "Quote-skewing logic: widen overweight side, tighten underweight side",
+          "PositionMergeEngine: auto-merge when combined cost <= $1.02, batch size >= 10",
+          "SpreadCaptureTracker with rolling 1h and 24h cumulative metrics",
+          "Integration test: full cycle of ladder placement -> fill -> inventory update -> merge -> capital recycle"
+        ],
+        "duration": "3-4 days"
+      },
+      {
+        "phase": 4,
+        "name": "Risk Management & Multi-Window Orchestration",
+        "description": "Implement RiskController with all circuit breakers and kill switches. Build ContractWindowScheduler for managing concurrent contract lifecycles. Add Telegram notification integration. Validate graceful handling of drawdown events, contract expiry, and system failures.",
+        "deliverables": [
+          "RiskController: daily loss limit (-20%), drawdown kill switch (-40%), per-market caps (15%)",
+          "ContractWindowScheduler: handle 5-min and 15-min BTC/ETH windows concurrently",
+          "Telegram Bot integration for real-time alerts and daily summaries",
+          "Graceful wind-down: cancel all orders 30s before contract expiry",
+          "Fault recovery: reconnect WebSocket feeds, resume ladder state after disconnection",
+          "Graceful shutdown handler: on SIGTERM/SIGINT, cancel all open orders across all active markets within 5 seconds, persist full inventory and order state to disk, log final position snapshot, and exit cleanly. On restart, detect and load persisted state before resuming trading",
+          "State persistence layer: persist open orders, current inventory by market, running PnL, and merge history after every fill event and every 10s heartbeat. Use SQLite for initial deployment given low write volume. On startup, load latest snapshot, reconcile with live Polymarket position query, flag discrepancies before resuming"
+        ],
+        "duration": "2-3 days"
+      },
+      {
+        "phase": 5,
+        "name": "Paper Trading Validation & Live Deployment",
+        "description": "Run the complete system in paper-trade mode for minimum 7 days, targeting 200+ completed trades. Validate spread capture metrics, inventory neutrality, merge efficiency, and effective return. Compare paper results against expected 2-5% monthly return target. If paper win rate consistently above 60% and spread capture positive, proceed to live deployment with $1-5 per trade sizing. Scale gradually based on evidence.",
+        "deliverables": [
+          "7+ days paper trading data with 200+ completed trade cycles",
+          "Performance report: realized spread per trade, daily PnL, inventory skew history, merge count and cost",
+          "Live deployment with $1-5 initial trade size, scaling to full Kelly sizing over 2-4 weeks",
+          "Monitoring dashboard: real-time PnL, inventory state, spread capture rate, system health",
+          "Operational runbook: startup, shutdown, parameter tuning, emergency procedures"
+        ],
+        "duration": "7-14 days (paper) + ongoing (live)"
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+ — primary language for all system components",
+      "asyncio + aiohttp — async event loop for concurrent WebSocket feeds and API calls",
+      "websockets library — Binance/Coinbase real-time price feed ingestion",
+      "py_clob_client — Polymarket CLOB API client for order management",
+      "numpy/scipy — statistical computations (volatility, Bayesian updates, curve fitting)",
+      "web3.py — Polygon on-chain interaction as fallback for position merging if CLOB merge API unavailable",
+      "python-telegram-bot — alert and notification delivery",
+      "SQLite or Redis — local state persistence for inventory, orders, and performance metrics",
+      "Docker — containerized deployment for 24/7 uptime",
+      "Claude API (anthropic SDK) — optional structural mispricing analysis layer"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "risk": "Spread compression below profitability threshold",
+      "description": "As more market-making bots enter Polymarket, bid-ask spreads narrow. If average realized spread drops below 1.5 cents, the system becomes unprofitable after accounting for transaction costs and merge losses.",
+      "likelihood": "medium",
+      "impact": "high",
+      "mitigation": "Monitor effective spread in real-time. Alert when trailing 1h average drops below 1.5 cents. Automatically pause quoting on markets where spread is insufficient. Diversify across multiple contract types and durations."
+    },
+    {
+      "risk": "Sudden market reversal causing inventory overload",
+      "description": "A sharp, fast price move can fill many ladder levels on one side while the opposing side receives no fills, creating heavy directional exposure on the losing side. This is the primary source of realized losses.",
+      "likelihood": "medium",
+      "impact": "high",
+      "mitigation": "Hard inventory skew limits (halt at 0.40). Stoikov pricing engine automatically widens quotes on overweight side. Aggressive position merging to shed exposure. Wind-down orders 30s before contract expiry. Daily loss limit (-20%) prevents catastrophic accumulation."
+    },
+    {
+      "risk": "Latency disadvantage / FIFO queue competition",
+      "description": "Faster bots place orders earlier at each price level, receiving priority fills. If the system is consistently slower than competitors, fill rates drop and profitability degrades.",
+      "likelihood": "high",
+      "impact": "medium",
+      "mitigation": "Target <100ms order placement latency. Use co-located or low-latency cloud infrastructure. Pre-compute ladder parameters before contract window opens. Monitor fill rate as a key performance metric — if it drops below 30%, investigate latency."
+    },
+    {
+      "risk": "Polymarket platform changes or API breaking changes",
+      "description": "Polymarket may change contract mechanics, settlement rules, fee structure, merge mechanics, or API endpoints without notice, invalidating system assumptions.",
+      "likelihood": "low",
+      "impact": "critical",
+      "mitigation": "Monitor Polymarket changelog and community channels. Implement API version checking. Build abstraction layer between strategy logic and platform API to enable rapid adaptation. Maintain paper-mode capability for re-validation after any platform change."
+    },
+    {
+      "risk": "Position merge mechanic removal or fee increase",
+      "description": "If Polymarket removes the ability to merge YES+NO positions into $1.00 settlement, or adds significant fees to merging, the capital recycling engine becomes non-functional, drastically reducing capital efficiency.",
+      "likelihood": "low",
+      "impact": "high",
+      "mitigation": "Design system to operate (at reduced efficiency) without merging by relying purely on spread capture and natural contract settlement. Monitor merge API endpoints for deprecation signals."
+    },
+    {
+      "risk": "Risk management bug allowing oversized positions",
+      "description": "A bug in Kelly sizing or inventory management that allows a single position to represent >50% of portfolio could cause catastrophic loss on a single losing trade. This is more dangerous than a bad strategy.",
+      "likelihood": "low",
+      "impact": "critical",
+      "mitigation": "Multiple independent position size checks: KellySizer cap (8%), RiskController per-market cap (15%), InventoryManager hard halt (0.40 skew). All three must agree before order placement. Extensive unit and integration testing. Paper-mode validation of edge cases."
+    },
+    {
+      "risk": "Inability to backtest accurately",
+      "description": "Since fills depend on real-time counterparty interaction and FIFO queue position, historical backtesting cannot replicate live conditions. All validation must occur through live paper trading, which is slow and expensive in developer time.",
+      "likelihood": "certain",
+      "impact": "medium",
+      "mitigation": "Accept this as a structural constraint. Invest heavily in paper-mode infrastructure. Use paper results as lower-bound estimates (live fills may be worse due to competition). Minimum 7-day paper validation before any live capital deployment."
+    },
+    {
+      "risk": "Regulatory and legal exposure",
+      "description": "Polymarket enforces geographic restrictions on US persons. Automated market-making may be subject to stricter scrutiny than individual trading. Polymarket reserves the right to freeze wallets and delist accounts. Operating a bot that systematically provides liquidity may attract regulatory attention as unlicensed exchange activity in certain jurisdictions.",
+      "likelihood": "low",
+      "impact": "critical",
+      "mitigation": "Verify account compliance with Polymarket's terms of service before deployment. Consult legal counsel regarding jurisdiction-specific rules for automated prediction market trading. Maintain full transaction logs for compliance purposes. Never deploy from restricted jurisdictions if legally prohibited."
+    }
+  ],
+  "success_criteria": [
+    {
+      "metric": "Monthly return on deployed capital",
+      "target": "2-5% net of all costs (transaction fees, merge losses, infrastructure)",
+      "measurement": "Trailing 30-day realized PnL / average deployed capital"
+    },
+    {
+      "metric": "Inventory neutrality",
+      "target": "Net inventory skew (|YES - NO| / total_capital) stays below 0.15 for 95% of operating time",
+      "measurement": "Time-weighted average absolute inventory skew over trailing 24 hours"
+    },
+    {
+      "metric": "Spread capture rate",
+      "target": "Average realized spread >= 2 cents per completed trade cycle (buy YES + buy NO + merge or settle)",
+      "measurement": "Total spread PnL / total completed trade cycles over trailing 24 hours"
+    },
+    {
+      "metric": "Fill rate",
+      "target": ">= 40% of placed ladder orders result in fills before cancellation or expiry",
+      "measurement": "Filled orders / total placed orders per contract window, averaged over trailing 24 hours"
+    },
+    {
+      "metric": "Capital recycling efficiency",
+      "target": "Average capital turnover >= 3x per day (each dollar deployed is recycled through merge/settlement at least 3 times)",
+      "measurement": "Total merged/settled capital / average deployed capital over trailing 24 hours"
+    },
+    {
+      "metric": "System uptime",
+      "target": ">= 99% uptime during active contract windows",
+      "measurement": "Minutes actively quoting / total minutes with available contract windows"
+    },
+    {
+      "metric": "Maximum drawdown",
+      "target": "Never exceed -20% daily drawdown or -40% peak-to-trough drawdown",
+      "measurement": "Continuous monitoring with automatic kill switch enforcement"
+    },
+    {
+      "metric": "Order placement latency",
+      "target": "P95 order placement latency < 100ms from decision to Polymarket API acknowledgment",
+      "measurement": "Latency histogram logged for every order submission"
+    },
+    {
+      "metric": "Paper trading gate criteria",
+      "target": "Minimum 7 days paper trading showing: (1) average realized spread >= 1.5 cents per completed cycle, (2) inventory skew below 0.15 for >= 90% of time, (3) no single-day paper loss exceeding -10%, (4) capital recycling efficiency >= 2x per day. All four conditions must be met before live capital deployment.",
+      "measurement": "Performance report generated at end of paper trading period"
+    }
+  ],
+  "notes": "Key insight from source material synthesis: The Curve Alchemist bot (non-linear order curves) outperformed Ladder Larry (flat ladders) by 52% and Merge Phantom (pure capital recycling) by 92% in a 24-hour head-to-head. This strongly suggests the non-linear volume distribution is the single most important differentiator. The optimal curve shape depends on live market behavior and must be calibrated through iterative live testing — there is no closed-form solution. Start with power-law exponent 1.5 and adjust based on fill rate data. The Stoikov formula parameters (gamma, sigma window) should be treated as hyperparameters tuned per market regime. The 1,000+ bot experience report confirms that most bot failures stem from trying to predict direction rather than from flawed market-making mechanics — reinforcing the zero-directional-bet constraint. The $2.3M BTC bot referenced across multiple sources validates that the liquidity capture approach scales with capital. Structural edge detection via Claude (comparing market-implied vs Bayesian fair-value probabilities) can serve as a meta-layer that identifies when spreads are abnormally wide (deploy more capital) vs narrow (reduce exposure), but this is an enhancement, not a core requirement."
+}

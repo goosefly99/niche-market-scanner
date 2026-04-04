@@ -1,0 +1,261 @@
+{
+  "run_id": "x-posts-trading-strategies-v3",
+  "validated_date": "2026-04-04",
+  "platform_verified": "Kalshi",
+  "specs_validated": [
+    {
+      "spec_id": "95de804a-178d-4927-9805-401029974c4b",
+      "title": "Cross-Exchange Latency Arbitrage Bot",
+      "version": "3.0",
+      "validation_status": "validated_with_changes",
+      "confirmed_assumptions": [
+        "Kalshi REST API accepts programmatic order submission with RSA-PSS signed request authentication -- confirmed: POST /trade-api/v2/portfolio/orders with RSA-PSS signing",
+        "Kalshi uses integer cents pricing -- confirmed: prices 1-99 cents",
+        "Kalshi supports batch order operations -- confirmed: batch create/cancel supported, up to 20 per call",
+        "Kalshi supports order amendment without cancel-and-replace -- confirmed: POST /portfolio/orders/{order_id}/amend",
+        "Kalshi supports subaccounts for capital isolation -- confirmed: 0-32 subaccounts",
+        "Kalshi demo environment available for paper trading -- confirmed: demo-api.kalshi.co",
+        "Kalshi per-market position limits must be queried and enforced -- confirmed: position limits exist per market",
+        "Kalshi crypto-price event contracts exist -- confirmed: crypto is a supported market category",
+        "USD cash settlement with no blockchain/gas fees -- confirmed: ACH/wire free deposits, no crypto wallets",
+        "Kalshi WebSocket available for orderbook streaming -- confirmed: wss://api.elections.kalshi.com/trade-api/ws/v2",
+        "Stateless RSA-PSS authentication with three headers per request -- confirmed: KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE",
+        "Time-in-force options available for order control -- confirmed: fill_or_kill, good_till_canceled, immediate_or_cancel supported",
+        "post_only orders available for maker-only execution -- confirmed: post_only: true supported"
+      ],
+      "invalidated_assumptions": [
+        "INVALIDATED: 'Settlement fees typically 1-7 cents per contract' -- Kalshi fee structure uses a formula: taker fee = round_up(0.07 * contracts * P * (1-P)), maker fee = round_up(0.0175 * contracts * P * (1-P)). Maximum fee at P=0.50 is 1.75 cents/contract taker. There are NO settlement fees. The spec's fee model based on settlement fees needs complete replacement with the actual taker/maker formula. This significantly changes edge calculations.",
+        "INVALIDATED: 'API rate limits must be determined during Phase 1' -- Rate limits are now known: Basic tier is 20 read/s and 10 write/s at signup, Advanced is 30/30, Premier is 100/100 (requires 3.75% monthly volume), Prime is 400/400 (7.5% monthly volume). The spec's target of 50-500 trades/day is well within even Basic tier limits (10 write/s = 864,000 writes/day).",
+        "INVALIDATED: 'Batch operations up to 20 orders per call' -- Batch create/cancel is supported but BatchCancelOrders counts as 0.2 per transaction against rate limits. The spec's assumption of 20 per batch needs verification against actual batch size limits.",
+        "PARTIALLY INVALIDATED: '85-98% documented win rate for latency arb' -- This figure is from Polymarket, not Kalshi. Debate accepted change: replace with 'to be determined in Phase 1'. Kalshi's regulated market structure with institutional market makers likely produces significantly lower rates."
+      ],
+      "debate_changes_applied": [
+        "Replace Polymarket-derived win rate claims (85-98%) with 'to be determined in Phase 1' framing",
+        "Reframe 'repricing lag' measurement to explicitly include 'cancel lag' -- time stale limit orders remain on book after CEX price move",
+        "Fix PairsArbEngine fee model: change from 2x settlement fee to 1x (winning side only) -- NOTE: with actual Kalshi fee structure (taker/maker formula, no settlement fees), this changes further",
+        "Add CFTC compliance assessment as Phase 1 deliverable",
+        "Remove cost-averaging fallback entirely from spec",
+        "Make profitability success criteria conditional on which strategy tiers pass Phase 1 validation",
+        "Add Kalshi WebSocket update frequency measurement as Phase 1 deliverable",
+        "Add explicit latency budget breakdown to architecture section"
+      ],
+      "remaining_unknowns": [
+        "Kalshi cancel lag for crypto contract market makers -- the entire latency arb thesis depends on this being >1 second",
+        "Kalshi crypto contract liquidity depth at various times of day -- spec assumes $500-$5K trades feasible",
+        "PHANTOM X Kalshi-specific performance (separate from aggregate cross-platform results)",
+        "Whether Python asyncio achieves the latency budget reliably under realistic load",
+        "Minimum starting capital at which multi-strategy approach becomes viable after fees",
+        "Kalshi WebSocket update frequency and batching behavior (100-500ms intervals suspected)",
+        "Whether Kalshi terms of service impose restrictions on algorithmic order submission frequency or order-to-cancel ratios"
+      ],
+      "recommended_version": "3.1"
+    },
+    {
+      "spec_id": "a2bae1b1-1b71-42aa-bcff-452155199b83",
+      "title": "Non-Directional Liquidity Capture & Market Making System",
+      "version": "3.0",
+      "validation_status": "validated_with_changes",
+      "confirmed_assumptions": [
+        "Kalshi operates a CLOB (Central Limit Order Book) -- confirmed",
+        "Kalshi supports limit orders with post_only flag for maker-only execution -- confirmed: post_only: true ensures maker-only orders",
+        "Kalshi supports order amendment preserving queue priority -- confirmed: POST /portfolio/orders/{order_id}/amend",
+        "Kalshi supports batch order creation and cancellation -- confirmed: batch operations supported",
+        "RSA-PSS per-request signing authentication -- confirmed: stateless, no login endpoint",
+        "Kalshi per-market position limits exist and must be enforced -- confirmed",
+        "Kalshi demo environment available for paper trading validation -- confirmed",
+        "Kalshi subaccounts available for capital isolation -- confirmed: up to 32",
+        "Binance/Coinbase WebSocket feeds available for reference price tracking -- confirmed: public streams available",
+        "Order groups available for aggregate risk management -- confirmed: POST /portfolio/order_groups/create"
+      ],
+      "invalidated_assumptions": [
+        "INVALIDATED: 'Settlement fees typically 1-7 cents per contract' -- Kalshi uses taker/maker fee formulas, NOT settlement fees. Taker: round_up(0.07 * contracts * P * (1-P)), Maker: round_up(0.0175 * contracts * P * (1-P)). NO settlement fees. This fundamentally changes the market-making economics: (1) maker fees at ~0.44 cents max at P=0.50 are very favorable for market making, (2) the spec's settlement-fee-aware spread floor needs recalculation using maker fee formula, (3) SettlementRecyclingEngine fee calculations need complete revision, (4) SpreadCaptureTracker net spread calculations change significantly.",
+        "INVALIDATED: 'FIFO vs pro-rata matching engine -- to be confirmed in Phase 0' -- CLOB structure with post_only support strongly implies price-time (FIFO) priority, consistent with standard CLOB implementations. The spec can proceed with FIFO as working assumption while Phase 0 confirms.",
+        "INVALIDATED: 'Maker vs taker fee structure -- whether maker rebates exist' -- Now known: maker fee is 0.0175 * P * (1-P) per contract, taker fee is 0.07 * P * (1-P). No rebates, but maker fees are 4x lower than taker fees. This heavily favors the market-making strategy since all ladder orders are maker orders (post_only: true).",
+        "INVALIDATED: 'Batch operations up to 20 orders per call' -- Batch operations are supported but specific per-batch size limits and rate limit counting (BatchCancelOrders = 0.2 per transaction) need verification.",
+        "PARTIALLY INVALIDATED: 'API rate limits -- to be determined' -- Rate limits now known at 4 tiers. Basic tier (20 read/s, 10 write/s) may be insufficient for HF market making with 10-15 level ladders refreshed every 3 seconds. The spec should target Advanced tier (30/30) at minimum, or Premier (100/100) for full operation."
+      ],
+      "debate_changes_applied": [],
+      "remaining_unknowns": [
+        "Position merging/netting: Can YES+NO positions be combined for early capital release, or must positions be held to expiry? This is the most critical remaining unknown for capital efficiency.",
+        "FIFO matching confirmation: While CLOB structure implies FIFO, explicit confirmation from Kalshi documentation is needed.",
+        "WebSocket update frequency and granularity for HF order management",
+        "Exact batch operation size limits and rate limit impact",
+        "Whether order amendment truly preserves FIFO queue position (documented but needs empirical verification)",
+        "Crypto contract liquidity depth sufficient for simultaneous YES and NO ladder deployment",
+        "Whether rate limits at Basic tier (10 write/s) are sufficient for ladder management, or if Advanced/Premier tier is required"
+      ],
+      "recommended_version": "3.1"
+    },
+    {
+      "spec_id": "bd818d90-4496-4fcd-92b7-e9a355970ad5",
+      "title": "Multi-Agent Consensus Trading Architecture",
+      "version": "3.0",
+      "validation_status": "validated",
+      "confirmed_assumptions": [
+        "Kalshi REST API provides real-time event listings, market data, orderbook snapshots, order execution -- confirmed with full endpoint catalog",
+        "Kalshi WebSocket provides streaming orderbook and fill data -- confirmed",
+        "RSA-PSS per-request signing authentication (stateless, no login) -- confirmed",
+        "All Kalshi prices in cents (0-10000 range) -- confirmed: prices 1-99 cents",
+        "Kalshi demo API available for paper trading validation -- confirmed",
+        "Kalshi offers contracts across crypto, economics, politics, climate/weather, sports -- confirmed: 85,000+ active markets across these categories",
+        "Batch orderbook endpoint (up to 100 tickers per request) for efficient scanning -- confirmed",
+        "Kalshi subaccounts (up to 32) for per-agent trade isolation -- confirmed",
+        "Kalshi historical contract resolution data available for RBI backtesting -- confirmed: GET /historical/markets, GET /historical/trades",
+        "Settlement is in USD, no cryptocurrency -- confirmed",
+        "Sports live data endpoints available -- confirmed: GET /milestones, GET /live_data/milestone/{id}/game_stats",
+        "Exchange Manager pattern with demo/production switching -- confirmed: straightforward with separate base URLs"
+      ],
+      "invalidated_assumptions": [
+        "INVALIDATED: 'Settlement fees typically 1-7 cents per contract' -- Referenced in multiple places. Kalshi uses taker/maker fee formulas: taker round_up(0.07 * contracts * P * (1-P)), maker round_up(0.0175 * contracts * P * (1-P)). No settlement fees. This affects edge calculations in the Market Scanner, Portfolio Tracker fee tracking, and paired contract arbitrage detection (YES + NO should sum to 100 cents, but fee calculation changes).",
+        "PARTIALLY INVALIDATED: 'Rate limits apply per endpoint (exact limits to be documented during Phase 1)' -- Rate limits are now known: 4 tiers from 20/10 read/write at Basic to 400/400 at Prime. With 6 agents querying in parallel and 15-minute scan intervals, Basic tier (20 read/s) should be sufficient for the Market Scanner but needs careful budgeting across agent data pre-fetching."
+      ],
+      "debate_changes_applied": [],
+      "remaining_unknowns": [
+        "Whether 6 parallel agent subagent dispatches within Claude Code respect rate limits on external API calls",
+        "Agent timeout sensitivity: 30-second per-agent timeout producing ABSTAINs on complex markets -- needs calibration with real Kalshi data latency",
+        "Science Agent's contrarian dissent accuracy (80% on 5 samples) requires validation over 30+ events before automation",
+        "Multi-model swarm tier cost-effectiveness: querying 5 model providers per high-value trade adds latency and cost",
+        "Whether Kalshi historical data granularity is sufficient for meaningful RBI backtesting across all agent domains",
+        "Confidence calibration framework effectiveness across agents with different domain characteristics"
+      ],
+      "recommended_version": "3.1"
+    },
+    {
+      "spec_id": "19c9c94d-de2b-46d9-a126-ca5dd3b1d57e",
+      "title": "Niche Market Edge Scanner & Trading System",
+      "version": "3.0",
+      "validation_status": "validated_with_changes",
+      "confirmed_assumptions": [
+        "Kalshi REST API provides access to events, markets, orderbook data, and order placement with RSA-PSS authentication -- confirmed",
+        "Kalshi WebSocket provides real-time orderbook and fill streaming -- confirmed",
+        "Kalshi offers weather/climate contracts resolving against official weather station readings -- confirmed: Weather/Climate is an active category with NWS-based contracts",
+        "Kalshi offers economics contracts (CPI, Fed rate, GDP, jobs) unique to Kalshi -- confirmed: Economics category active",
+        "Kalshi sports coverage includes major US sports -- confirmed: Football, basketball, baseball, hockey, soccer (pro + college)",
+        "Kalshi supports batch orderbook scanning (100 tickers per call) -- confirmed",
+        "Kalshi provides live sports data endpoints -- confirmed: GET /milestones, GET /live_data/milestone/{id}/game_stats",
+        "RSA-PSS per-request signing authentication -- confirmed",
+        "Kalshi demo API available for paper trading -- confirmed",
+        "Kalshi per-market position limits must be respected -- confirmed",
+        "Kalshi prices in cents (0-10000 range), balance in cents -- confirmed"
+      ],
+      "invalidated_assumptions": [
+        "INVALIDATED: 'Settlement fees 1-7 cents per contract' referenced in fee-aware minimum edge thresholds -- Kalshi uses taker/maker fee formulas, NOT settlement fees. Taker: round_up(0.07 * contracts * P * (1-P)), Maker: round_up(0.0175 * contracts * P * (1-P)). At extreme prices (P=0.95 or P=0.05), fees are ~0.33 cents taker / ~0.08 cents maker -- much more favorable for NO bets and tail bets than the spec assumes. The fee concern about NO bets at 95-99c YES consuming 20-40% of premium is MUCH LESS severe under the actual formula.",
+        "INVALIDATED: 'GET /series/fee_changes for fee structure monitoring' -- While this endpoint may exist, the actual fee structure is formula-based (taker/maker), not per-series settlement fees. Fee monitoring should track the formula parameters and tier status, not settlement fee schedules.",
+        "PARTIALLY INVALIDATED: 'Sports coverage depth for La Liga/UCL' -- Kalshi sports coverage is confirmed for major US sports. Soccer is listed but coverage depth for international leagues is unverified. Debate accepted change: reorient to NFL/NBA primary."
+      ],
+      "debate_changes_applied": [
+        "Add Phase 0 pre-implementation market survey to validate Kalshi contract coverage, weather bucket formats, ICAO station assignments, sports coverage, fee structure, and thin-vs-dead market prevalence",
+        "Add 25% aggregate NO bet exposure cap across all concurrent NO positions",
+        "Replace flat 12pp minimum edge threshold with per-vertical fee-adjusted thresholds",
+        "Move cross-vertical correlation monitor from Phase 5 to Phase 2 with simplified sector exposure caps (max 15% per macro risk factor)",
+        "Demote CascadeArbitrageEngine from Phase 2 core to Phase 4 experimental; extract NO bet scanning into KellyPositionSizer from Phase 1",
+        "Reorient SportsEdgeEngine from La Liga/UCL-primary to NFL/NBA-primary data sources",
+        "Add minimum bankroll thresholds per vertical to prevent capital fragmentation"
+      ],
+      "remaining_unknowns": [
+        "Kalshi weather contract bucket widths, threshold formulations, and resolution station assignments per city",
+        "Kalshi fee formula impact at extreme prices on NO bet and tail bet economics (now more favorable than originally assumed)",
+        "Batch orderbook endpoint rate limits under sustained scanning load (500+ tickers requiring 5+ batch calls)",
+        "How quickly Kalshi economics contracts reprice after BLS/Fed data releases",
+        "Empirical distribution of Kalshi weather contract resolution vs NOAA station forecast",
+        "Sports live data endpoint update frequency and granularity for in-game Bayesian updating",
+        "Edge half-life on Kalshi weather contracts as automated traders enter"
+      ],
+      "recommended_version": "3.1"
+    },
+    {
+      "spec_id": "bc164a1d-bfb6-4b23-b93b-6ff3175b26ae",
+      "title": "Alternative Data Anomaly Detection & Geopolitical Trading System",
+      "version": "3.0",
+      "validation_status": "validated",
+      "confirmed_assumptions": [
+        "Kalshi operates as a CFTC-regulated exchange with REST API access and USD cash settlement -- confirmed",
+        "Kalshi REST API with RSA-PSS per-request signing authentication -- confirmed",
+        "Kalshi WebSocket for real-time orderbook and fill streaming -- confirmed",
+        "Kalshi offers political/geopolitical event contracts -- confirmed: Politics category active",
+        "Kalshi offers economics contracts (CPI, GDP, Fed rate) -- confirmed: Economics category active",
+        "Kalshi per-market position limits -- confirmed",
+        "Kalshi demo API for dry-run validation -- confirmed",
+        "Kalshi supports batch operations (up to 20 orders) -- confirmed",
+        "Kalshi supports order amendment -- confirmed",
+        "Kalshi prices in cents, balance in cents -- confirmed"
+      ],
+      "invalidated_assumptions": [
+        "INVALIDATED: 'Settlement fees 1-7 cents per contract' referenced in PositionSizingEngine and KalshiEventCategoryMapper -- Kalshi uses taker/maker fee formulas, NOT settlement fees. Taker: round_up(0.07 * contracts * P * (1-P)), Maker: round_up(0.0175 * contracts * P * (1-P)). The spec's quarter-Kelly sizing accounting for '1-7 cent settlement fees' needs recalculation using actual formula. At geopolitical event contract prices (often 5-30 cents for tail bets), fees are very low under the actual formula.",
+        "PARTIALLY INVALIDATED: 'Position sizes must be capped at 2% of market volume' -- This is a reasonable self-imposed constraint, but Kalshi's per-market position limits provide the actual hard constraint. The spec's 2% of market volume cap may be unnecessarily restrictive for thin political/geopolitical markets where the position limit is the binding constraint.",
+        "PARTIALLY INVALIDATED: 'Thinner order books than prior platforms may reduce strategy capacity' -- Kalshi has 85,000+ active markets and $2B+/week volume. Political/geopolitical markets specifically may still be thinner, but the platform overall is large."
+      ],
+      "debate_changes_applied": [],
+      "remaining_unknowns": [
+        "Data latency vs market speed mismatch: whether FIRMS NRT 3-6 hour delay allows positioning before Kalshi geopolitical contracts fully reprice",
+        "Kalshi geopolitical/political contract liquidity depth for the position sizes this strategy targets",
+        "Whether Kalshi's smaller US-only participant base produces more durable edges for satellite-based detection",
+        "Cross-vertical causal chain repricing delays on Kalshi specifically (minutes vs hours vs seconds)",
+        "Whether Kalshi has sufficient geopolitical contract coverage for the regions this system monitors (Israel/Gaza, Ukraine, Syria, Iran, Korea, Taiwan)",
+        "CFTC regulatory sensitivity of geopolitical trading using satellite data -- the legal boundary between 'alternative data analysis' and 'material non-public information'"
+      ],
+      "recommended_version": "3.1"
+    }
+  ],
+  "platform_facts": {
+    "order_api": {
+      "endpoint": "POST /trade-api/v2/portfolio/orders",
+      "sides": ["yes", "no"],
+      "actions": ["buy", "sell"],
+      "prices": "1-99 cents (integer or fixed-point dollars)",
+      "time_in_force": ["fill_or_kill", "good_till_canceled", "immediate_or_cancel"],
+      "post_only": true,
+      "other_flags": ["reduce_only", "cancel_order_on_pause", "self_trade_prevention"],
+      "subaccounts": "0-32",
+      "batch_support": true,
+      "client_order_id": true
+    },
+    "rate_limits": {
+      "tiers": [
+        {"tier": "Basic", "read_per_second": 20, "write_per_second": 10, "qualification": "signup"},
+        {"tier": "Advanced", "read_per_second": 30, "write_per_second": 30, "qualification": "application"},
+        {"tier": "Premier", "read_per_second": 100, "write_per_second": 100, "qualification": "3.75% monthly volume + tech competency"},
+        {"tier": "Prime", "read_per_second": 400, "write_per_second": 400, "qualification": "7.5% monthly volume"}
+      ],
+      "batch_cancel_cost": "0.2 per transaction"
+    },
+    "fee_formulas": {
+      "taker": "round_up(0.07 * contracts * P * (1-P))",
+      "maker": "round_up(0.0175 * contracts * P * (1-P))",
+      "max_fee_at_p50": {"taker": "1.75 cents/contract", "maker": "~0.44 cents/contract"},
+      "fee_at_p95": {"taker": "~0.33 cents", "maker": "~0.08 cents"},
+      "settlement_fees": "NONE",
+      "deposit_fees": {"debit_card": "2%", "ach_wire": "free"}
+    },
+    "market_categories": {
+      "sports": "Football, basketball, baseball, hockey, soccer (pro + college) -- >80% of volume",
+      "economics": "CPI, inflation, unemployment, job numbers, gas prices, recession, debt default",
+      "weather_climate": "NWS-based temperature and rain contracts",
+      "crypto": "Fiat-settled via CF Benchmarks indexes",
+      "politics": "Elections, policy, government",
+      "other": "Culture, Tech & Science, World, Transportation"
+    },
+    "market_structure": {
+      "type": "CLOB (Central Limit Order Book)",
+      "contract_type": "Binary YES/NO + scalar variants",
+      "active_markets": "85,000+",
+      "weekly_volume": "$2B+",
+      "post_only_support": true,
+      "implied_matching": "Price-time priority (FIFO)"
+    }
+  },
+  "knowledge_gaps_requiring_research": [
+    "CRITICAL: All 5 specs assume settlement fees of 1-7 cents per contract. The actual Kalshi fee structure uses taker/maker formulas with NO settlement fees. All edge calculations, minimum profitable thresholds, and fee-adjusted sizing across all specs need recalculation using the actual formula. This is the single most impactful validation finding.",
+    "Rate limit tier implications: Basic tier (20 read/s, 10 write/s) may be insufficient for HF strategies (market making, latency arb). Strategies requiring >10 writes/s need Advanced tier or higher, which requires application or volume thresholds.",
+    "Kalshi cancel lag for crypto contract market makers -- determines latency arb viability",
+    "Kalshi WebSocket update frequency and batching behavior -- determines minimum achievable latency for all real-time strategies",
+    "Position merging/netting availability on Kalshi -- critical for market making capital efficiency",
+    "Exact batch operation size limits and their rate limit counting impact",
+    "Kalshi weather contract bucket formats, ICAO station assignments, and resolution mechanics",
+    "Kalshi sports contract coverage depth by league and liquidity per event type",
+    "Kalshi geopolitical/political contract availability for specific monitored regions",
+    "CFTC regulatory implications of automated trading at various frequency levels on a DCM",
+    "Whether Kalshi's FIFO matching is confirmed or if any pro-rata elements exist",
+    "Post_only flag behavior: does it guarantee maker fee tier on all fills?"
+  ]
+}

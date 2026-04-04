@@ -1,0 +1,492 @@
+{
+  "spec_id": "95de804a-178d-4927-9805-401029974c4b",
+  "title": "Cross-Exchange Latency Arbitrage Bot",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "1.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039427063812132866",
+      "title": "Cross-exchange latency arbitrage: Polymarket reprices slower than BTC on Binance (lag ~seconds). Bot on Binance WebSocket (<50ms), executes on Polymarket CLOB at stale price. $313 to $2.38M, 26,738 trades at 98% win rate, $4-5K/trade. Fractional Kelly + -40% kill switch.",
+      "relevance": "Primary source: the 0x8dxd bot mechanics — $313 to $2.38M, 98% win rate, cross-exchange latency exploitation, fractional Kelly + kill switch"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2037604599398322682",
+      "title": "Comprehensive guide to the 0x8dxd Polymarket arbitrage bot that turned $313 into $2.38M in 4 months using latency arbitrage on BTC/ETH short-duration contracts. Covers the 4 main bot strategies (latency arb, oracle arb, news-driven, market making), the Polymarket pricing lag mechanism, Kelly-based risk management, and a step-by-step build guide using Claude.",
+      "relevance": "Comprehensive guide covering all 4 bot strategies, pricing lag mechanism, Kelly risk management, step-by-step build guide"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039266206377488463",
+      "title": "Comprehensive guide with timeline showing edge compression from 12s to 2.7s, Claude vs OpenClaw comparison ($14.2K vs liquidation).",
+      "relevance": "Updated guide with timeline showing edge compression from 12s to 2.7s, Claude vs OpenClaw comparison ($14.2K vs liquidation)"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2018453276279070952",
+      "title": "Personal account of creating an HFT bot for Polymarket using Claude with exact prompt, async WebSocket architecture, and risk parameters (0.5% per trade, 2% daily loss limit).",
+      "relevance": "Personal build account with exact Claude prompt, async WebSocket architecture, risk parameters (0.5% per trade, 2% daily loss)"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039305824590246144",
+      "title": "MIT professor comparison: Claude vs OpenClaw, $1K each, 48h on Polymarket. Claude: +1,322% ($14,216) with Kelly sizing + kill switch. OpenClaw: liquidated.",
+      "relevance": "Claude vs OpenClaw head-to-head proving risk management > strategy — Kelly sizing + kill switch was the differentiator"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039746395100377447",
+      "title": "Bot trading crypto UP/DOWN options on 5/15-min timeframes. Entry below 35 cents, averages down on drops, maintains avg price below 99 cents, exits at break-even if arb fails.",
+      "relevance": "Cost averaging and break-even exit mechanics for when arb fails — complementary risk approach"
+    }
+  ],
+  "overview": {
+    "description": "A production-ready Python bot that exploits the structural pricing lag between centralized exchange spot prices (Binance BTC/ETH WebSocket feeds) and prediction market contract odds (Polymarket CLOB short-duration UP/DOWN contracts). The bot continuously monitors Binance WebSocket streams at sub-50ms latency, detects when Polymarket contract odds diverge from the implied fair value derived from CEX price movements by more than a configurable threshold (3-5%), and executes trades against stale Polymarket pricing before the orderbook reprices. Position sizing uses fractional Kelly criterion to maximize geometric growth rate while a hard -40% drawdown kill switch prevents catastrophic loss. The system targets sub-100ms detection-to-execution latency across the full pipeline: price ingestion, divergence calculation, Kelly sizing, order construction, and CLOB submission. Based on the documented 0x8dxd wallet that turned $313 into $2.38M over 26,738 trades at 98% win rate, and validated by the Claude vs OpenClaw experiment where Kelly + kill switch produced +1,322% vs liquidation.",
+    "objectives": [
+      "Maintain persistent async WebSocket connections to Binance for BTC and ETH real-time price streams with sub-50ms message receipt latency",
+      "Continuously poll or stream Polymarket CLOB orderbook state for active 5-minute and 15-minute BTC/ETH UP/DOWN contracts",
+      "Compute implied fair probability from CEX price movements using a momentum-persistence model calibrated to short-duration contract windows",
+      "Detect divergence between implied fair probability and current Polymarket contract odds exceeding configurable threshold (default: 3% for conservative, 5% for aggressive)",
+      "Size positions using fractional Kelly criterion (f* = (bp - q) / b, applied at 25-50% fraction) capped at 8% of total portfolio per single trade",
+      "Execute limit orders via Polymarket CLOB API at stale pricing within 100ms of divergence detection",
+      "Enforce hard risk limits: 0.5% max capital per trade (conservative mode), 2% daily loss limit, -40% total drawdown kill switch with immediate position flattening",
+      "Implement cost-averaging fallback: if primary arb fails, average down with entries below 35 cents and maintain average cost below 99 cents, exiting at break-even",
+      "Support paper trading mode with identical logic path for validation before live deployment",
+      "Log all trades, signals, risk events, and latency metrics for post-session analysis and strategy calibration",
+      "Send real-time alerts via Telegram on trade execution, risk threshold breaches, and kill switch activation"
+    ],
+    "constraints": [
+      "Sub-100ms end-to-end latency from Binance price update receipt to Polymarket order submission",
+      "Must handle Binance WebSocket reconnection gracefully without missing price updates during reconnect window",
+      "Polymarket CLOB API rate limits must be respected — order submission rate must stay within platform limits",
+      "Only trade contracts with >$50,000 liquidity to ensure clean entry and exit without excessive slippage",
+      "Private keys must never be hardcoded — loaded exclusively from environment variables or encrypted keystore",
+      "System must operate on Polygon network (Polymarket's L2) — USDC must be bridged to Polygon before trading",
+      "Polymarket is not available to US residents — as of the 2025 CFTC settlement, Polymarket actively monitors US wallet activity and may freeze funds of US-based users. Legal compliance with user's jurisdiction is required",
+      "The arbitrage window has compressed from 12s (2024) to ~2.7s (Q1 2026) and continues narrowing — the bot must be fast enough to operate within current and near-future windows",
+      "Must support graceful shutdown: no orphaned orders, all positions tracked, state persisted to disk"
+    ],
+    "assumptions": [
+      "Binance WebSocket API provides reliable sub-50ms BTC/ETH price stream via wss://stream.binance.com with miniTicker or trade streams",
+      "Polymarket CLOB API accepts programmatic order submission with two-tier auth: L1 (EIP-712) used once to derive L2 API credentials, then L2 (HMAC-SHA256) used on every request",
+      "Short-duration BTC/ETH UP/DOWN contracts (5-min and 15-min) continue to be listed on Polymarket with sufficient liquidity (>$50K per contract)",
+      "The pricing lag between CEX spot moves and Polymarket contract repricing remains >1 second, sufficient for sub-100ms bot execution",
+      "Python asyncio with aiohttp/websockets library provides sufficient performance for the latency target without requiring C/Rust components",
+      "USDC is available on Polygon network for funding the Polymarket wallet",
+      "The operator has a stable, low-latency internet connection (ideally <20ms to Binance and Polymarket API endpoints)",
+      "Kelly criterion with fractional sizing (25-50% of full Kelly) provides adequate risk-adjusted returns as demonstrated by the 0x8dxd wallet"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "BinancePriceFeed",
+        "description": "Async WebSocket client that maintains a persistent connection to Binance's real-time price stream for BTC/USDT and ETH/USDT. Note: miniTicker updates at ~1000ms intervals (not 100ms). For sub-100ms detection latency, use btcusdt@aggTrade / ethusdt@aggTrade streams which emit per-trade events. Maintains a rolling price window (last 60 seconds of ticks) for momentum calculation.",
+        "responsibilities": [
+          "Establish and maintain WebSocket connection to wss://stream.binance.com:9443/ws/btcusdt@miniTicker and ethusdt@miniTicker",
+          "Parse incoming JSON messages: {e: '24hrMiniTicker', s: 'BTCUSDT', c: '67432.10', o: '67100.00', h: '67500.00', l: '66900.00', v: '12345.678', q: '831234567.89'}",
+          "Maintain rolling deque of (timestamp_ms, price) tuples for last 60 seconds",
+          "Calculate real-time momentum: percentage change over configurable lookback windows (30s, 60s, 120s, 300s)",
+          "Emit PriceUpdate events to the DivergenceDetector via async queue with <5ms internal latency",
+          "Handle reconnection with exponential backoff (1s, 2s, 4s, max 30s) and emit ConnectionLost/ConnectionRestored events",
+          "Track and report WebSocket message latency (time between server timestamp and local receipt)"
+        ],
+        "interfaces": [
+          "async start() -> None: Initialize WebSocket connection and begin streaming",
+          "async stop() -> None: Gracefully close WebSocket connection",
+          "get_current_price(symbol: str) -> PriceSnapshot: Return latest price with timestamp",
+          "get_momentum(symbol: str, window_seconds: int) -> float: Return percentage price change over window",
+          "on_price_update: AsyncQueue[PriceUpdate] — consumers read from this queue",
+          "PriceUpdate dataclass: {symbol: str, price: Decimal, timestamp_ms: int, momentum_30s: float, momentum_60s: float}"
+        ]
+      },
+      {
+        "name": "PolymarketContractScanner",
+        "description": "Monitors active Polymarket short-duration BTC/ETH UP/DOWN contracts. Uses the Gamma API (gamma-api.polymarket.com) for contract discovery with tag/active/end_date filtering, and the CLOB API /book endpoint (or preferably WebSocket) for live orderbook data. Tracks current orderbook state (best bid/ask on both YES and NO sides) and contract metadata (expiry time, resolution oracle, current implied probability). Discovers new contracts as they open and drops expired ones.",
+        "responsibilities": [
+          "Discover active BTC and ETH UP/DOWN contracts (5-min and 15-min durations) via Gamma API: GET https://gamma-api.polymarket.com/markets with tag, active, and end_date_min filtering. CLOB API /markets does not support the filtering needed for contract discovery",
+          "Subscribe to orderbook updates for tracked contracts via Polymarket WebSocket (wss://ws-subscriptions-clob.polymarket.com) as the mandatory primary data source. REST polling of CLOB API GET /book?token_id=<id> is used only for initial orderbook snapshot on contract discovery, not ongoing updates. Note: /book endpoint can return stale data under load",
+          "Calculate current implied probability from best bid/ask midpoint: p_implied = (best_bid_yes + (1 - best_ask_no)) / 2",
+          "Track contract lifecycle: opening, active, approaching_expiry (last 60s), expired, resolved",
+          "Detect new contract listings and automatically begin tracking",
+          "Assess orderbook depth and liquidity — flag contracts with <$50K total liquidity as untradeable",
+          "Emit ContractUpdate events to DivergenceDetector with current odds, spread, and liquidity metrics"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin polling/streaming contract data",
+          "async stop() -> None: Stop all contract monitoring",
+          "get_active_contracts() -> List[ContractState]: Return all currently tradeable contracts",
+          "get_contract(condition_id: str) -> ContractState: Return specific contract state",
+          "on_contract_update: AsyncQueue[ContractUpdate] — consumers read contract state changes",
+          "ContractState dataclass: {condition_id: str, token_id_yes: str, token_id_no: str, symbol: str, duration_minutes: int, expiry_ts: int, implied_prob: float, best_bid_yes: float, best_ask_yes: float, depth_usdc: float, time_remaining_s: int}"
+        ]
+      },
+      {
+        "name": "DivergenceDetector",
+        "description": "Core signal engine that continuously compares CEX-derived fair probability against Polymarket implied probability for each active contract. When divergence exceeds the configured threshold, emits a TradeSignal with edge magnitude, direction, and confidence score. Uses a momentum-persistence model: if BTC drops X% in the last 30-60 seconds, the probability that BTC remains below its current level at contract expiry is derived from historical momentum autocorrelation.",
+        "responsibilities": [
+          "Consume PriceUpdate events from BinancePriceFeed and ContractUpdate events from PolymarketContractScanner",
+          "Staleness check: before computing divergence, verify that the ContractUpdate timestamp is within 500ms of current time. If Polymarket data is stale beyond this threshold, suppress the signal and log as stale_data_suppressed. This prevents false divergence signals caused by delayed Polymarket data rather than genuine mispricing",
+          "For each active contract, compute fair probability: p_fair = momentum_to_probability(momentum, time_remaining)",
+          "The momentum_to_probability model maps (price_change_pct, seconds_to_expiry) to a probability using a calibrated logistic function: p = 1 / (1 + exp(-k * momentum * sqrt(time_remaining / 60)))",
+          "Calculate edge: edge = abs(p_fair - p_implied). If edge > threshold (default 0.03 = 3%), emit TradeSignal",
+          "Determine direction: if p_fair > p_implied, buy YES side; if p_fair < p_implied, buy NO side",
+          "Compute confidence score based on: momentum magnitude, time remaining (more time = less certain), orderbook liquidity",
+          "Apply signal cooldown: do not re-signal the same contract within 2 seconds of a previous signal to avoid duplicate trades",
+          "Log all divergence calculations for post-session calibration of the probability model"
+        ],
+        "interfaces": [
+          "async start() -> None: Begin consuming price and contract feeds",
+          "async stop() -> None: Stop divergence detection",
+          "set_threshold(threshold: float) -> None: Update divergence threshold (default 0.03)",
+          "on_trade_signal: AsyncQueue[TradeSignal] — downstream consumers read signals",
+          "TradeSignal dataclass: {condition_id: str, direction: Literal['YES', 'NO'], entry_price: Decimal, fair_price: Decimal, edge: float, confidence: float, timestamp_ms: int, momentum_pct: float, time_remaining_s: int}"
+        ]
+      },
+      {
+        "name": "KellyPositionSizer",
+        "description": "Computes optimal position size for each trade signal using fractional Kelly criterion. The full Kelly formula for a binary outcome is f* = (bp - q) / b, where b is the odds ratio (payout / risk), p is the estimated win probability, and q = 1 - p. A fractional multiplier (default 0.25 to 0.50) is applied to reduce variance. Additional hard caps enforce maximum single-position and portfolio-level exposure limits.",
+        "responsibilities": [
+          "Receive TradeSignal from DivergenceDetector and current portfolio state from RiskManager",
+          "Calculate Kelly fraction: b = (1 / entry_price) - 1 (binary contract payout), p = fair_price (estimated win probability), q = 1 - p, f_full = (b*p - q) / b",
+          "Apply fractional Kelly multiplier: f_trade = f_full * kelly_fraction (configurable, default 0.25 for conservative, 0.50 for moderate)",
+          "Compute position size in USDC: size_usdc = f_trade * available_capital",
+          "Enforce hard caps: max single position = min(8% of portfolio, $5000 default), min position = $1 USDC",
+          "Adjust size for orderbook depth: if size_usdc > 50% of available depth at target price, reduce to 50% of available depth",
+          "In conservative mode (configurable), cap at 0.5% of capital per trade as documented in source 2018453276279070952",
+          "Return PositionSize with exact USDC amount, number of contracts, and effective Kelly fraction used"
+        ],
+        "interfaces": [
+          "compute_size(signal: TradeSignal, portfolio: PortfolioState) -> PositionSize",
+          "set_kelly_fraction(fraction: float) -> None: Update Kelly multiplier (0.0 to 1.0)",
+          "set_max_position_pct(pct: float) -> None: Update max single position as % of portfolio",
+          "PositionSize dataclass: {size_usdc: Decimal, num_contracts: int, kelly_fraction_used: float, capped: bool, cap_reason: Optional[str]}"
+        ]
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles order construction, signing, submission, and fill tracking via the Polymarket CLOB API. Uses a two-tier authentication model: L1 (EIP-712 signature from the wallet private key) is used once during initialization to derive L2 API credentials (apiKey, secret, passphrase) via the CLOB /derive-api-key endpoint. All subsequent order submissions use L2 (HMAC-SHA256) authentication with these derived credentials for lower latency. Supports limit orders at the target stale price. Tracks order lifecycle from submission through fill or cancellation.",
+        "responsibilities": [
+          "Receive (TradeSignal, PositionSize) pairs from the pipeline and construct CLOB limit orders",
+          "Build order payload: actual CLOB API uses camelCase fields {tokenId, price, size, side: 'BUY', orderType: 'GTC', expiration: now_seconds + 120}. Recommend using py-clob-client OrderBuilder rather than hand-rolling payloads to avoid field name mismatches",
+          "On startup, derive L2 API credentials by signing an EIP-712 message with the wallet private key (POLYMARKET_PRIVATE_KEY) and calling POST /derive-api-key. Store the returned apiKey, secret, and passphrase in memory (or load pre-derived values from POLYMARKET_API_KEY, POLYMARKET_SECRET, POLYMARKET_PASSPHRASE env vars)",
+          "Sign all order submissions using L2 HMAC-SHA256 authentication with the derived apiKey/secret/passphrase for lower latency than per-order EIP-712 signing",
+          "Submit signed orders to Polymarket CLOB API endpoint POST /order with POLY_API_KEY, POLY_SIGNATURE, and POLY_TIMESTAMP headers and nonce management. Note: actual CLOB API uses camelCase field names (tokenId, makerAmount, takerAmount, etc.) -- recommend using py-clob-client OrderBuilder rather than hand-rolling order payloads",
+          "Track order status: PENDING -> LIVE -> MATCHED/PARTIALLY_FILLED/CANCELLED",
+          "If order is not filled within 2 seconds (stale window), cancel and log as missed opportunity",
+          "Handle API errors: rate limiting (429 -> backoff), server errors (5xx -> retry with exponential backoff max 3 attempts), invalid order (400 -> log and skip)",
+          "Maintain a local order book of all active/pending orders to prevent duplicate submissions for the same contract",
+          "Report fill events to RiskManager and TradeLogger with exact fill price, size, fees, and latency metrics"
+        ],
+        "interfaces": [
+          "async execute(signal: TradeSignal, size: PositionSize) -> OrderResult",
+          "async cancel_order(order_id: str) -> bool",
+          "async cancel_all() -> int: Cancel all open orders, return count cancelled",
+          "get_open_orders() -> List[Order]",
+          "on_fill: AsyncQueue[FillEvent] — downstream consumers notified of fills",
+          "OrderResult dataclass: {order_id: str, status: str, fill_price: Optional[Decimal], fill_size: Optional[Decimal], latency_ms: int, error: Optional[str]}",
+          "FillEvent dataclass: {order_id: str, condition_id: str, direction: str, fill_price: Decimal, fill_size_usdc: Decimal, fee_usdc: Decimal, timestamp_ms: int}"
+        ]
+      },
+      {
+        "name": "RiskManager",
+        "description": "Central risk control module that enforces position-level, daily, and portfolio-level risk limits. Implements the -40% drawdown kill switch that halts all trading and flattens positions. Tracks running PnL, daily loss, open exposure, and win rate. The kill switch was the single most important differentiator between Claude (+1,322%) and OpenClaw (liquidated) in the documented head-to-head comparison.",
+        "responsibilities": [
+          "Track portfolio state: starting_capital, current_capital, open_positions, realized_pnl, unrealized_pnl",
+          "Calculate running drawdown from high-water mark: drawdown_pct = (high_water_mark - current_value) / high_water_mark",
+          "Enforce kill switch: if drawdown_pct >= 0.40 (-40%), immediately cancel all open orders, prevent new order submission, emit KillSwitchActivated alert",
+          "Enforce daily loss limit: if daily_realized_loss >= daily_loss_limit (default -2% of starting capital for conservative, -20% for aggressive), halt trading until next UTC midnight",
+          "Enforce per-trade risk limit: reject any PositionSize where size_usdc > max_per_trade_pct * current_capital",
+          "Track concurrent open positions: max 5 simultaneous open positions to prevent overexposure",
+          "Monitor contract resolution: when contracts settle, update realized PnL and win/loss counters",
+          "Implement cost-averaging fallback from source 2039746395100377447: for positions in loss, allow averaging down with entries below 35 cents maintaining average cost below 99 cents, exit at break-even if arb thesis invalidated. CAVEAT: this strategy originates from a different context (UP/DOWN options with longer timeframes) and is incompatible with pure latency arbitrage where positions should be cut quickly. Treat as experimental and DISABLED by default in v1 -- enable only via explicit config flag cost_averaging_enabled: false",
+          "Emit risk alerts at threshold levels: 50% of daily limit consumed, 75% of daily limit, kill switch warning at -30%, kill switch triggered at -40%",
+          "Persist portfolio state to disk (JSON) every 60 seconds for crash recovery"
+        ],
+        "interfaces": [
+          "check_trade_allowed(signal: TradeSignal, size: PositionSize) -> RiskDecision",
+          "record_fill(fill: FillEvent) -> None",
+          "record_settlement(condition_id: str, payout: Decimal) -> None",
+          "get_portfolio_state() -> PortfolioState",
+          "is_killed() -> bool: Check if kill switch is active",
+          "reset_daily_limits() -> None: Called at UTC midnight",
+          "RiskDecision dataclass: {allowed: bool, reason: Optional[str], adjusted_size: Optional[PositionSize]}",
+          "PortfolioState dataclass: {capital: Decimal, high_water_mark: Decimal, drawdown_pct: float, daily_pnl: Decimal, open_positions: int, total_trades: int, win_rate: float, is_killed: bool}"
+        ]
+      },
+      {
+        "name": "AlertService",
+        "description": "Sends real-time notifications via Telegram Bot API for trade executions, risk threshold breaches, kill switch activation, connection issues, and daily summary reports.",
+        "responsibilities": [
+          "Send Telegram messages via Bot API (POST https://api.telegram.org/bot<TOKEN>/sendMessage)",
+          "Alert on: trade fills, daily PnL summary, risk threshold breaches (50%/75% daily limit), kill switch activation, WebSocket disconnection/reconnection, errors",
+          "Rate-limit outgoing messages to avoid Telegram API throttling (max 30 messages/minute)",
+          "Format messages with key metrics: trade direction, size, price, edge, running PnL, win rate",
+          "Queue alerts asynchronously so alerting never blocks the trading pipeline"
+        ],
+        "interfaces": [
+          "async send_alert(level: Literal['INFO', 'WARNING', 'CRITICAL'], message: str) -> None",
+          "async send_trade_alert(fill: FillEvent, portfolio: PortfolioState) -> None",
+          "async send_daily_summary(portfolio: PortfolioState) -> None",
+          "configure(bot_token: str, chat_id: str) -> None"
+        ]
+      },
+      {
+        "name": "TradeLogger",
+        "description": "Structured logging system that records all signals, trades, risk events, and performance metrics to both file (JSON lines) and in-memory data structures for real-time dashboard queries.",
+        "responsibilities": [
+          "Log every TradeSignal with full context: timestamp, divergence, momentum, contract state, edge, confidence",
+          "Log every OrderResult with latency breakdown: signal_to_order_ms, order_to_fill_ms, total_latency_ms",
+          "Log every RiskDecision including rejections with reasons",
+          "Log every settlement with pnl attribution",
+          "Maintain rolling performance metrics: 1h/4h/24h win rate, avg edge, avg latency, sharpe ratio",
+          "Write to rotating log files: trades.jsonl, signals.jsonl, risk.jsonl, performance.jsonl",
+          "Support CSV export for backtesting and analysis"
+        ],
+        "interfaces": [
+          "log_signal(signal: TradeSignal) -> None",
+          "log_order(result: OrderResult) -> None",
+          "log_risk_event(decision: RiskDecision) -> None",
+          "log_settlement(condition_id: str, pnl: Decimal) -> None",
+          "get_performance(window_hours: int) -> PerformanceMetrics",
+          "export_csv(filepath: str, start_date: str, end_date: str) -> None"
+        ]
+      },
+      {
+        "name": "BotOrchestrator",
+        "description": "Top-level coordinator that initializes all components, manages the async event loop, wires together the pipeline (PriceFeed -> DivergenceDetector -> KellySizer -> ExecutionEngine), handles graceful startup/shutdown, and manages the paper-trading mode toggle.",
+        "responsibilities": [
+          "Load configuration from config.yaml and environment variables",
+          "Initialize all components in dependency order: AlertService, TradeLogger, RiskManager, BinancePriceFeed, PolymarketContractScanner, DivergenceDetector, KellyPositionSizer, ExecutionEngine",
+          "Wire the async pipeline: PriceFeed.on_price_update -> DivergenceDetector, ContractScanner.on_contract_update -> DivergenceDetector, DivergenceDetector.on_trade_signal -> pipeline(KellySizer -> RiskManager.check -> ExecutionEngine)",
+          "Support paper mode: when enabled, ExecutionEngine simulates fills at current market price without submitting real orders",
+          "Handle SIGINT/SIGTERM: cancel all open orders, persist state, close WebSocket connections, log final summary",
+          "Schedule daily tasks: reset daily risk limits at UTC midnight, send daily summary alert",
+          "Monitor component health: restart WebSocket connections if heartbeat missed for >30 seconds"
+        ],
+        "interfaces": [
+          "async run(mode: Literal['paper', 'live']) -> None: Main entry point",
+          "async shutdown() -> None: Graceful shutdown sequence",
+          "get_status() -> BotStatus: Return current operational status of all components",
+          "BotStatus dataclass: {mode: Literal['paper', 'live'], uptime_seconds: int, binance_connected: bool, polymarket_connected: bool, divergence_detector_active: bool, risk_manager_killed: bool, open_orders: int, open_positions: int, total_trades: int, win_rate: float, daily_pnl: Decimal, drawdown_pct: float, last_signal_ts: Optional[int], last_fill_ts: Optional[int]}"
+        ]
+      }
+    ],
+    "data_flow": "1. BinancePriceFeed receives real-time BTC/ETH price via WebSocket. For sub-100ms detection, use btcusdt@aggTrade / ethusdt@aggTrade streams (per-trade events), not miniTicker which only updates at ~1000ms intervals. Feed calculates rolling momentum (30s/60s/300s % change) and pushes PriceUpdate to async queue. 2. PolymarketContractScanner discovers active contracts via Gamma API (GET https://gamma-api.polymarket.com/markets with tag/active/end_date filtering) and fetches initial orderbook snapshot from CLOB API (GET /book?token_id=<id>). Ongoing orderbook updates are received via mandatory WebSocket connection (wss://ws-subscriptions-clob.polymarket.com), subscribing to book channel per token_id. REST /book polling is fallback only. Pushes ContractUpdate to async queue. Divergence is only computed when ContractUpdate timestamp is within 500ms of current time; stale data is suppressed. 3. DivergenceDetector consumes both queues. On each PriceUpdate, it iterates all active contracts and recalculates: p_fair = momentum_to_probability(momentum_30s, time_remaining_s) using calibrated logistic model. Computes edge = |p_fair - p_implied|. If edge > threshold (default 3%), creates TradeSignal with direction (YES if p_fair > p_implied, NO otherwise), entry_price (current best ask on target side), and edge magnitude. 4. TradeSignal passes to KellyPositionSizer which calculates: b = (1/entry_price) - 1, f* = (b*p_fair - (1-p_fair)) / b, size = f* * kelly_fraction * available_capital, capped at min(8% portfolio, available_depth * 0.5). 5. RiskManager.check_trade_allowed validates: not killed, daily loss not exceeded, position count < max, size within per-trade limit. Returns RiskDecision. 6. If allowed, ExecutionEngine constructs order using py-clob-client OrderBuilder (camelCase fields), signs with L2 HMAC-SHA256 (derived from initial EIP-712 L1 auth), submits to Polymarket CLOB POST /order. Expiration set to now + 120 seconds (Polymarket requires >= now + 60s). Tracks fill with 2-second timeout. 7. FillEvent flows back to RiskManager (update portfolio state), TradeLogger (record trade), and AlertService (send Telegram notification). 8. On contract resolution, settlement data flows to RiskManager for realized PnL update and win/loss tracking. Full pipeline target: <100ms from PriceUpdate receipt to order submission.",
+    "integration_points": [
+      "Binance WebSocket API: wss://stream.binance.com:9443/ws/<symbol>@miniTicker — real-time price streaming, no authentication required for public streams, rate limit: 5 messages/second outbound, handles ping/pong keepalive every 3 minutes",
+      "Polymarket Gamma API: https://gamma-api.polymarket.com — REST endpoints for /markets with tag, active, and end_date_min filtering. Used for contract discovery (finding active BTC/ETH UP/DOWN markets). No authentication required. This is separate from the CLOB API and provides richer market metadata",
+      "Polymarket CLOB API: https://clob.polymarket.com — REST endpoints for /book, /order, /cancel. Two-tier authentication: L1 (EIP-712 wallet signature) used once to derive L2 credentials via POST /derive-api-key, then L2 (HMAC-SHA256 with apiKey/secret/passphrase) used on every subsequent request. Rate limit: approximately 10 requests/second. Order format uses camelCase fields (tokenId, makerAmount, takerAmount) -- use py-clob-client OrderBuilder",
+      "Polymarket WebSocket: wss://ws-subscriptions-clob.polymarket.com — mandatory primary source for live orderbook updates. Subscribe to price_change and book channels per token_id. Lower latency and more reliable than REST polling of /book endpoint",
+      "Polygon Network (Matic): JSON-RPC endpoint for on-chain transaction submission if needed for contract settlement monitoring. Use wss://polygon-rpc.com or Alchemy/Infura endpoint",
+      "Telegram Bot API: https://api.telegram.org/bot<TOKEN>/sendMessage — for real-time alerts. Requires bot token (from @BotFather) and chat_id. Rate limit: 30 messages/minute per chat",
+      "System filesystem: config.yaml for bot configuration, .env for secrets (POLYMARKET_PRIVATE_KEY, POLYMARKET_API_KEY, POLYMARKET_SECRET, POLYMARKET_PASSPHRASE, BINANCE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID), JSON files for state persistence and trade logs"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "name": "Phase 1: Core Infrastructure and Price Feed",
+        "description": "Establish the async foundation, configuration system, and Binance WebSocket price feed. This phase produces a running process that connects to Binance, streams live BTC/ETH prices, calculates rolling momentum, and logs all data — validating the critical sub-50ms latency requirement before building downstream components.",
+        "tasks": [
+          "Set up Python project structure: pyproject.toml with dependencies (websockets, aiohttp, python-dotenv, pydantic), src/ package layout, config.yaml schema",
+          "Implement config loader: read config.yaml for strategy params (threshold, kelly_fraction, risk_limits, momentum_model.k_btc, momentum_model.k_eth) and .env for secrets. The momentum model k values control the logistic sensitivity per asset and must be configurable for calibration",
+          "Implement BinancePriceFeed: async WebSocket client using websockets library, connect to wss://stream.binance.com:9443/ws/btcusdt@miniTicker, parse miniTicker JSON, maintain rolling deque of (timestamp_ms, price) for last 60 seconds",
+          "Implement momentum calculator: compute 30s, 60s, 120s, 300s percentage changes from rolling price window",
+          "Implement WebSocket reconnection: exponential backoff (1s, 2s, 4s, max 30s), connection health monitoring via ping/pong",
+          "Implement TradeLogger foundation: structured JSON lines logging to rotating files with configurable rotation size",
+          "Implement BotOrchestrator skeleton: asyncio.run() entry point, signal handlers for SIGINT/SIGTERM, component lifecycle management",
+          "Write latency benchmark: measure and log time from Binance server timestamp to local PriceUpdate emission, verify <50ms"
+        ],
+        "deliverables": [
+          "Running async process that streams BTC/ETH prices from Binance WebSocket",
+          "Verified sub-50ms message receipt latency with logged benchmarks",
+          "Rolling momentum calculations validated against manual computation",
+          "Automatic reconnection verified by simulating connection drops",
+          "Structured log output in trades.jsonl format"
+        ]
+      },
+      {
+        "name": "Phase 2: Polymarket Integration and Divergence Detection",
+        "description": "Add Polymarket CLOB API integration for contract discovery and orderbook monitoring. Implement the divergence detection engine with the momentum-to-probability model. This phase produces trade signals without executing them — pure signal generation for validation.",
+        "tasks": [
+          "Implement PolymarketContractScanner: discover active crypto UP/DOWN contracts via Gamma API (GET https://gamma-api.polymarket.com/markets with tag/active/end_date filtering), parse response for condition_id, token_ids, expiry, category. Do not use CLOB API /markets for discovery",
+          "Implement orderbook fetcher: initial snapshot via GET /book?token_id=<id> from CLOB API, then subscribe to wss://ws-subscriptions-clob.polymarket.com book channel for live updates (mandatory). Parse bids/asks, compute best bid/ask and implied probability. Note: /book REST endpoint can return stale data under load -- use WebSocket as primary source",
+          "Implement contract lifecycle tracking: detect new contracts, track time_remaining_s, flag contracts approaching expiry (<60s remaining)",
+          "Implement liquidity filter: compute total depth in USDC from orderbook, reject contracts with depth < $50,000",
+          "Implement DivergenceDetector: consume PriceUpdate and ContractUpdate queues, compute p_fair using logistic momentum model",
+          "Calibrate momentum_to_probability model: p = 1 / (1 + exp(-k * momentum_pct * sqrt(time_remaining / 60))), initial k=15 based on BTC 15-min autocorrelation",
+          "Implement signal cooldown: suppress duplicate signals for same contract within 2-second window",
+          "Implement signal logging: log every divergence calculation (both above and below threshold) for model calibration",
+          "Add paper mode signal tracking: record hypothetical entry and compare against resolution to compute theoretical win rate"
+        ],
+        "deliverables": [
+          "Live contract scanning showing active BTC/ETH UP/DOWN markets with implied probabilities",
+          "Divergence detection generating TradeSignal events when edge > threshold",
+          "Signal accuracy validated against contract resolutions in paper mode (target: >70% win rate over 200+ signals)",
+          "Model calibration data: logged divergence vs. actual resolution outcomes"
+        ]
+      },
+      {
+        "name": "Phase 3: Position Sizing and Risk Management",
+        "description": "Implement the fractional Kelly position sizer and the full risk management suite including the -40% kill switch. This is the most critical phase — the Claude vs OpenClaw experiment proved that risk management quality is the primary determinant of survival and profitability.",
+        "tasks": [
+          "Implement KellyPositionSizer: full Kelly formula f* = (bp - q) / b for binary contracts, apply fractional multiplier (default 0.25)",
+          "Implement position cap logic: min(kelly_size, 8% of portfolio, 50% of orderbook depth, max_position_usdc)",
+          "Implement conservative mode: 0.5% capital per trade cap as documented in winkle's build guide",
+          "Implement RiskManager: track portfolio state (capital, high_water_mark, drawdown, daily_pnl, open_positions, win_rate)",
+          "Implement kill switch: if (high_water_mark - current_value) / high_water_mark >= 0.40, set is_killed = true, emit KillSwitchActivated",
+          "Implement daily loss limit: track daily_realized_loss, halt trading when >= daily_loss_limit_pct of starting capital",
+          "Implement concurrent position limit: max 5 simultaneous open positions",
+          "Implement cost-averaging fallback (EXPERIMENTAL, disabled by default in v1 via cost_averaging_enabled: false): for positions in loss, allow additional entries below 35 cents, track weighted average cost, exit at break-even if average cost < 99 cents. This originates from a different strategy context (UP/DOWN options) and is incompatible with pure latency arbitrage",
+          "Implement state persistence: write PortfolioState to portfolio_state.json every 60 seconds, load on startup for crash recovery",
+          "Implement daily limit reset: schedule reset_daily_limits() at UTC midnight via asyncio",
+          "Write risk unit tests: verify kill switch triggers at exactly -40%, daily limit halts trading, position caps enforced"
+        ],
+        "deliverables": [
+          "Kelly position sizer computing correct sizes for various edge/probability scenarios",
+          "Kill switch verified to activate at -40% drawdown and prevent all further trading",
+          "Daily loss limit verified to halt trading at configured threshold",
+          "State persistence verified: crash and restart recovers portfolio state accurately",
+          "Unit test suite passing for all risk scenarios"
+        ]
+      },
+      {
+        "name": "Phase 4: Execution Engine and Paper Trading Validation",
+        "description": "Build the order execution pipeline with EIP-712 signature support and Polymarket CLOB submission. Run the complete system in paper mode for at least one week (200+ trades) to validate end-to-end performance before live deployment.",
+        "tasks": [
+          "Implement ExecutionEngine: construct CLOB order payload using py-clob-client OrderBuilder with camelCase fields {tokenId, price, size, side, orderType, expiration: now_seconds + 120}. Polymarket requires expiration >= now + 60 seconds; use a configurable short window (default 120s) rather than contract_expiry_ts",
+          "Implement EIP-712 order signing: build typed data structure per Polymarket CLOB spec, sign with eth_account library using private key from env var",
+          "Implement order submission: POST to CLOB API /order endpoint with signed payload, parse response for order_id and status",
+          "Implement order lifecycle tracking: poll order status (PENDING -> LIVE -> MATCHED), timeout and cancel after 2 seconds if unfilled",
+          "Implement fill detection and reporting: emit FillEvent with exact fill price, size, fees, and full latency breakdown",
+          "Implement cancel_all(): iterate open orders and cancel each, used by kill switch and graceful shutdown",
+          "Implement paper mode in ExecutionEngine: simulate fills at current best ask without submitting real orders, use same code path for all downstream logic",
+          "Wire complete pipeline in BotOrchestrator: PriceFeed -> DivergenceDetector -> KellySizer -> RiskCheck -> ExecutionEngine -> RiskUpdate + AlertService",
+          "Implement AlertService: Telegram Bot API integration for trade fills, risk alerts, and daily summaries",
+          "Run paper trading validation: operate for minimum 7 days, collect 200+ completed trades, compute win rate, average edge, average latency, max drawdown",
+          "Document paper trading results and compare against 0x8dxd benchmarks (target: >70% win rate, sub-100ms latency)"
+        ],
+        "deliverables": [
+          "Complete end-to-end pipeline running in paper mode",
+          "Order signing and submission verified against Polymarket CLOB API (can verify with a $1 live test order)",
+          "Paper trading results: 200+ trades with documented win rate, edge, and latency metrics",
+          "Telegram alerts working for all event types",
+          "Sub-100ms pipeline latency verified from price update to order construction"
+        ]
+      },
+      {
+        "name": "Phase 5: Live Deployment, Monitoring, and Scaling",
+        "description": "Transition from paper to live trading with graduated position sizes. Establish monitoring, operational procedures, and scaling guidelines. Start with $1-5 per trade and scale only on evidence of live/paper convergence.",
+        "tasks": [
+          "Implement live/paper mode switch in config.yaml with explicit confirmation required for live mode",
+          "Deploy with minimal position sizes: start at $1-5 USDC per trade regardless of Kelly recommendation",
+          "Monitor first 50 live trades: compare fill prices, win rate, and latency against paper mode baselines",
+          "Implement performance dashboard: real-time CLI display showing current positions, PnL, win rate, latency, drawdown, kill switch status",
+          "Implement graduated scaling protocol: if live win rate within 5% of paper win rate after 50 trades, double position size; repeat weekly",
+          "Configure systemd/pm2 process management for unattended operation with auto-restart on crash",
+          "Implement health check endpoint: HTTP server on localhost exposing /health with component status for external monitoring",
+          "Document operational runbook: daily checks, configuration changes, emergency procedures, kill switch manual override",
+          "Implement edge compression monitoring: track average divergence window duration over time, alert when average drops below 1.5 seconds",
+          "Plan strategy evolution: when latency arb edge compresses below profitability threshold, evaluate oracle arb or market making as next strategies"
+        ],
+        "deliverables": [
+          "Live bot running with real capital at graduated position sizes",
+          "Live vs paper performance comparison documented",
+          "Process management configured for 24/7 unattended operation",
+          "Operational runbook covering all procedures",
+          "Edge compression monitoring active with alerts",
+          "Scaling plan with evidence-based position size progression"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+: Core language — async/await native support, strong ecosystem for crypto/trading",
+      "asyncio: Event loop and coroutine management for concurrent WebSocket streams and order execution",
+      "websockets: Async WebSocket client library for Binance price feed connection",
+      "aiohttp: Async HTTP client for Polymarket CLOB REST API calls and Telegram Bot API",
+      "pydantic: Data validation and settings management for configuration and message types",
+      "py-clob-client: Official Polymarket CLOB client library — provides OrderBuilder for correct order payload construction (camelCase fields), L1/L2 auth helpers, and API wrappers. Strongly recommended over hand-rolling API calls",
+      "eth-account: Ethereum account management and EIP-712 typed data signing for Polymarket L1 auth (used once to derive L2 credentials)",
+      "web3.py: Polygon network interaction for on-chain monitoring if needed",
+      "python-dotenv: Environment variable loading for secrets management",
+      "PyYAML: Configuration file parsing for config.yaml",
+      "structlog: Structured logging with JSON output for trade and signal logs",
+      "pytest + pytest-asyncio: Test framework for async unit and integration tests",
+      "USDC on Polygon: Trading capital denomination — must be bridged to Polygon network before use"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "Edge compression: The arbitrage window has shrunk from 12+ seconds (2024) to ~2.7 seconds (Q1 2026). As more bots enter the space, the window will continue narrowing. Below ~0.5 seconds, the strategy becomes uneconomical for non-co-located infrastructure, potentially making the entire bot worthless.",
+      "severity": "critical",
+      "mitigation": "Monitor average divergence window duration continuously. Alert when window drops below 1.5 seconds. Treat the operation as time-limited — extract value while edge exists. Plan migration to alternative strategies (oracle arb, market making) before window closes. Track competitor bot count via Polymarket API fill patterns."
+    },
+    {
+      "description": "Kill switch failure: A bug in the -40% drawdown kill switch — the single most important risk control — could allow the bot to continue trading through catastrophic losses. The OpenClaw liquidation proved that absent proper kill switch logic, even high-win-rate strategies can blow up the entire portfolio.",
+      "severity": "critical",
+      "mitigation": "Unit test kill switch exhaustively: test at exactly -39.9% (should not trigger), -40.0% (should trigger), -40.1% (should trigger). Test with rapid sequential losses. Test state persistence — kill switch must remain active after restart. Implement secondary watchdog process that independently monitors portfolio value and kills the main process if drawdown exceeds threshold."
+    },
+    {
+      "description": "Polymarket API/rules changes: Polymarket can modify contract mechanics, settlement rules, CLOB API endpoints, or rate limits at any time without notice. A contract pricing change or API deprecation could invalidate the strategy overnight.",
+      "severity": "high",
+      "mitigation": "Monitor Polymarket changelog, Discord, and developer documentation. Implement API response validation — if response schema changes unexpectedly, halt trading and alert. Pin to known API version. Maintain manual override capability to halt bot remotely via Telegram command."
+    },
+    {
+      "description": "WebSocket disconnection during active positions: If the Binance WebSocket connection drops while positions are open, the bot loses its price signal and cannot detect when to exit or avoid new entries based on stale data.",
+      "severity": "high",
+      "mitigation": "Implement heartbeat monitoring with 3-second timeout. On disconnection: immediately halt new order submission, keep existing positions (they are directional bets that will resolve), attempt reconnection with exponential backoff. Log gap duration. If gap exceeds 30 seconds, alert via Telegram. Never trade on stale price data — require price update within last 2 seconds for any new signal."
+    },
+    {
+      "description": "Position sizing bug: A miscalculation in Kelly sizing or failure to enforce caps could result in a single position consuming 80%+ of the portfolio. One losing trade at that size would be catastrophic. This is more dangerous than a bad strategy.",
+      "severity": "high",
+      "mitigation": "Implement layered caps: Kelly fraction (25-50%), hard max % of portfolio (8%), hard max USD ($5000), orderbook depth limit (50% of available). Each cap is independent — the lowest one wins. Unit test each cap independently. Log the cap that bound on every trade for monitoring. Add assertion that no order exceeds 8% of current capital — crash the bot if assertion fails rather than submit the order."
+    },
+    {
+      "description": "Private key compromise: The Polymarket wallet private key is required for order signing. If leaked (hardcoded in source, committed to git, logged to file), an attacker can drain the entire wallet immediately.",
+      "severity": "high",
+      "mitigation": "Load private key exclusively from environment variable (POLYMARKET_PRIVATE_KEY). Never log, print, or include in error messages. Add .env to .gitignore. Use a dedicated wallet with only trading capital — do not use a wallet containing other assets. Consider hardware wallet integration for large balances."
+    },
+    {
+      "description": "Latency exceeding target: If the full pipeline (price update -> divergence detection -> Kelly sizing -> order construction -> API submission) exceeds 100ms, the bot will consistently miss the arbitrage window, resulting in fills at already-corrected prices with no edge.",
+      "severity": "medium",
+      "mitigation": "Benchmark each pipeline stage independently. Optimize hot path: pre-compute Kelly parameters, cache contract metadata, use connection pooling for HTTP requests. If Python performance is insufficient, consider porting the hot path (divergence detection + order construction) to Cython or a Rust extension. Use a VPS geographically close to both Binance and Polymarket API servers."
+    },
+    {
+      "description": "Model miscalibration: The momentum_to_probability logistic model parameter (k) may be incorrectly calibrated, producing systematically wrong fair probability estimates. This would generate false signals (low edge where none exists) or miss real signals (high edge not detected).",
+      "severity": "medium",
+      "mitigation": "Log all divergence calculations including sub-threshold ones. After 500+ contract resolutions in paper mode, regress actual outcomes against predicted probabilities to recalibrate k. Use paper mode win rate as the primary calibration metric — if win rate is below 70% after 200 trades, recalibrate before going live."
+    },
+    {
+      "description": "Insufficient orderbook liquidity: If the target contract has thin orderbook depth, the bot's order may move the market (market impact), fill at a worse price than expected, or not fill at all within the 2-second window.",
+      "severity": "medium",
+      "mitigation": "Filter contracts by minimum liquidity ($50K total depth). Size positions to no more than 50% of available depth at target price. Use limit orders (not market orders) to avoid adverse fills. Track fill rate and slippage metrics — if fill rate drops below 70%, investigate and potentially lower position sizes or widen the divergence threshold."
+    },
+    {
+      "description": "Regulatory risk: Polymarket is not available to US residents. Following the 2025 CFTC settlement, Polymarket actively monitors US wallet activity and may freeze funds. Jurisdictional regulations around prediction market trading, automated trading, and crypto derivatives vary and can change. Operating in violation could result in legal consequences and frozen funds.",
+      "severity": "high",
+      "mitigation": "Verify legal status in operator's jurisdiction before deployment. Do not use VPNs to circumvent geo-restrictions — Polymarket actively detects and enforces geo-restrictions post-CFTC settlement. Consult legal counsel for large-scale operations. Maintain withdrawal readiness — do not keep more capital on Polymarket than necessary for active trading."
+    }
+  ],
+  "success_criteria": [
+    "Paper mode win rate exceeds 70% over a minimum of 200 completed trades within the first 7 days of operation",
+    "End-to-end pipeline latency (Binance price update receipt to Polymarket order submission) consistently under 100ms, measured and logged per trade",
+    "Binance WebSocket connection maintains >99.5% uptime with automatic reconnection completing within 5 seconds",
+    "Kill switch activates within 1 second of portfolio drawdown reaching -40% from high-water mark, verified by unit tests and live monitoring",
+    "Daily loss limit halts trading within 1 trade of the configured threshold (default -2% conservative / -20% aggressive)",
+    "No single position exceeds 8% of total portfolio value, enforced by layered caps with logged cap reasons",
+    "Live trading win rate converges within 5 percentage points of paper mode win rate after 50 live trades",
+    "Zero instances of private key exposure in logs, error messages, or version control",
+    "Telegram alerts delivered within 5 seconds for all trade fills, risk threshold breaches, and kill switch activations",
+    "Bot runs unattended for 72+ hours without manual intervention (excluding planned maintenance), with automatic recovery from WebSocket disconnections and transient API errors",
+    "Average net profit per trade (after transaction fees, gas costs, and slippage) exceeds $0.50 USDC minimum, with aggregate daily profit exceeding $50 USDC to justify operational overhead",
+    "State persistence enables crash recovery: after simulated kill and restart, portfolio state matches pre-crash values within $1 USDC"
+  ],
+  "notes": "This spec synthesizes 6 research sources documenting the 0x8dxd Polymarket arbitrage bot ($313 to $2.38M, 26,738 trades, 98% win rate) and related implementations. Key insight from the Claude vs OpenClaw comparison: risk management (fractional Kelly + kill switch) was the decisive factor, not strategy sophistication. The arbitrage edge is real but time-limited — the window has compressed from 12s to 2.7s and continues narrowing. Implementation priority should be: (1) reliable price feed, (2) bulletproof risk management, (3) execution speed. The cost-averaging fallback from source 2039746395100377447 provides a complementary exit mechanism for positions where the primary arb thesis fails. Conservative risk parameters (0.5% per trade, 2% daily loss) from source 2018453276279070952 should be the default for initial deployment, scaling to more aggressive parameters only after live validation."
+}

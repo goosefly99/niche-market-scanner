@@ -1,0 +1,1213 @@
+{
+  "spec_id": "bd818d90-4496-4fcd-92b7-e9a355970ad5",
+  "title": "Multi-Agent Consensus Trading Architecture",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "3.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "architecture",
+  "platform_note": "v3.0: Integrates multi-model swarm consensus, parliament dissent-report governance, skill architecture with progressive context loading, RBI framework, exchange manager for platform routing, and open-source reference implementations (Paperclip, MiroFish, Hermes, OpenClaw). Expands from single-model parliament to hybrid parliament+swarm architecture with multi-provider model diversity (Claude, GPT, Gemini, DeepSeek, Llama). Adds confidence calibration framework and addresses Kalshi API orchestration gaps. All trading executes on Kalshi (CFTC-regulated DCM, US-legal). Pre-Kalshi spec archived in synth-mcp/specs/pre-kalshi-archive/.",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039342946416283925",
+      "title": "Multi-agent parliament: 5 specialized AI agents (geopolitics, macro, science, sports, crypto) vote on each trade. 3+ agreement required. Beat single-agent by 23% ROI over 14 days. Solves overconfidence problem.",
+      "relevance": "Multi-agent parliament: 5 specialized agents vote, 3+ agreement required, beat single-agent by 23% ROI in 14 days"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039319426474869070",
+      "title": "Claude Code features for prediction markets: MCP Servers (live API/order book), CLAUDE.md (trading rules: max risk, min edge, liquidity filters), Skills (market analyzer), Subagents (parallel news/probability/position), Plan Mode, Ultra Think.",
+      "relevance": "Claude Code infrastructure: MCP servers, CLAUDE.md rules, skills, subagents — the tooling layer for multi-agent systems"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039165211178061967",
+      "title": "Rebuilt trading bot from Claude Code (claw-code) harness and skill system, cloned from leaked GitHub repo. $400 to $9,340 in 11 days.",
+      "relevance": "Harness architecture and skill system — how to structure agent capabilities and orchestration"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038574044606558237",
+      "title": "AI swarm for trading alpha. Big firms use agent swarms vs manual traders. GitHub repo. Author builds bots daily on live Zoom, learned to code after liquidations.",
+      "relevance": "AI swarm for trading alpha — multi-model consensus with 20+ agents, exchange manager pattern, RBI framework"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039373347696328738",
+      "title": "Claude agent analyzed 10K top wallets over 90 days, cross-referenced win rates/sizing. Built autonomous agent: reads live news, maps to markets, runs probabilistic inference on mispricing, detects cross-market arb, sizes with Kelly. $25 to $4,237 overnight.",
+      "relevance": "Autonomous agent combining news + probabilistic inference + cross-market arb + Kelly sizing"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039006300441620782",
+      "title": "Launch of $50K live portfolio managed by Claude autonomous agents. Can they outperform Buffett? 18.5K likes. Explains portfolio system.",
+      "relevance": "$50K autonomous agent portfolio — live performance tracking, agent-managed stock selection"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039776473687494784",
+      "title": "PHANTOM: automated Claude script by Chinese engineers. $1.18 to $3.3M on Kalshi. Referenced wallet and breakdown in linked article.",
+      "relevance": "PHANTOM autonomous script — demonstrates what fully autonomous execution can achieve on prediction markets"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039798489522053626",
+      "title": "Multi-strategy skill architecture bot",
+      "relevance": "Skill architecture with EV sizing, progressive context loading, Bayesian updates — $1K to $45K in one week, 79% win rate, Sharpe 2.59"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039611662584684697",
+      "title": "Claude bot from GitHub ($1K to $45K)",
+      "relevance": "Capped Kelly position sizing, modular skills, autonomous execution at scale (1,580 trades)"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039017567206191240",
+      "title": "Open-source repos: Paperclip, MiroFish, Hermes, OpenClaw",
+      "relevance": "Four open-source reference implementations for multi-agent trading — Hermes for parliament voting, OpenClaw for Claude Code integration"
+    }
+  ],
+  "overview": {
+    "description": "A hybrid parliament-swarm consensus trading system where six specialized AI agents independently analyze prediction market opportunities on Kalshi through isolated information contexts, then vote on whether to execute each trade — with a multi-model swarm layer providing cross-architecture validation on high-value opportunities. Kalshi is a CFTC-regulated Designated Contract Market offering YES/NO event contracts across crypto prices, economics (CPI, Fed rate, GDP), politics, climate/weather, company earnings, and sports outcomes — all cash-settled in USD with a central limit order book. The architecture leverages Claude Code's native infrastructure — MCP servers for live Kalshi API data, CLAUDE.md for immutable trading rules, the skill system for typed capabilities with progressive context loading, subagent orchestration for parallel execution, and hooks for event-driven monitoring and alerts. Each agent specializes in a distinct analytical domain (geopolitics, economics, science, sports, crypto, climate/weather), receives domain-specific data feeds, and produces a structured vote with confidence score and reasoning. A consensus threshold of 4/6 agents must agree before execution. v3.0 adds three architectural tiers from the knowledge overview: (1) Parliament tier — domain-expert agents with dissent reports and minority value tracking, where the Science Agent's empirical role as the most valuable minority dissenter is systematically exploited; (2) Swarm tier — optional multi-model consensus (Claude, GPT, Gemini, DeepSeek, Llama) as a corrective second layer on high-value trades, querying the same question across different model architectures to eliminate single-provider bias; (3) Skill tier — functional decomposition of trading capabilities (EV calculation, Bayesian probability updates, capped Kelly sizing, log-return tracking) as modular skills with progressive context loading that activates deep computation only when basic checks pass. An Exchange Manager abstraction layer decouples all trading logic from Kalshi-specific API details, enabling future platform additions without changing agent logic. The RBI framework (Research, Backtest, Implement) gates all strategies through historical validation before live deployment. All Kalshi prices are in CENTS (0-10000 range). A confidence calibration framework addresses the previously unresolved gap of comparing confidence scores across agents with different domain characteristics. Four open-source reference implementations (Paperclip, MiroFish, Hermes, OpenClaw) inform the implementation, with OpenClaw providing the closest Claude Code integration pattern and Hermes providing the best parliament-style voting reference.",
+    "objectives": [
+      "Outperform single-agent trading by 20%+ ROI through ensemble consensus filtering across parliament and optional swarm layers",
+      "Eliminate single-model overconfidence by requiring adversarial validation across 6 specialized agents with dissent reports on split votes",
+      "Reduce average loss size by 50% through consensus gating — refuse entry when agents cannot agree",
+      "Increase win rate from ~60% (single-agent baseline) to 74%+ through multi-perspective analysis",
+      "Surface high-value dissent signals — track and exploit the Science Agent's empirical pattern as most valuable minority dissenter (validate over 30+ solo-dissent events)",
+      "Enable fully autonomous 24/7 execution with no human intervention required for standard trades",
+      "Implement Kelly Criterion position sizing derived from per-agent confidence scores, historical performance, and confidence calibration weights",
+      "Exploit Kalshi's broad market categories — crypto price contracts, economics (CPI, Fed rate, GDP), politics, sports, climate/weather, company earnings — through dedicated specialist agents",
+      "Detect within-platform arbitrage on paired YES/NO contracts where prices deviate from 100 cents after fees",
+      "Provide progressive signal loading so agents can be added/removed without rebuilding the system — skills activate in tiers (basic checks first, deep computation only when warranted)",
+      "Maintain full audit trail of all votes, dissent reports, and execution decisions for iterative improvement and RBI backtesting",
+      "Operate within full CFTC regulatory compliance on a regulated Designated Contract Market",
+      "Implement multi-model swarm validation as an optional second consensus layer for high-value trades, querying Claude, GPT, Gemini, DeepSeek, and Llama in parallel",
+      "Decouple trading logic from platform specifics via Exchange Manager pattern — enabling future platform additions without agent changes",
+      "Implement confidence calibration framework to normalize agent confidence scores across domains and detect systematically over- or under-confident agents",
+      "Gate all strategies through the RBI framework: Research ideas, Backtest against Kalshi historical data, Implement only strategies with proven statistical edge"
+    ],
+    "constraints": [
+      "Each agent MUST operate in an isolated information context — shared information collapses diversity and defeats the purpose. Claude Code implementation: each subagent gets a different system prompt and tool permission set scoping its data access",
+      "Minimum consensus threshold of 4/6 agents required for any trade execution at the parliament tier",
+      "Maximum risk per position governed by CLAUDE.md rules — no agent can override the risk ceiling",
+      "All agents must return structured output: direction (YES/NO/ABSTAIN), confidence (0-100), reasoning (text), sources (array), and calibrated_confidence (0-100, post-calibration)",
+      "Dissent reports are mandatory when the parliament splits — minority agents must produce counterarguments with specific sources",
+      "Kelly Criterion sizing with a fractional cap (half-Kelly or quarter-Kelly) to prevent catastrophic drawdown",
+      "System must handle API rate limits, network failures, and agent timeouts gracefully with fallback to NO_TRADE",
+      "Latency budget: full parliament vote cycle targets p50=60s, p95=120s. The 30-second per-agent timeout will produce frequent ABSTAINs on complex markets; to mitigate, Market Scanner must pre-fetch and cache all domain-specific data feeds at scan time so agents receive pre-loaded data packages rather than fetching live during their analysis window. Agents should spend their 30 seconds on analysis, not data retrieval.",
+      "No agent may access another agent's raw analysis — only the orchestrator sees all votes",
+      "Human override capability must exist for emergency halt, but standard operation is fully autonomous",
+      "All trading must comply with Kalshi's per-market position limits (varies by contract, often $25K-$100K notional) and platform terms of service",
+      "Settlement is in USD — no cryptocurrency, no wallet management, no gas fees",
+      "Multi-model swarm tier is optional and additive — the parliament must function independently without the swarm layer. Swarm adds latency and cost; trigger only for positions above configurable threshold (default: 3% of bankroll)",
+      "Exchange Manager must enforce Kalshi-only execution for US-based trading to maintain CFTC compliance — platform routing to non-CFTC venues is a future capability gated by jurisdictional rules",
+      "RBI backtesting must complete on Kalshi historical contract resolution data before any strategy is deployed live — no strategy goes live without passing backtest validation"
+    ],
+    "assumptions": [
+      "Claude Code with MCP server support is available as the execution environment",
+      "Kalshi REST API (https://api.elections.kalshi.com/trade-api/v2) provides real-time event listings, market data, single and batch orderbook snapshots, order execution (including batch and amend), live game data, milestones, historical archives, and category/tag discovery endpoints. Authentication is RSA-PSS per-request signing (stateless, no login needed). All prices in cents.",
+      "Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) provides streaming orderbook and fill data",
+      "Each agent can be instantiated as a separate Claude subagent with its own system prompt and tool access",
+      "External data feeds (diplomatic briefings, Fed minutes, economic indicators, satellite data, sports feeds, crypto market data) are accessible via dedicated MCP servers or API integrations",
+      "Historical performance analysis has been completed to derive Kelly sizing parameters",
+      "The system operates with sufficient capital to absorb losing streaks within Kelly-sized positions",
+      "Market liquidity on Kalshi is sufficient for the position sizes the system will attempt",
+      "Agent specialization domains (geopolitics, economics, science, sports, crypto, climate/weather) cover the majority of Kalshi's event contract categories",
+      "Kalshi demo API (https://demo-api.kalshi.co/trade-api/v2) is available for paper trading validation before live deployment",
+      "Multi-model swarm requires API keys for multiple providers (OpenAI, Google, DeepSeek) in addition to Anthropic — these are available and budgeted",
+      "Open-source reference implementations (Paperclip, MiroFish, Hermes, OpenClaw) are available on GitHub for study and adaptation — they are starting points, not production-ready Kalshi integrations",
+      "Kalshi historical contract resolution data (GET /historical/markets, GET /historical/trades) is sufficient for RBI backtesting of agent strategies"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "Orchestrator (Parliament Speaker)",
+        "type": "core_service",
+        "description": "The central coordination layer that manages the full trade evaluation lifecycle across both parliament and optional swarm tiers. Receives candidate markets from the Market Scanner, distributes them to all 6 specialist agents in parallel, collects structured votes, applies consensus logic, triggers dissent report generation when splits occur, optionally escalates high-value trades to the multi-model swarm tier, computes aggregate confidence with calibration adjustments, determines Kelly-sized position, and dispatches execution orders via the Exchange Manager. Implements the harness architecture pattern from claw-code: runtime context scoping with typed I/O contracts and scoped agent permissions. The orchestrator never makes trading decisions itself — it is purely a coordination and aggregation layer. In v3.0, the Orchestrator also manages the Model Registry for swarm dispatch and feeds calibration data from the Confidence Calibration Engine into position sizing.",
+        "responsibilities": [
+          "Receive candidate markets from Market Scanner",
+          "Fan out market data to all 6 specialist agents in parallel via subagent dispatch",
+          "Collect structured vote responses with timeout handling (30s per agent, fallback to ABSTAIN)",
+          "Apply consensus threshold logic: 4/6 minimum agreement for execution",
+          "Trigger mandatory dissent report generation on split votes (4:2, 5:1, etc.)",
+          "Compute weighted aggregate confidence from individual agent scores, adjusted by Confidence Calibration Engine weights",
+          "Calculate Kelly-sized position based on calibrated aggregate probability estimate and current bankroll",
+          "For high-value positions (above swarm_threshold from CLAUDE.md), escalate to Multi-Model Swarm for cross-architecture validation before execution",
+          "Dispatch execution orders to the Exchange Manager (not directly to Kalshi)",
+          "Log all votes, reasoning, dissent reports, swarm validation results, and decisions to the Audit Trail",
+          "Implement circuit breakers: halt trading if daily loss limit reached or if win rate drops below threshold over rolling window",
+          "Manage Model Registry for swarm agent dispatch — verify model availability before each swarm session"
+        ],
+        "interfaces": [
+          "Input: CandidateMarket from Market Scanner",
+          "Output: ParliamentDecision {direction, aggregate_confidence, calibrated_confidence, position_size, votes[], dissent_reports[], swarm_validation?: SwarmResult}",
+          "Output: ExecutionOrder to Exchange Manager",
+          "Output: AuditEntry to Audit Trail"
+        ]
+      },
+      {
+        "name": "Market Scanner",
+        "type": "data_service",
+        "description": "Continuously monitors Kalshi for tradeable opportunities using progressive context loading — basic checks (liquidity, spread, contract availability) run first as Tier 1 skills; deep computations (probability updates, portfolio impact, cross-agent confirmation) trigger only when Tier 1 passes. Scans all active events and markets at configurable intervals (default: every 15 minutes) using Kalshi's category/tag-filtered event listings (GET /events with status, series_ticker, with_nested_markets filters) and category discovery (GET /search/tags_by_categories). Uses batch orderbook endpoint (GET /markets/orderbooks, up to 100 tickers) for efficient multi-market scanning. Filters by liquidity minimums, volume thresholds, and time-to-resolution. Identifies within-platform arbitrage opportunities where paired YES/NO contracts deviate from 100 cents after fees. Routes candidate markets to the appropriate specialist agent(s) based on Kalshi's structured category-to-tag mappings. Outputs a ranked list of CandidateMarket objects to the Orchestrator. Inspired by the PHANTOM system's approach of tracking thousands of markets simultaneously. v3.0: Implements the progressive context loading pattern — 147+ contracts scanned per session on average, resulting in only 2-3 entries per day that pass all tiers.",
+        "responsibilities": [
+          "Poll Kalshi events API (GET /events) with status and series_ticker filters at configurable intervals",
+          "Use GET /search/tags_by_categories for structured category->tag discovery to map markets to agent specializations",
+          "Retrieve batch orderbook snapshots (GET /markets/orderbooks, up to 100 tickers per request) for efficient multi-market scanning",
+          "Retrieve individual orderbook detail (GET /markets/{ticker}/orderbook with depth parameter) for deep-dive candidates",
+          "TIER 1 (Progressive Loading): Filter markets by minimum liquidity (500K+ cents volume), minimum time-to-resolution (>2 hours), maximum spread, and contract availability — reject the majority of scans here with minimal computation",
+          "TIER 2 (Progressive Loading): For markets passing Tier 1, compute implied probability, edge estimate, and expected value using the market-analyzer skill. Compare P(real) from external forecasts against P(market) from current contract prices — minimum spread threshold of 0.07 required",
+          "Detect within-platform arbitrage: YES + NO contract prices deviating from 100 cents (10000 in Kalshi units) after Kalshi's settlement fees",
+          "Route candidates to appropriate agents based on Kalshi category->tag mappings (crypto, economics, politics, climate, sports, etc.)",
+          "Rank candidates by estimated edge magnitude and liquidity",
+          "Apply CLAUDE.md liquidity filters and excluded-market rules",
+          "Pre-fetch and cache all domain-specific data feeds for candidates passing Tier 2, so agents receive pre-loaded data packages rather than fetching live during analysis",
+          "Pass CandidateMarket objects to Orchestrator with full market metadata as JSON"
+        ],
+        "interfaces": [
+          "Input: Raw market data from Kalshi MCP Server via Exchange Manager (events, markets, orderbooks)",
+          "Output: CandidateMarket {ticker, event_ticker, platform: 'kalshi', title, yes_price_cents, no_price_cents, deadline, volume_cents, category, tags, open_interest, paired_contract_data, tier1_pass: boolean, tier2_edge_estimate: number, prefetched_data_packages: object}"
+        ]
+      },
+      {
+        "name": "Geopolitics Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a geopolitical lens. Receives diplomatic briefings, sanctions lists, treaty status updates, UN voting records, and geopolitical risk indices. Specializes in elections, international conflicts, sanctions outcomes, diplomatic negotiations, and government policy decisions. Kalshi offers extensive political and geopolitical event contracts including elections, policy decisions, and international relations outcomes. Operates in a completely isolated context — does NOT see crypto market data, does NOT read social media sentiment, does NOT access sports or science feeds. This isolation is fundamental to preserving analytical diversity.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with geopolitics-specific data feeds attached",
+          "Analyze market through geopolitical framework: power dynamics, historical precedent, institutional incentives",
+          "Assess probability of outcome based on diplomatic signals, intelligence assessments, and policy trajectories",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority on a split vote, produce dissent report with specific counterarguments and source citations"
+        ],
+        "data_feeds": [
+          "Diplomatic briefings and press releases (via news MCP server)",
+          "Sanctions lists and trade policy updates",
+          "UN voting records and Security Council proceedings",
+          "Geopolitical risk indices (e.g., GPR index)",
+          "Government official statements and policy announcements"
+        ],
+        "kalshi_categories": ["politics"],
+        "system_prompt_scope": "You are a geopolitical analyst specializing in prediction market assessment. You evaluate markets ONLY through the lens of international relations, political power dynamics, institutional incentives, and diplomatic signals. You do NOT have access to financial market data, crypto metrics, social media sentiment, sports statistics, or scientific research. Your analysis must cite specific geopolitical sources and events. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Economics Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a macroeconomic and quantitative economics lens. Receives Fed minutes, CPI/PPI/PCE data, employment reports, GDP figures, yield curve data, and central bank communications. Specializes in economic indicator outcomes, inflation bets, interest rate decisions, recession probabilities, and fiscal policy impacts. This agent is a natural fit for Kalshi's CFTC-regulated economics contracts — Kalshi is the only US-legal venue offering event contracts on CPI, Fed funds rate, GDP, and other macroeconomic indicators. These contracts have no equivalent on offshore prediction markets, giving this agent a unique role in the parliament. Isolated from social media, crypto data, and domain-specific feeds outside economics.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with economics-specific data feeds attached",
+          "Analyze market through macroeconomic framework: monetary policy, fiscal dynamics, leading indicators",
+          "Assess probability using economic models, historical base rates, and indicator convergence",
+          "Leverage Kalshi's structured economics contracts (CPI range, Fed rate decision, GDP growth bracket) with precise data-driven analysis",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority on a split vote, produce dissent report with specific economic counterarguments"
+        ],
+        "data_feeds": [
+          "Federal Reserve minutes, speeches, and dot plots",
+          "CPI, PPI, PCE inflation data and BLS release calendar",
+          "Employment reports (NFP, unemployment rate, JOLTS)",
+          "GDP and GDI estimates",
+          "Treasury yield curve and credit spreads",
+          "Central bank communications from ECB, BOJ, BOE",
+          "Cleveland Fed Nowcast, Atlanta Fed GDPNow, and other real-time economic trackers",
+          "FRED (Federal Reserve Economic Data) API for historical indicator series"
+        ],
+        "kalshi_categories": ["economics", "fed", "finance"],
+        "system_prompt_scope": "You are a macroeconomic analyst specializing in prediction market assessment on CFTC-regulated event contracts. You evaluate markets ONLY through the lens of monetary policy, fiscal policy, economic indicators, and central bank dynamics. You have deep expertise in CPI methodology, Fed decision frameworks, GDP accounting, and employment statistics. You do NOT have access to social media, crypto data, sports statistics, or geopolitical intelligence beyond what directly affects economic policy. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Science & Technology Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a scientific and technological lens. Receives research publications, clinical trial data, patent filings, regulatory submissions (FDA, EMA), and technology adoption curves. Specializes in scientific breakthroughs, drug approvals, technology milestones, climate events, and company earnings tied to tech sector fundamentals. The most contrarian agent in historical testing — voted against the majority on 40% of markets, and when it was the sole dissenter against the majority, it was correct 80% of the time (4 out of 5 events). NOTE: The 80% figure is from a 5-sample pilot and cannot be treated as statistically reliable. This metric must be re-evaluated after 30+ solo-dissent events are observed before being used to drive automated decisions. v3.0 designates this agent as the 'most valuable minority dissenter' based on the knowledge overview's finding that a single dissenting agent proved more valuable than the rest of the system combined on its minority calls — the Dissent Analyzer gives this agent's dissent reports elevated scrutiny and the Confidence Calibration Engine tracks whether its contrarian tendency is genuinely predictive or a prompt artifact.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with science-specific data feeds attached",
+          "Analyze market through scientific rigor: evidence quality, replication likelihood, regulatory precedent, technical feasibility",
+          "Assess probability using base rates for scientific claims, clinical trial success rates by phase, and technology readiness levels",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority, produce especially detailed dissent reports — historical data shows this agent's dissent is the highest-value signal in the entire system (pending validation at 30+ events)"
+        ],
+        "data_feeds": [
+          "PubMed / arXiv preprints and publications",
+          "FDA and EMA regulatory filings and advisory committee votes",
+          "Clinical trial registries (ClinicalTrials.gov) with phase and endpoint data",
+          "Patent filings and technology readiness assessments",
+          "Company earnings reports and guidance for tech sector contracts on Kalshi"
+        ],
+        "kalshi_categories": ["science", "tech", "companies"],
+        "system_prompt_scope": "You are a scientific analyst specializing in prediction market assessment. You evaluate markets ONLY through the lens of empirical evidence, scientific methodology, regulatory precedent, and technological feasibility. You are naturally skeptical of claims that lack strong evidence. You apply base rate reasoning aggressively. You do NOT have access to financial data, social media, geopolitical intelligence, or sports statistics. When you disagree with a market's implied probability, state your case with maximum specificity. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Sports Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a sports analytics lens. Receives team/player statistics, injury reports, historical matchup data, venue effects, sports-specific quantitative models, AND real-time game data from Kalshi's live data API. Specializes in game outcomes, player performance, tournament brackets, and over/under markets. Kalshi offers regulated sports event contracts — the Sports Agent operates directly on these without needing an offshore platform. Particularly valuable for detecting arbitrage in paired O/U contracts where YES + NO should sum to 100 cents but frequently deviate due to differential trader reaction speeds (the PHANTOM strategy pattern). The live game data capability (GET /live_data/milestone/{id}/game_stats) is a major edge — real-time scores, play-by-play, and player stats directly from Kalshi enable in-game prediction updates.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with sports-specific data feeds attached",
+          "Analyze market through sports analytics framework: Elo ratings, injury-adjusted projections, venue effects, schedule fatigue",
+          "Use Kalshi's live game data (GET /live_data/milestone/{milestone_id}) for real-time score and game state during in-progress events",
+          "Use Kalshi's game stats (GET /live_data/milestone/{milestone_id}/game_stats) for play-by-play analysis during live games (supports: Pro Football, College Football, Pro Basketball, College Basketball, WNBA, Soccer, Hockey, Baseball)",
+          "Use GET /search/filters_by_sport to discover sport-specific competition filters and available markets",
+          "Detect paired contract mispricing on Kalshi: if YES costs 62 cents and NO costs 41 cents, total is 103 cents = potential arb after fees",
+          "Assess probability using statistical models, not narrative or media hype",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object, arb_detected: boolean, arb_spread_cents: number, live_game_state?: object}",
+          "When in minority on a split vote, produce dissent report grounded in statistical evidence",
+          "For in-game markets, trigger re-evaluation votes when live game data shows material state changes (lead changes, key injuries, momentum shifts)"
+        ],
+        "data_feeds": [
+          "Kalshi live game data — GET /live_data/milestone/{milestone_id} for real-time scores, game state, clock (directly from Kalshi API)",
+          "Kalshi game stats — GET /live_data/milestone/{milestone_id}/game_stats for play-by-play and player stats",
+          "Kalshi milestones — GET /milestones for sports competition discovery and market-milestone mapping",
+          "Team and player statistics databases (ESPN, Sports Reference)",
+          "Real-time injury reports and lineup confirmations",
+          "Historical head-to-head matchup data",
+          "Venue and travel schedule data",
+          "Betting line movements from traditional sportsbooks for calibration"
+        ],
+        "kalshi_categories": ["sports"],
+        "system_prompt_scope": "You are a sports analytics specialist evaluating prediction market contracts on Kalshi. You assess outcomes ONLY through quantitative sports analysis: Elo ratings, win probability models, injury-adjusted projections, and schedule effects. You have access to Kalshi's real-time live game data (scores, play-by-play, player stats) for in-progress events — use this to update predictions during live games. All prices are in CENTS (0-10000). You actively look for paired contract arbitrage (YES + NO > 100 cents or < 100 cents after settlement fees). You do NOT access geopolitical, economic, or crypto data. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Crypto Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a crypto-native lens. Receives exchange flow data, whale alerts, DeFi protocol metrics, Twitter/X crypto sentiment scores, and CEX price feeds. Specializes in Kalshi's crypto price event contracts (e.g., 'Will BTC be above $X on date Y?'), crypto regulatory decisions, and protocol milestone outcomes. Derived from the wallet analysis methodology: analyzing top performers' strategies, cross-referencing win rates and sizing patterns. Since Kalshi settles in USD and has no on-chain component, this agent focuses on crypto market intelligence as an analytical signal, not on-chain execution mechanics.",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with crypto-specific data feeds attached",
+          "Analyze market through crypto market lens: exchange flows, whale positioning, protocol fundamentals, sentiment divergence",
+          "Track smart money behavior patterns on CEXs — identify when institutional capital is positioning on specific outcomes",
+          "Monitor CEX price feeds (Binance, Coinbase) for real-time price action relevant to Kalshi crypto price contracts",
+          "Assess probability using market data evidence, not price charts or narratives",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object, whale_alignment: number}",
+          "When in minority on a split vote, produce dissent report citing specific market data evidence"
+        ],
+        "data_feeds": [
+          "Whale alert feeds (large transaction monitoring)",
+          "Exchange flow analysis (CEX inflows/outflows via Glassnode, CryptoQuant)",
+          "Twitter/X crypto sentiment scores (aggregated, not raw)",
+          "CEX price feeds via WebSocket (Binance, Coinbase) for real-time BTC/ETH/SOL prices",
+          "DeFi protocol TVL, governance proposals, and treasury data",
+          "Crypto.com MCP server for real-time market data (orderbook, trades, candles)"
+        ],
+        "kalshi_categories": ["crypto"],
+        "system_prompt_scope": "You are a crypto market analyst specializing in prediction market assessment on Kalshi. You evaluate crypto price event contracts through exchange flow data, whale behavior, institutional positioning, and crypto-native sentiment. You track what smart money is doing on centralized exchanges, not what influencers are saying. You do NOT access geopolitical briefings, macroeconomic data, sports statistics, or scientific publications. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Climate & Weather Agent",
+        "type": "specialist_agent",
+        "description": "Analyzes markets through a meteorological and climate science lens. Receives NOAA forecasts, satellite data, historical weather station readings, and climate model outputs. Specializes in Kalshi's weather and climate event contracts. This agent exploits the well-documented mispricing pattern where retail traders use consumer weather apps (city-center data) while contracts resolve on specific measurement stations, creating systematic 3-8 degree F discrepancies. Also covers broader climate contracts (hurricane season, temperature records, etc.).",
+        "responsibilities": [
+          "Receive CandidateMarket JSON from Orchestrator with climate/weather-specific data feeds attached",
+          "Analyze weather contracts using station-specific forecast data, not city averages",
+          "Apply bucket boundary analysis for temperature bracket contracts",
+          "Assess probability using NOAA/NWS forecasts, historical station data, and ensemble model outputs",
+          "Return structured vote: {direction: YES|NO|ABSTAIN, confidence: 0-100, reasoning: string, sources: string[], domain_signals: object}",
+          "When in minority on a split vote, produce dissent report with specific meteorological evidence"
+        ],
+        "data_feeds": [
+          "NOAA/NWS station-specific forecasts (Weather.gov API)",
+          "Historical weather station data (Visual Crossing API for calibration)",
+          "Satellite imagery and meteorological data (NASA FIRMS for thermal anomalies)",
+          "Ensemble weather model outputs (GFS, ECMWF, NAM)",
+          "Climate indices (ENSO, NAO, PDO) for seasonal contracts"
+        ],
+        "kalshi_categories": ["climate", "weather"],
+        "system_prompt_scope": "You are a meteorological and climate analyst specializing in prediction market assessment on Kalshi. You evaluate weather and climate contracts ONLY through station-specific forecast data, historical calibration, and ensemble model outputs. You understand that weather contracts resolve on specific measurement stations, not city averages — this is your primary edge. You apply bucket boundary analysis for temperature bracket markets. You do NOT access financial data, social media, geopolitical intelligence, sports statistics, or crypto data. Return your assessment as structured JSON."
+      },
+      {
+        "name": "Exchange Manager",
+        "type": "core_service",
+        "description": "v3.0 addition: A routing abstraction layer that decouples all trading logic from Kalshi-specific API implementations. All components (Market Scanner, Execution Engine, Portfolio Tracker) interact with Kalshi exclusively through this manager — never calling Kalshi API endpoints directly. This enables: (1) a single line of configuration to switch between Kalshi production and demo APIs, (2) future addition of new exchanges without changing agent logic, (3) enforcement of jurisdictional routing rules (US-based = Kalshi only for CFTC compliance), (4) unified handling of contract identifiers, order formats, and settlement mechanics across potential future platforms. Currently configured with Kalshi as the sole adapter. Inspired by the exchange manager pattern from the multi-model swarm architecture where the same agent system operates across multiple platforms with zero code changes in agents.",
+        "responsibilities": [
+          "Provide a platform-agnostic interface for all market data retrieval (events, orderbooks, trades, live game data)",
+          "Provide a platform-agnostic interface for all order management (place, amend, cancel, batch operations)",
+          "Translate between internal canonical formats and Kalshi-specific formats (all prices in cents, RSA-PSS auth, etc.)",
+          "Enforce jurisdictional routing: US-based trading = Kalshi only for CFTC compliance",
+          "Abstract away Kalshi's RSA-PSS per-request signing — components above this layer never handle authentication",
+          "Manage Kalshi WebSocket connections for real-time orderbook and fill streaming",
+          "Handle rate limiting, retry logic, and circuit breaking for Kalshi API calls",
+          "Provide a unified health check endpoint that reports Kalshi API status, WebSocket connectivity, and authentication validity",
+          "Support configuration-driven switching between Kalshi production (api.elections.kalshi.com) and demo (demo-api.kalshi.co) environments",
+          "Maintain adapter interface contract so future platform adapters can be added without modifying any component above this layer"
+        ],
+        "interfaces": [
+          "Input: ExchangeRequest {operation: 'get_events'|'get_orderbook'|'place_order'|'cancel_order'|..., params: object}",
+          "Output: ExchangeResponse {platform: 'kalshi', data: object, latency_ms: number, rate_limit_remaining: number}",
+          "Config: ExchangeConfig {platform: 'kalshi', environment: 'production'|'demo', credentials: {api_key_id, private_key_path}, routing_rules: {jurisdiction: 'US', allowed_platforms: ['kalshi']}}"
+        ]
+      },
+      {
+        "name": "Execution Engine",
+        "type": "core_service",
+        "description": "Handles all trade execution after the Parliament (and optionally the Swarm) approves a position. Communicates with Kalshi exclusively through the Exchange Manager. Manages order placement, order amendment, batch operations, slippage control, partial fill handling, and position tracking. All prices and balances are in CENTS. Sends Telegram alerts on fills, drawdown warnings, and daily P&L summaries. All settlement is in USD — no wallet management, no gas fees, no on-chain transactions. Can leverage subaccounts (up to 32) for per-agent trade isolation.",
+        "responsibilities": [
+          "Receive ExecutionOrder from Orchestrator with approved position size and direction",
+          "Place orders via Exchange Manager (POST /portfolio/orders with ticker, side, count, price, order type)",
+          "Implement slippage protection: reject execution if best available price has moved more than 2% from analysis time",
+          "Handle partial fills gracefully — re-queue remainder or cancel based on time sensitivity",
+          "Track all open positions with real-time P&L via Exchange Manager positions endpoint",
+          "Monitor fills via WebSocket stream (through Exchange Manager) for immediate execution confirmation",
+          "Execute paired contract arbitrage at maximum speed when Sports Agent detects mispricing",
+          "Send Telegram alerts on: order fills, position closures, drawdown threshold crossings, daily P&L summary",
+          "Implement emergency halt: cease all trading and cancel open orders if daily loss exceeds CLAUDE.md limit",
+          "GRACEFUL SHUTDOWN: On system halt (manual, circuit breaker, or crash recovery): (1) Cancel all pending/open orders immediately via Exchange Manager, (2) Log all open position states to persistent storage (SQLite) with current market prices, (3) Do NOT auto-close positions on shutdown — positions on prediction markets cannot be 'closed' without selling at current market price which may realize unnecessary losses, (4) On restart, validate persisted state against live positions via Exchange Manager before resuming trading, (5) Send Telegram alert with shutdown reason and open position summary, (6) Require explicit human confirmation before resuming autonomous trading after an unclean shutdown"
+        ],
+        "interfaces": [
+          "Input: ExecutionOrder {ticker, event_ticker, direction: 'yes'|'no', count, limit_price_cents, order_type: 'limit'|'market', urgency, subaccount_id?: string}",
+          "Output: ExecutionResult {order_id, fill_price_cents, fill_count, status, timestamp, fees_cents}",
+          "Output: TelegramAlert via webhook",
+          "Output: PositionUpdate to Portfolio Tracker",
+          "Dependency: Exchange Manager (all Kalshi API calls go through Exchange Manager)"
+        ]
+      },
+      {
+        "name": "Portfolio Tracker & Risk Manager",
+        "type": "core_service",
+        "description": "Maintains real-time portfolio state, enforces risk limits, and tracks performance metrics against benchmarks. Computes rolling win rate, average win/loss ratio, Sharpe ratio equivalent, and maximum drawdown. Inspired by the $50K Claude Portfolio concept of live, transparent performance tracking. Enforces all CLAUDE.md risk rules as hard constraints that no agent or orchestrator can override. Also enforces Kalshi's per-market position limits by querying market rules through the Exchange Manager before approving orders.",
+        "responsibilities": [
+          "Maintain real-time portfolio state: all open positions, USD cash balance, total equity",
+          "Enforce maximum position size (from CLAUDE.md rules) — reject orders that exceed per-trade or total exposure limits",
+          "Enforce Kalshi's per-market position limits (varies by contract) — query market rules via Exchange Manager and reject orders exceeding platform limits",
+          "Track rolling performance metrics: win rate, avg win/loss, total ROI, max drawdown, Sharpe-equivalent, log-return tracking",
+          "Compare performance against single-agent baseline to measure parliament alpha",
+          "Implement drawdown circuit breaker: pause trading if drawdown exceeds configurable threshold (e.g., 15% of bankroll)",
+          "Generate daily performance report with per-agent accuracy breakdown",
+          "Track which agent's dissent was correct retroactively — update agent credibility scores over time",
+          "Track settlement fees per contract to ensure edge calculations account for Kalshi's fee structure (typically 1-7 cents per contract on settlement)",
+          "EXIT MANAGER: Monitor open positions for early exit conditions — cut losses when position moves against by configurable threshold (default: 15% of position value), take profit when position reaches configurable target (default: 2x edge captured), and trigger re-evaluation when material new information arrives (breaking news, data feed alert, or agent-initiated signal)",
+          "EXIT MANAGER: Maintain per-position exit rules at entry time: stop-loss price, take-profit price, and re-evaluation triggers. Dispatch a reduced parliament session (4 agents, 15-second timeout) for re-evaluation votes on whether to hold, exit, or adjust size",
+          "EXIT MANAGER: Execute early exits via Execution Engine (through Exchange Manager) with same slippage protections as entry orders. Log exit rationale to Audit Trail with entry-vs-exit P&L attribution"
+        ],
+        "interfaces": [
+          "Input: PositionUpdate from Execution Engine",
+          "Input: MarketSettlement events from Exchange Manager (market resolution and payout data)",
+          "Input: ExitTrigger {position_id, trigger_type: 'stop_loss'|'take_profit'|'re_evaluation'|'manual', trigger_data}",
+          "Output: PortfolioState {equity_cents, cash_cents, positions[], metrics{}}",
+          "Output: RiskVeto — can block ExecutionOrders that violate risk limits or Kalshi position limits",
+          "Output: ExitOrder {position_id, direction, count, reason, exit_type} to Execution Engine",
+          "Output: PerformanceReport (daily/weekly)"
+        ]
+      },
+      {
+        "name": "Dissent Analyzer",
+        "type": "analytical_service",
+        "description": "A meta-analytical component that specifically processes and weights dissent signals. When the parliament splits, this component analyzes the minority dissent reports, cross-references them with historical outcomes, and assigns a 'dissent quality score' that can modify the Orchestrator's final decision. Based on the empirical finding that the Science Agent's solo dissent against the majority was correct 4 out of 5 times — saving $890 in avoided losses from a single agent's contrarian signal. v3.0 formalizes the knowledge overview's key finding: 'A single dissenting agent proved more valuable than the rest of the system combined on its minority calls.' The Dissent Analyzer turns this pattern from anecdote into systematic edge. It also creates an audit trail of dissent reports for post-hoc analysis of decision quality — critical for the RBI framework's research phase.",
+        "responsibilities": [
+          "Receive all dissent reports from minority-voting agents",
+          "Score dissent quality based on: specificity of sources cited, historical accuracy of the dissenting agent on similar markets, strength of counterargument, and Kalshi-specific regulatory or structural risk flags",
+          "Maintain per-agent dissent accuracy tracking: when agent X dissents, how often is X ultimately correct?",
+          "Flag 'high-quality dissent' scenarios: e.g., Science Agent sole dissenter with >80 confidence = historically 80% accurate (5-sample pilot — do not trust accuracy score for automated escalation decisions until minimum 30 solo-dissent events per agent have been recorded; until then, always escalate to HUMAN_REVIEW rather than auto-ABORT or auto-PROCEED)",
+          "Can escalate dissent to human review or reduce position size when dissent quality score exceeds threshold",
+          "Feed dissent accuracy data back to Orchestrator for dynamic confidence weighting",
+          "Feed dissent patterns to the RBI Backtest Engine for correlation analysis with market outcomes"
+        ],
+        "interfaces": [
+          "Input: DissentReport {agent_name, vote, confidence, reasoning, sources, market_context, kalshi_regulatory_flags?: string[]}",
+          "Output: DissentScore {quality: 0-100, historical_accuracy: float, recommendation: PROCEED|REDUCE_SIZE|HUMAN_REVIEW|ABORT}",
+          "Output: AgentCredibilityUpdate to Orchestrator and Confidence Calibration Engine"
+        ]
+      },
+      {
+        "name": "Multi-Model Swarm Validator",
+        "type": "analytical_service",
+        "description": "v3.0 addition: An optional second consensus layer that queries the same trading question across multiple AI model providers (Claude, GPT, Gemini, DeepSeek, Llama) in parallel. Triggered only for high-value positions (above swarm_threshold in CLAUDE.md, default: 3% of bankroll). The swarm does not replace the parliament — it ratifies or refuses parliament-approved trades based on cross-architecture model agreement. Different model architectures have different failure modes: if 5 different model families agree, confidence is higher than any single model alone. If models disagree, it signals regime uncertainty that the parliament's same-model agents cannot detect. Acts as a corrective second layer on the parliament's decision, not a replacement. A consensus reviewer aggregates all model responses into a final SwarmResult.",
+        "responsibilities": [
+          "Receive parliament-approved trade with full context (votes, dissent reports, market data, aggregate confidence) from Orchestrator",
+          "Query the same trading question to agents running on Claude, GPT-4, Gemini, DeepSeek, and Llama (5 model providers minimum)",
+          "Run all model queries in parallel with 45-second timeout per model (longer than parliament agents due to cross-provider latency)",
+          "Collect structured responses from all models: direction, confidence, reasoning",
+          "Apply consensus reviewer logic: compute cross-model agreement rate and model-diversity-weighted confidence",
+          "Return SwarmResult with ratify/refuse/reduce recommendation to Orchestrator",
+          "Track per-model accuracy over time to weight reliable models higher in consensus calculation",
+          "Detect single-provider bias: flag when all Claude-family models agree but non-Claude models disagree (or vice versa)",
+          "Can weight models differently based on domain performance (e.g., Claude for reasoning-heavy political markets, GPT for data-dense sports markets) — learned from historical accuracy data"
+        ],
+        "interfaces": [
+          "Input: SwarmRequest {parliament_decision: ParliamentDecision, market_data: CandidateMarket, full_context: object}",
+          "Output: SwarmResult {recommendation: 'ratify'|'refuse'|'reduce_size', cross_model_agreement: float, model_votes: ModelVote[], confidence_adjustment: float}",
+          "Dependency: Model Registry for provider connections and health checks"
+        ]
+      },
+      {
+        "name": "Model Registry",
+        "type": "infrastructure_service",
+        "description": "v3.0 addition: A centralized registry for AI models that enables easy swapping and updating as new models release. Supports multiple providers: Anthropic (Claude), OpenAI (GPT), Google (Gemini), DeepSeek, Meta (Llama). Includes a testing framework that verifies each model with a simple prompt to confirm operational status before use. Decouples agent logic from specific model versions, ensuring the system always uses the most capable available models. Critical for the Multi-Model Swarm Validator — need reliable connections to 5+ model providers simultaneously.",
+        "responsibilities": [
+          "Maintain registry of available models with provider, version, API endpoint, and capability tags",
+          "Verify model availability before each swarm session with a simple test prompt",
+          "Handle model version updates: when a provider releases a new version, update registry and re-run verification",
+          "Provide model selection API: given domain and task type, return the best available model(s)",
+          "Track per-model latency, availability, and cost for optimization",
+          "Support fallback chains: if primary model for a provider is unavailable, use backup model",
+          "Enforce cost budgets: track API spend per model per day and halt swarm queries if budget exceeded"
+        ],
+        "interfaces": [
+          "Input: ModelQuery {provider?: string, domain?: string, task_type?: string}",
+          "Output: ModelSelection {model_id, provider, version, endpoint, estimated_latency_ms, cost_per_query}",
+          "Output: ModelHealthReport {model_id, status: 'available'|'degraded'|'unavailable', last_verified}"
+        ]
+      },
+      {
+        "name": "Confidence Calibration Engine",
+        "type": "analytical_service",
+        "description": "v3.0 addition: Addresses the previously identified knowledge gap of confidence calibration across agents. Each parliament agent returns a confidence score (0-100), but these scores are not inherently comparable across domains — a Crypto Agent's '80% confidence' may have very different reliability than a Science Agent's '80% confidence'. The Calibration Engine maintains per-agent, per-domain calibration curves that map raw confidence scores to calibrated probabilities based on historical accuracy. This ensures that when the Orchestrator computes aggregate confidence for Kelly sizing, the input probabilities are meaningfully comparable. Also detects and corrects for systematically over- or under-confident agents.",
+        "responsibilities": [
+          "Maintain per-agent calibration curves: for each agent, track historical accuracy at each confidence level (e.g., when Crypto Agent says 80%, how often is it correct?)",
+          "Apply calibration adjustment to raw confidence scores before they enter aggregate confidence computation",
+          "Detect systematic bias: flag agents that are consistently overconfident (claimed 80%, actual 55%) or underconfident (claimed 60%, actual 78%)",
+          "Generate calibration reports per agent per Kalshi category for the weekly learning cycle",
+          "Feed calibrated probabilities to Kelly Sizer for more accurate position sizing",
+          "Bootstrap calibration with uninformative priors (assume perfect calibration) during the cold-start phase, switching to empirical calibration after minimum 50 settled votes per agent",
+          "Implement Platt scaling or isotonic regression for calibration curve fitting",
+          "Track cross-model calibration for swarm agents: different model providers have different confidence distributions"
+        ],
+        "interfaces": [
+          "Input: RawVote {agent_name, domain, raw_confidence: 0-100, direction}",
+          "Input: OutcomeData {agent_name, domain, predicted_confidence, actual_outcome}",
+          "Output: CalibratedVote {agent_name, raw_confidence, calibrated_confidence, calibration_method, sample_size}",
+          "Output: CalibrationReport {agent_name, domain, brier_score, calibration_curve_points[], bias_direction: 'over'|'under'|'well_calibrated', sample_count}"
+        ]
+      },
+      {
+        "name": "RBI Backtest Engine",
+        "type": "analytical_service",
+        "description": "v3.0 addition: Implements the Research-Backtest-Implement framework that gates all strategies through historical validation before live deployment. Uses Kalshi's historical contract resolution data (GET /historical/markets, GET /historical/trades) to backtest agent strategies against actual CFTC-regulated outcomes. This is the gatekeeper that prevents untested strategies from reaching live capital. Inspired by Jim Simons' approach at Renaissance Technologies: if an idea worked historically, it is more likely to work in the future (with caveats on regime changes and sample size).",
+        "responsibilities": [
+          "RESEARCH: Maintain a continuously updated list of trading strategy hypotheses from agent performance analysis, dissent pattern mining, and market regime observations",
+          "BACKTEST: Test each strategy hypothesis against Kalshi historical data — simulate parliament votes, Kelly sizing, and execution on past markets to compute theoretical P&L",
+          "IMPLEMENT: Promote only strategies that show positive expected value in backtest with statistically significant sample size (minimum 100 simulated trades, positive Sharpe)",
+          "Prevent deployment of any strategy that has not passed backtesting — this is a hard gate, not a recommendation",
+          "Support walk-forward validation: train on historical period A, validate on subsequent unseen period B",
+          "Track regime sensitivity: flag strategies that worked in one market regime (e.g., low volatility) but may fail in another",
+          "Provide confidence intervals on backtest results — point estimates without uncertainty bounds are misleading",
+          "Feed backtest results to the Orchestrator's learning loop for strategy weight adjustment"
+        ],
+        "interfaces": [
+          "Input: StrategyHypothesis {name, description, entry_rules, exit_rules, sizing_rules, target_categories}",
+          "Input: HistoricalData from Exchange Manager (GET /historical/markets, GET /historical/trades)",
+          "Output: BacktestResult {strategy_name, simulated_trades: number, win_rate, total_pnl_cents, sharpe, max_drawdown, confidence_interval_95, regime_sensitivity: object, recommendation: 'promote'|'reject'|'needs_more_data'}",
+          "Output: PromotedStrategy to Orchestrator for live deployment"
+        ]
+      },
+      {
+        "name": "Audit Trail & Learning System",
+        "type": "data_service",
+        "description": "Persistent storage and analysis of all parliament decisions, swarm validations, agent votes, market outcomes, and performance attribution. Enables retroactive analysis of which agents were right, which dissent signals had value, how swarm validation affected outcomes, and how consensus quality correlates with results. This is the learning loop that allows the system to improve over time by adjusting agent credibility weights, calibration curves, and consensus thresholds based on empirical results.",
+        "responsibilities": [
+          "Log every parliament session: market analyzed, all 6 votes with reasoning, consensus outcome, swarm validation result (if triggered), execution decision, final P&L",
+          "Track market settlements on Kalshi (via Exchange Manager) and attribute outcomes to individual agent accuracy",
+          "Compute rolling accuracy by agent, by market category (using Kalshi's category taxonomy), and by consensus split pattern",
+          "Identify systematic biases: is any agent consistently overconfident? Consistently wrong on a market type?",
+          "Generate weekly learning reports recommending adjustments to agent weights, calibration curves, or data feeds",
+          "Store all data in SQLite with structured schemas for downstream analysis and model fine-tuning",
+          "Feed historical outcome data to Confidence Calibration Engine for calibration curve updates",
+          "Feed dissent outcome data to Dissent Analyzer for dissent accuracy tracking",
+          "Feed strategy performance data to RBI Backtest Engine for hypothesis generation"
+        ],
+        "interfaces": [
+          "Input: ParliamentSession {market, votes[], decision, swarm_result?, execution, outcome}",
+          "Output: SQLite audit records (append-only, structured schemas)",
+          "Output: WeeklyLearningReport with recommendations",
+          "Output: AgentAccuracyMetrics for dynamic weight adjustment",
+          "Output: CalibrationData to Confidence Calibration Engine",
+          "Output: StrategyPerformanceData to RBI Backtest Engine"
+        ]
+      }
+    ],
+    "data_flow": "1. MARKET DISCOVERY (Tier 1 — Progressive Loading): Market Scanner polls Kalshi events API via Exchange Manager (GET /events with status/series_ticker filters) and uses GET /search/tags_by_categories for structured category->tag discovery. Retrieves batch orderbooks (GET /markets/orderbooks, up to 100 tickers) for efficient multi-market scanning. Applies Tier 1 basic checks: liquidity minimums, spread validation, time-to-resolution, contract availability. Rejects the majority of 147+ scanned contracts at this stage with minimal computation. 2. EDGE ESTIMATION (Tier 2 — Progressive Loading): Markets passing Tier 1 undergo Tier 2 analysis: the market-analyzer skill computes implied probability, compares P(real) from external forecasts against P(market) from current contract prices, and requires a minimum spread of 0.07. Only markets with estimated positive EV after settlement fees advance. Each candidate is tagged with Kalshi's category/tag mappings for agent routing. Pre-fetches domain-specific data feeds for all agents that will receive this candidate. 3. PROGRESSIVE SIGNAL LOADING: For each CandidateMarket passing Tier 2, the Orchestrator prepares 6 isolated data packages — each containing the base market JSON (ticker, title, yes_price_cents, no_price_cents, deadline, volume_cents, category, tags) plus domain-specific feeds unique to that agent. Geopolitics gets diplomatic briefings; Economics gets Fed minutes, CPI data, and yield curves; Science gets clinical trials and research; Sports gets stats, injury reports, AND Kalshi live game data via Exchange Manager; Crypto gets exchange flows and CEX price feeds; Climate/Weather gets NOAA forecasts and station data. No agent sees another agent's data. 4. PARALLEL AGENT DISPATCH: Orchestrator dispatches all 6 specialist agents simultaneously as Claude Code subagents. Each runs in its own context with its own system prompt. 30-second timeout per agent; timeout = ABSTAIN vote. 5. VOTE COLLECTION & CALIBRATION: Each agent returns structured JSON: {direction, confidence, reasoning, sources, domain_signals}. Confidence Calibration Engine adjusts raw confidence scores to calibrated probabilities based on per-agent historical accuracy. Orchestrator collects all 6 calibrated votes. 6. CONSENSUS EVALUATION: Orchestrator applies threshold: 4/6 minimum agreement on direction. If threshold not met, NO_TRADE and log the disagreement. 7. DISSENT PROCESSING: On split votes (4:2 or 5:1), minority agents produce dissent reports. Dissent Analyzer scores quality, checks historical accuracy of the dissenting agent(s), and flags Kalshi-specific regulatory/structural risks. High-quality dissent can reduce position size or escalate to human review. 8. OPTIONAL SWARM VALIDATION: For positions above swarm_threshold (default: 3% of bankroll), Orchestrator escalates to Multi-Model Swarm Validator. The same question is sent to Claude, GPT, Gemini, DeepSeek, and Llama in parallel. Swarm consensus reviewer aggregates cross-model responses and returns ratify/refuse/reduce recommendation. Swarm refusal = NO_TRADE regardless of parliament consensus. Swarm reduce = position size cut by 50%. 9. POSITION SIZING: If consensus reached (and swarm ratified, if triggered), Orchestrator computes Kelly-sized position using calibrated aggregate probability estimate against market odds (in cents), capped at half-Kelly. Portfolio Tracker validates against CLAUDE.md risk limits and Kalshi's per-market position limits (queried via Exchange Manager). 10. EXECUTION: Execution Engine places order via Exchange Manager. Slippage check against orderbook, fill confirmation via WebSocket, Telegram alert. Can use subaccounts for per-agent trade isolation. 11. SETTLEMENT TRACKING: When market settles on Kalshi, Audit Trail records outcome and payout (in cents), attributes accuracy to each agent and swarm models, updates credibility scores. Calibration Engine receives outcome data for calibration curve updates. 12. LEARNING LOOP: Weekly, the system reviews agent accuracy by domain and Kalshi category/tag mappings (from GET /search/tags_by_categories), adjusts credibility weights, updates calibration curves, and flags agents that need data feed improvements. RBI Backtest Engine receives strategy performance data for hypothesis generation and validation.",
+    "integration_points": [
+      {
+        "name": "Kalshi MCP Server (via Exchange Manager)",
+        "type": "mcp_server",
+        "description": "Primary MCP server wrapping Kalshi's REST API (https://api.elections.kalshi.com/trade-api/v2). All access goes through the Exchange Manager abstraction layer. Authenticates via RSA-PSS key-pair signing on every request (stateless, no login endpoint, no token refresh). Provides event listings with category/tag filtering, market data, orderbook snapshots (single and batch), order management (including batch and amend), position tracking, fill history, live game data for sports, milestones, historical archives, and category/tag discovery. Also maintains a WebSocket connection (wss://api.elections.kalshi.com/trade-api/ws/v2) for real-time orderbook and fill streaming. This is the sole prediction market integration — all trading executes through Kalshi.",
+        "authentication": {
+          "method": "RSA-PSS per-request signing",
+          "flow": "Load PEM private key from KALSHI_PRIVATE_KEY_PATH. For each request, construct the signing message as '{timestamp_ms}{HTTP_METHOD}{path_without_query_params}' (e.g., '1716000000000GET/trade-api/v2/portfolio/positions'). Sign with RSA-PSS using SHA-256 digest, MGF1-SHA256 mask generation, and salt length equal to digest length. Include three headers on every request: KALSHI-ACCESS-KEY (the API key ID), KALSHI-ACCESS-TIMESTAMP (the timestamp_ms string), and KALSHI-ACCESS-SIGNATURE (the base64-encoded signature). Requires the 'cryptography' Python package for RSA-PSS operations.",
+          "stateless": "No JWT tokens, no login endpoint, no token refresh needed. Each request is independently authenticated via its signature headers.",
+          "sdk": "kalshi_python_sync / kalshi_python_async (NOT 'kalshi-python'). The SDK handles RSA-PSS signing internally when configured with the API key ID and private key path.",
+          "demo_api": "https://demo-api.kalshi.co/trade-api/v2 for paper trading (same RSA-PSS auth, separate API key pair)"
+        },
+        "tools": [
+          "kalshi_get_events(status?: 'open'|'closed'|'settled', series_ticker?: string, with_nested_markets?: boolean, limit?: number, cursor?: string) -> Event[] — GET /events with filtering",
+          "kalshi_get_event(event_ticker: string) -> Event — GET /events/{event_ticker} detail",
+          "kalshi_get_orderbook(ticker: string, depth?: number) -> Orderbook{yes_bids[], yes_asks[], no_bids[], no_asks[]} — GET /markets/{ticker}/orderbook (depth 0-100)",
+          "kalshi_get_batch_orderbooks(tickers: string[]) -> Orderbook[] — GET /markets/orderbooks (up to 100 tickers per request)",
+          "kalshi_get_trades(ticker?: string, limit?: number, cursor?: string) -> Trade[] — GET /markets/trades",
+          "kalshi_get_candlesticks(series_ticker: string, ticker: string, period_interval?: number) -> Candlestick[] — GET /series/{series_ticker}/markets/{ticker}/candlesticks (OHLC data)",
+          "kalshi_place_order(ticker: string, side: 'yes'|'no', action: 'buy'|'sell', count: number, type: 'limit'|'market', yes_price_cents?: number, no_price_cents?: number) -> OrderResult{order_id, status} — POST /portfolio/orders (200K max open orders)",
+          "kalshi_cancel_order(order_id: string) -> CancelResult{order_id, status} — DELETE /portfolio/orders/{order_id}",
+          "kalshi_amend_order(order_id: string, price?: number, count?: number) -> OrderResult{order_id, status} — POST /portfolio/orders/{order_id}/amend",
+          "kalshi_batch_create_orders(orders: OrderInput[]) -> OrderResult[] — POST /portfolio/orders/batched (up to 20 orders per request)",
+          "kalshi_batch_cancel_orders(order_ids: string[]) -> CancelResult[] — DELETE /portfolio/orders/batched (up to 20 cancels per request)",
+          "kalshi_get_positions(status?: 'open'|'settled') -> Position[]{ticker, count, direction, average_price_cents, market_result} — GET /portfolio/positions",
+          "kalshi_get_fills(ticker?: string, limit?: number) -> Fill[]{trade_id, ticker, side, count, price_cents, created_time} — GET /portfolio/fills",
+          "kalshi_get_settlements(limit?: number) -> Settlement[] — GET /portfolio/settlements",
+          "kalshi_get_balance() -> {balance_cents, available_balance_cents} — GET /portfolio/balance (all values in cents)",
+          "kalshi_get_categories_and_tags() -> CategoryTagMap — GET /search/tags_by_categories (returns structured category->tag mappings for agent-market routing)",
+          "kalshi_get_sport_filters(sport?: string) -> SportFilter[] — GET /search/filters_by_sport (sport-specific competition filters for Sports Agent)",
+          "kalshi_get_live_data(milestone_id: string) -> LiveData{scores, game_state, clock} — GET /live_data/milestone/{milestone_id} (real-time game/event data)",
+          "kalshi_get_game_stats(milestone_id: string) -> GameStats{play_by_play[], player_stats[]} — GET /live_data/milestone/{milestone_id}/game_stats (play-by-play stats: Pro Football, College Football, Pro Basketball, College Basketball, WNBA, Soccer, Hockey, Baseball)",
+          "kalshi_get_milestones(category?: string, competition?: string, type?: string) -> Milestone[] — GET /milestones (filter by category, competition, type)",
+          "kalshi_get_multivariate_events(limit?: number) -> Event[] — GET /events/multivariate (combo events for cross-market analysis)",
+          "kalshi_get_historical_markets(limit?: number, cursor?: string) -> Market[] — GET /historical/markets (archived markets for RBI backtesting)",
+          "kalshi_get_historical_trades(ticker?: string, limit?: number) -> Trade[] — GET /historical/trades (archived trades for RBI backtesting)",
+          "kalshi_create_subaccount(name: string) -> Subaccount{id, name, balance_cents} — POST /portfolio/subaccounts (up to 32 subaccounts, one per agent for trade isolation)",
+          "kalshi_transfer_between_subaccounts(from_id: string, to_id: string, amount_cents: number) -> TransferResult — POST /portfolio/subaccounts/transfer",
+          "kalshi_get_exchange_status() -> ExchangeStatus — GET /exchange/status",
+          "kalshi_get_exchange_schedule() -> ExchangeSchedule — GET /exchange/schedule",
+          "kalshi_get_exchange_announcements() -> Announcement[] — GET /exchange/announcements"
+        ],
+        "notes": [
+          "ALL prices are in CENTS (0-10000 range). $0.65 = 65 cents. Balance values are in cents. Ensure all internal representations use cents to avoid off-by-100 errors.",
+          "RSA-PSS signing is handled internally by the Exchange Manager — individual components above the Exchange Manager never handle authentication.",
+          "Subaccounts (up to 32) enable per-agent trade isolation — each specialist agent can trade in its own subaccount with independent balance tracking.",
+          "Order groups provide rolling contract limit groups useful for per-agent risk management.",
+          "Batch orderbook endpoint (GET /markets/orderbooks) accepts up to 100 tickers per request — critical for efficient Market Scanner polling.",
+          "Live game data (GET /live_data/milestone/{id} and .../game_stats) is a major capability for the Sports Agent — real-time scores, play-by-play, and player stats directly from Kalshi.",
+          "Historical endpoints (GET /historical/markets, GET /historical/trades) are critical for the RBI Backtest Engine — provide the dataset for strategy validation."
+        ],
+        "websocket": {
+          "url": "wss://api.elections.kalshi.com/trade-api/ws/v2",
+          "channels": ["orderbook_delta", "fill", "ticker"],
+          "usage": "Subscribe to orderbook_delta for real-time price updates during execution. Subscribe to fill channel for immediate trade confirmation. Subscribe to ticker for market status changes."
+        },
+        "environment_variables": [
+          "KALSHI_API_KEY_ID — Kalshi API key ID (used in KALSHI-ACCESS-KEY header)",
+          "KALSHI_PRIVATE_KEY_PATH — Path to PEM private key file for RSA-PSS signing",
+          "KALSHI_API_BASE — API base URL (production or demo)",
+          "KALSHI_WS_URL — WebSocket URL for streaming data"
+        ]
+      },
+      {
+        "name": "News & Intelligence MCP Server",
+        "type": "mcp_server",
+        "description": "Aggregates news feeds, diplomatic briefings, and real-time event data. Provides filtered, domain-specific news queries so each agent only receives data relevant to its specialization. Prevents information cross-contamination between agents.",
+        "tools": [
+          "news_query(domain: 'geopolitics'|'economics'|'science'|'sports'|'crypto'|'weather', query: string, hours_back?: number) -> Article[]",
+          "news_get_breaking(domain: string) -> BreakingAlert[]",
+          "news_get_sentiment(topic: string) -> SentimentScore{positive, negative, neutral, magnitude}"
+        ]
+      },
+      {
+        "name": "Economic Data MCP Server",
+        "type": "mcp_server",
+        "description": "Provides real-time and historical economic indicator data for the Economics Agent. Wraps FRED API, BLS data, and Fed communications. Critical for Kalshi's economics contracts (CPI, Fed rate, GDP) where precise data access is the primary edge.",
+        "tools": [
+          "econ_get_indicator(series_id: string, start_date?: string, end_date?: string) -> DataSeries[]",
+          "econ_get_fed_minutes(meeting_date?: string) -> FedMinutes{text, key_phrases[], hawkish_dovish_score}",
+          "econ_get_release_calendar(days_ahead?: number) -> UpcomingRelease[]{indicator, date, consensus, prior}",
+          "econ_get_nowcast(indicator: 'gdp'|'cpi'|'pce') -> Nowcast{estimate, confidence_interval, model_source}",
+          "econ_get_yield_curve() -> YieldCurve{maturities[], yields[], spread_2_10, inversion: boolean}"
+        ]
+      },
+      {
+        "name": "Crypto Market Data MCP Server",
+        "type": "mcp_server",
+        "description": "Provides real-time crypto market data for the Crypto Agent. Wraps Crypto.com MCP server (already available) plus Binance and Coinbase WebSocket feeds. Used for analyzing Kalshi's crypto price event contracts by monitoring CEX price action.",
+        "tools": [
+          "crypto_get_price(symbol: string) -> Price{last, bid, ask, volume_24h, change_24h_pct}",
+          "crypto_get_orderbook(symbol: string, depth?: number) -> Orderbook{bids[], asks[]}",
+          "crypto_get_candles(symbol: string, interval: string, limit?: number) -> Candle[]{open, high, low, close, volume, timestamp}",
+          "crypto_get_whale_alerts(min_usd?: number, hours_back?: number) -> WhaleTransaction[]",
+          "crypto_get_exchange_flows(asset: string) -> FlowData{inflow, outflow, net}"
+        ]
+      },
+      {
+        "name": "Telegram Notification Webhook",
+        "type": "webhook",
+        "description": "Sends real-time alerts to a Telegram channel/chat. Used for order fill notifications, drawdown warnings, daily P&L summaries, high-quality dissent alerts, and swarm validation results that may require human review.",
+        "events": [
+          "order_filled: position entered on Kalshi with ticker, direction, count, price, and fees",
+          "position_settled: USD payout on settled market with P&L breakdown",
+          "drawdown_warning: daily loss approaching CLAUDE.md limit",
+          "dissent_escalation: high-quality dissent flagged for human review",
+          "swarm_refusal: swarm validator refused a parliament-approved trade — may indicate regime uncertainty",
+          "daily_summary: end-of-day P&L in USD, win rate, open positions, Kalshi account balance",
+          "calibration_alert: agent detected as systematically miscalibrated by Confidence Calibration Engine"
+        ]
+      },
+      {
+        "name": "X (Twitter) API MCP Server",
+        "type": "mcp_server",
+        "description": "Existing custom MCP server wrapping X API v2 with OAuth PKCE, registered in .mcp.json. Used by the Crypto Agent for sentiment analysis and by the Sports Agent for real-time injury/lineup news. Provides search, user lookup, and thread retrieval. NOTE: Agents sharing this MCP server must use non-overlapping query namespaces to preserve information isolation. The Crypto Agent should search only crypto-specific terms (e.g., $BTC, DeFi, whale alert) and the Sports Agent only sports-specific terms (e.g., injury report, lineup, game day). The Orchestrator's data package preparation must enforce these query scopes — agents must not be able to craft arbitrary X API queries that breach their domain boundary.",
+        "tools": [
+          "x_search_tweets(query, max_results?) -> Tweet[]",
+          "x_get_user(username) -> UserProfile",
+          "x_get_tweet(tweet_id) -> Tweet",
+          "x_get_thread(tweet_id) -> Thread"
+        ]
+      },
+      {
+        "name": "Multi-Provider AI API Integration",
+        "type": "api_integration",
+        "description": "v3.0 addition: API connections to multiple AI model providers for the Multi-Model Swarm Validator. Each provider requires separate API keys and has different rate limits, pricing, and response formats. The Model Registry manages these connections.",
+        "providers": [
+          {"name": "Anthropic (Claude)", "api": "Anthropic SDK", "models": ["claude-sonnet-4-20250514", "claude-opus-4-20250514"]},
+          {"name": "OpenAI (GPT)", "api": "OpenAI SDK", "models": ["gpt-4o", "gpt-4-turbo"]},
+          {"name": "Google (Gemini)", "api": "Google AI SDK", "models": ["gemini-2.5-pro", "gemini-2.5-flash"]},
+          {"name": "DeepSeek", "api": "DeepSeek API", "models": ["deepseek-r1", "deepseek-chat"]},
+          {"name": "Meta (Llama)", "api": "Together AI / Replicate", "models": ["llama-4-maverick", "llama-4-scout"]}
+        ],
+        "environment_variables": [
+          "ANTHROPIC_API_KEY — Claude API key",
+          "OPENAI_API_KEY — GPT API key",
+          "GOOGLE_AI_API_KEY — Gemini API key",
+          "DEEPSEEK_API_KEY — DeepSeek API key",
+          "TOGETHER_API_KEY — Together AI API key for Llama models"
+        ]
+      }
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Foundation — Exchange Manager, Kalshi MCP Server & CLAUDE.md Rules",
+        "duration": "1 week",
+        "tasks": [
+          "Build Exchange Manager abstraction layer with Kalshi adapter",
+          "Build and configure the Kalshi MCP Server behind the Exchange Manager",
+          "Implement RSA-PSS per-request authentication",
+          "Set up WebSocket integration for real-time streaming",
+          "Configure demo API for paper trading",
+          "Deploy CLAUDE.md trading rules file with immutable constraints",
+          "Create project directory structure",
+          "Build basic Market Scanner skill with Tier 1 progressive loading",
+          "Write integration tests for Kalshi connectivity and auth"
+        ],
+        "description": "Set up the infrastructure layer: build the Exchange Manager abstraction, configure the Kalshi MCP Server behind it, deploy CLAUDE.md trading rules, and establish the project structure. The Exchange Manager decouples all components from Kalshi-specific API details from day one. Kalshi's REST API with RSA-PSS per-request signing is stateless and straightforward — no wallet setup, no gas management, no token refresh logic. Requires the 'cryptography' Python package and the 'kalshi_python_sync' / 'kalshi_python_async' SDK.",
+        "deliverables": [
+          "Exchange Manager with Kalshi adapter: platform-agnostic interface for all market data and order management, RSA-PSS authentication handled internally, jurisdictional routing (US = Kalshi only), config-driven production/demo switching",
+          "Kalshi MCP Server behind Exchange Manager: event listings with category/tag filtering, market data, single and batch orderbook snapshots, order placement (including batch and amend), position tracking, fill history, live game data, milestones, historical archives (for RBI), category/tag discovery, and subaccount management — all registered in .mcp.json",
+          "WebSocket integration for real-time orderbook and fill streaming (managed by Exchange Manager)",
+          "Demo API configuration (https://demo-api.kalshi.co/trade-api/v2) for safe testing before live deployment",
+          "CLAUDE.md trading rules file with immutable constraints (see claude_md_rules below)",
+          "Project directory structure: /agents, /skills, /orchestrator, /execution, /exchange, /data, /config, /backtest",
+          "Basic Market Scanner skill with Tier 1 progressive loading: polls Kalshi events via Exchange Manager, filters by CLAUDE.md rules, outputs CandidateMarket JSON with category-based agent routing",
+          "Integration tests validating Exchange Manager connectivity, RSA-PSS authentication, and data quality (all price assertions in cents)"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Agent Parliament — 6 Specialist Agents, Voting & Skill Architecture",
+        "duration": "1 week",
+        "tasks": [
+          "Build 6 specialist agent definitions with isolated system prompts",
+          "Implement Orchestrator parallel subagent dispatch and vote collection",
+          "Define structured vote schema with validation",
+          "Implement consensus threshold logic (4/6 minimum)",
+          "Build category-based market routing using Kalshi tags",
+          "Build Economic Data MCP Server for Economics Agent",
+          "Implement Tier 2 progressive loading in Market Scanner",
+          "Build market-analyzer and kelly-sizer skills",
+          "Implement dry-run mode for manual review"
+        ],
+        "description": "Build the 6 specialist agents with isolated system prompts, domain-specific data feed routing, and structured vote output. Implement the Orchestrator's parallel dispatch and vote collection. The 6th agent (Economics) targets Kalshi's regulated economics contracts (CPI, Fed rate, GDP). Implement the skill architecture with EV sizing and progressive context loading — basic skill checks (Tier 1, Tier 2) gate access to deep computations. Each trading capability is encapsulated as a discrete skill built around a core mathematical model.",
+        "deliverables": [
+          "6 specialist agent definitions with system prompts, tool permissions, and data feed configurations — each as a Claude Code subagent with isolated context",
+          "Orchestrator service: parallel subagent dispatch, timeout handling, vote collection",
+          "Structured vote schema with validation: direction, confidence, reasoning, sources, domain_signals",
+          "Consensus threshold logic: 4/6 minimum (ceil(6 * 0.6) = 4), weighted confidence aggregation",
+          "Category-based market routing: Kalshi event categories mapped to specialist agents via Exchange Manager",
+          "Economic Data MCP Server for the Economics Agent (FRED, BLS, Fed communications)",
+          "Market Scanner Tier 2 progressive loading: edge estimation, P(real) vs P(market) comparison, minimum spread threshold",
+          "Skill definitions: market-analyzer, kelly-sizer, parliament-session, arb-detector — each wrapping a core math model with typed I/O",
+          "Dry-run mode: full parliament evaluation without execution, outputting vote logs for manual review"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Dissent, Calibration & Sizing — Contrarian Signal Processing",
+        "duration": "1 week",
+        "tasks": [
+          "Build mandatory dissent report generation system",
+          "Implement Dissent Analyzer with quality scoring",
+          "Build Confidence Calibration Engine with cold-start priors",
+          "Implement Kelly Criterion position sizer with calibrated inputs",
+          "Build Portfolio Tracker with risk management and exit manager",
+          "Set up Telegram alerts for dissent escalation and calibration warnings",
+          "Implement dissent-reporter skill"
+        ],
+        "description": "Build the dissent reporting system, Dissent Analyzer, Confidence Calibration Engine, Kelly Criterion sizing with calibrated inputs, and Portfolio Tracker. This is where the system's edge over single-agent approaches materializes. The Confidence Calibration Engine addresses the previously identified knowledge gap of cross-agent confidence comparability.",
+        "deliverables": [
+          "Mandatory dissent report generation for split-vote scenarios with Kalshi-specific regulatory risk flags",
+          "Dissent Analyzer with quality scoring, historical accuracy tracking, and elevated Science Agent scrutiny",
+          "Confidence Calibration Engine with uninformative cold-start priors, Platt scaling, and per-agent per-domain calibration curves",
+          "Kelly Criterion position sizer with calibrated probability inputs and fractional cap (half-Kelly default)",
+          "Portfolio Tracker with real-time USD P&L, Kalshi position limit enforcement (via Exchange Manager), settlement fee tracking, log-return tracking, and drawdown circuit breaker",
+          "Exit Manager within Portfolio Tracker: stop-loss, take-profit, re-evaluation triggers with reduced parliament sessions",
+          "Dissent escalation to Telegram for human review on high-quality minority signals",
+          "Calibration alert to Telegram when agent systematic bias detected"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Execution, RBI & Monitoring — Live Trading Pipeline",
+        "duration": "1 week",
+        "tasks": [
+          "Build Execution Engine with order management via Exchange Manager",
+          "Implement slippage protection and partial fill handling",
+          "Build WebSocket-based fill monitoring",
+          "Implement Telegram notification integration for all events",
+          "Build Audit Trail with SQLite-backed logging",
+          "Build paired contract arbitrage fast path",
+          "Build RBI Backtest Engine using Kalshi historical data",
+          "Run paper trading on Kalshi demo API for 7+ days",
+          "Implement graceful shutdown and restart procedures"
+        ],
+        "description": "Connect the full pipeline from Market Scanner through Parliament through Execution Engine (all via Exchange Manager). Deploy Telegram alerts, audit logging, and performance dashboards. Build the RBI Backtest Engine that validates strategies against Kalshi historical data before live deployment. Run paper trading on Kalshi's demo API.",
+        "deliverables": [
+          "Execution Engine with order placement via Exchange Manager (limit and market orders), slippage protection, partial fill handling, and WebSocket-based fill monitoring",
+          "Telegram notification integration for all event types including swarm refusals and calibration alerts",
+          "Audit Trail with SQLite-backed structured logging of all parliament sessions, swarm validations, and calibration data",
+          "Paired contract arbitrage fast path for YES/NO mispricing on Kalshi (via Exchange Manager)",
+          "RBI Backtest Engine: strategy hypothesis management, historical data backtesting via Exchange Manager (GET /historical/markets, GET /historical/trades), walk-forward validation, regime sensitivity analysis, confidence intervals on results",
+          "Paper trading validation on Kalshi demo API (https://demo-api.kalshi.co/trade-api/v2): run full system with demo credentials for 7 days minimum before live deployment",
+          "Graceful shutdown procedures with SQLite state persistence and restart validation"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Multi-Model Swarm — Cross-Architecture Validation",
+        "duration": "1 week",
+        "tasks": [
+          "Build Model Registry with multi-provider support",
+          "Implement Multi-Model Swarm Validator with parallel queries",
+          "Integrate swarm with Orchestrator decision flow",
+          "Build consensus reviewer for cross-model aggregation",
+          "Implement per-model accuracy tracking",
+          "Configure swarm_threshold in CLAUDE.md",
+          "Test swarm latency and cost profiles"
+        ],
+        "description": "Build the multi-model swarm layer as an optional second consensus tier. Configure the Model Registry with connections to Claude, GPT, Gemini, DeepSeek, and Llama. Implement the swarm validator that ratifies or refuses parliament-approved trades on high-value positions. This phase addresses the single-model correlated failure risk (R-001) by introducing genuine model architecture diversity.",
+        "deliverables": [
+          "Model Registry with 5+ provider connections, health verification, version management, and cost tracking",
+          "Multi-Model Swarm Validator: parallel query dispatch, 45-second timeout, structured response collection",
+          "Consensus reviewer: cross-model agreement computation, model-diversity-weighted confidence, ratify/refuse/reduce logic",
+          "Per-model accuracy tracking with domain-specific performance weighting",
+          "Swarm integration with Orchestrator: swarm_threshold trigger, decision flow modification, Telegram alert on refusals",
+          "Cost budget enforcement: daily API spend limits per model provider"
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Learning, Optimization & Open-Source Integration — Adaptive Weights",
+        "duration": "Ongoing (starts week 6)",
+        "tasks": [
+          "Deploy weekly learning reports with per-agent accuracy breakdown",
+          "Implement dynamic credibility weighting",
+          "Update calibration curves from empirical data",
+          "Evaluate open-source reference implementations",
+          "Build A/B testing framework",
+          "Set up performance benchmark dashboard",
+          "Explore additional data feed MCP servers based on gaps"
+        ],
+        "description": "Deploy the learning loop that adjusts agent credibility weights, calibration curves, and swarm model weights based on empirical outcomes. Leverage Kalshi's category taxonomy to measure per-agent accuracy within their specialization domains. Evaluate and integrate patterns from open-source reference implementations (Paperclip, MiroFish, Hermes, OpenClaw). Target: measurable 20%+ ROI improvement over single-agent baseline.",
+        "deliverables": [
+          "Weekly learning reports with per-agent accuracy breakdown by Kalshi event category, calibration drift detection, and swarm model performance",
+          "Dynamic credibility weighting: agents that are consistently right on specific Kalshi categories get higher vote weight; calibration curves updated empirically",
+          "Open-source evaluation report: assess Paperclip (general agent framework), MiroFish (prediction market bot), Hermes (multi-agent orchestration/parliament voting), and OpenClaw (Claude Code integration) for adaptable patterns. Fork and adapt components where they accelerate development.",
+          "Additional data feed MCP servers as needed based on agent performance gaps",
+          "A/B testing framework: run parliament vs single-agent on identical markets for direct comparison. PREREQUISITE: Define and freeze a baseline_configuration for the single-agent comparison — must specify exact model version, system prompt text, data feeds, position sizing method, and risk limits. The baseline must be frozen before A/B testing begins and never modified during the comparison period, or results are invalid.",
+          "Performance benchmark dashboard comparing parliament ROI vs single-agent baseline, with swarm validation impact analysis",
+          "Dissent pattern analysis: validate the Science Agent's minority dissent accuracy over 30+ solo-dissent events — the threshold for transitioning from HUMAN_REVIEW to automated dissent handling"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Claude Code — primary development and execution environment, provides subagent orchestration, skill system, hooks for event-driven alerts, and MCP integration. Each parliament agent is a separate subagent with its own system prompt and data access scope.",
+      "Python 3.12+ — agent harness implementation, data processing, and execution engine",
+      "MCP (Model Context Protocol) — standardized tool interface for all external data and execution APIs",
+      "Kalshi REST API (https://api.elections.kalshi.com/trade-api/v2) — prediction market data and order execution via Exchange Manager, RSA-PSS per-request signing authentication",
+      "Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) — real-time orderbook and fill streaming via Exchange Manager",
+      "kalshi_python_sync / kalshi_python_async — official Kalshi Python SDK (handles RSA-PSS signing internally; NOT 'kalshi-python')",
+      "cryptography — Python package required for RSA-PSS signing operations (SHA-256 digest, MGF1-SHA256, salt=DIGEST_LENGTH)",
+      "Claude API (Anthropic SDK) — for programmatic subagent instantiation when running outside Claude Code, and as primary model in Multi-Model Swarm",
+      "OpenAI API — GPT models for Multi-Model Swarm Validator",
+      "Google AI API — Gemini models for Multi-Model Swarm Validator",
+      "DeepSeek API — DeepSeek models for Multi-Model Swarm Validator",
+      "Together AI / Replicate — Llama models for Multi-Model Swarm Validator",
+      "JSON — structured data interchange format for all agent I/O, vote schemas, and audit logs",
+      "Telegram Bot API — real-time notifications and alerts",
+      "SQLite — audit trail, performance data persistence, calibration curves, backtest results, and position state. Single source of truth for all structured data; JSON file storage is not acceptable for production audit trails due to lack of transactional integrity and concurrent access safety.",
+      "Git — version control for agent prompts, CLAUDE.md rules, and configuration",
+      "Open-source reference implementations — Paperclip (general agent framework), MiroFish (prediction market bot), Hermes by Nous Research (multi-agent orchestration/parliament voting), OpenClaw (Claude Code-based trading) — for study and pattern adaptation"
+    ],
+    "complexity": "high",
+    "skill_definitions": [
+      {
+        "skill_name": "market-analyzer",
+        "description": "Calculates implied probability, edge, and expected value for a given Kalshi event contract. Used by Market Scanner (Tier 2 progressive loading) and individual agents. Compares P(real) from external forecasts against P(market) from current contract prices. Implements the core EV calculation from the skill architecture pattern.",
+        "inputs": "MarketData {ticker, yes_price_cents, no_price_cents, volume_cents, open_interest, close_time, category, tags}",
+        "outputs": "MarketAnalysis {implied_prob, p_real_estimate, edge_vs_fair, expected_value_cents, liquidity_grade, time_to_resolution, settlement_fee_impact_cents, p_real_minus_p_market_spread, recommendation}",
+        "invocation": "Claude Code skill invoked via /market-analyzer or programmatically by Orchestrator. Progressive loading: Tier 1 checks (liquidity, spread) run first; this skill fires only at Tier 2."
+      },
+      {
+        "skill_name": "kelly-sizer",
+        "description": "Computes optimal position size using Kelly Criterion given calibrated probability estimate, market odds, and current bankroll. Applies fractional Kelly cap. Accounts for Kalshi's settlement fees in edge calculation. v3.0: Accepts calibrated probability from Confidence Calibration Engine rather than raw agent confidence.",
+        "inputs": "KellyInput {calibrated_prob, market_price_cents, bankroll_cents, kelly_fraction: 0.25|0.5|1.0, max_position_pct, settlement_fee_cents, consensus_split: '6:0'|'5:1'|'4:2'}",
+        "outputs": "KellyOutput {optimal_count, optimal_size_cents, kelly_fraction_used, edge_after_fees, expected_growth_rate, split_adjustment_applied: boolean}",
+        "formula": "f* = (p * b - q) / b, where p = calibrated probability (from Confidence Calibration Engine), q = 1-p, b = net odds adjusted for settlement fees. All Kalshi prices are in CENTS (0-10000 range). For Kalshi YES contracts priced at p_market_cents, payout is 100 cents minus settlement fee. Example: if calibrated probability p=0.70, market price p_market=55 cents, and settlement fee is 3 cents, then net payout = 100 - 3 = 97 cents, profit per contract if correct = 97 - 55 = 42 cents, b = 42 / 55 = 0.764, and f* = (0.70 * 0.764 - 0.30) / 0.764 = (0.535 - 0.30) / 0.764 = 0.307, meaning Kelly-optimal is 30.7% of bankroll (before fractional cap). At half-Kelly, position size = 15.35% of bankroll, further capped by max_position_pct and Kalshi's per-market position limit. On split consensus (4:2), automatic 25% size reduction per RISK-006."
+      },
+      {
+        "skill_name": "bayesian-updater",
+        "description": "v3.0 addition: Continuously refines probability estimates by comparing P(real) from external forecasts against P(market) from current contract prices using Bayesian updating. Pulls live contract data every 15 minutes and updates posterior probability. The spread between P(real) and P(market) defines the trading edge. From the skill architecture pattern that achieved 79% win rate.",
+        "inputs": "BayesianInput {prior_prob, new_evidence: {source, direction, strength}, market_price_cents, last_update_timestamp}",
+        "outputs": "BayesianOutput {posterior_prob, p_real, p_market, spread, update_magnitude, evidence_chain: {source, impact}[]}"
+      },
+      {
+        "skill_name": "dissent-reporter",
+        "description": "Generates a structured dissent report when an agent is in the minority on a split vote. Forces the agent to produce specific counterarguments with source citations. v3.0: Includes Kalshi-specific regulatory/structural risk flags in dissent output.",
+        "inputs": "DissentInput {agent_name, agent_vote, majority_direction, market_data, agent_reasoning, agent_sources}",
+        "outputs": "DissentReport {counterarguments: string[], risk_factors: string[], kalshi_regulatory_flags: string[], sources: string[], confidence_in_dissent: 0-100, recommended_action: 'proceed'|'reduce_size'|'abort'}"
+      },
+      {
+        "skill_name": "parliament-session",
+        "description": "Orchestrates a complete parliament voting session for a single market. Dispatches all 6 agents in parallel, collects votes, applies calibration adjustments, processes consensus logic, processes dissent, optionally triggers swarm validation, computes position size, and returns a final decision.",
+        "inputs": "SessionInput {candidate_market: CandidateMarket, bankroll_cents: number, risk_limits: RiskLimits, swarm_threshold_pct: number}",
+        "outputs": "SessionOutput {decision: 'EXECUTE'|'NO_TRADE'|'HUMAN_REVIEW', votes: Vote[], calibrated_votes: CalibratedVote[], dissent_reports: DissentReport[], swarm_result?: SwarmResult, position_size_cents: number, contract_count: number, aggregate_confidence: number, calibrated_aggregate_confidence: number, execution_order?: ExecutionOrder}"
+      },
+      {
+        "skill_name": "arb-detector",
+        "description": "Detects arbitrage opportunities in paired YES/NO contracts on Kalshi where prices deviate from 100 cents after settlement fees. All prices in cents. Operates through Exchange Manager.",
+        "inputs": "ArbInput {market_pairs: {ticker, yes_price_cents, no_price_cents, settlement_fee_cents}[]}",
+        "outputs": "ArbOutput {opportunities: {type: 'paired_contract', spread_pct, spread_after_fees_pct, ticker, recommended_action}[]}"
+      },
+      {
+        "skill_name": "swarm-validator",
+        "description": "v3.0 addition: Dispatches a parliament-approved trade to multiple AI model providers for cross-architecture validation. Uses the Model Registry to select and query models, then applies consensus reviewer logic to produce a ratify/refuse/reduce recommendation.",
+        "inputs": "SwarmInput {parliament_decision: ParliamentDecision, market_data: CandidateMarket, model_budget_remaining: number}",
+        "outputs": "SwarmOutput {recommendation: 'ratify'|'refuse'|'reduce_size', cross_model_agreement: float, model_votes: {model_id, direction, confidence, reasoning}[], cost_cents: number}"
+      }
+    ],
+    "claude_md_rules": {
+      "description": "Immutable trading rules enforced via CLAUDE.md. These are loaded into every agent's context at runtime and cannot be overridden by any agent or the orchestrator. They represent hard risk management constraints.",
+      "rules": [
+        {
+          "rule_id": "RISK-001",
+          "name": "Maximum Position Size",
+          "rule": "Never risk more than 5% of total bankroll on a single position. This applies regardless of confidence score or consensus strength. Additionally, respect Kalshi's per-market position limits (varies by contract, often $25K-$100K notional) — the more restrictive of CLAUDE.md or Kalshi's limit applies.",
+          "enforcement": "Portfolio Tracker validates against both CLAUDE.md limits and Kalshi per-market limits (via Exchange Manager) before execution; Execution Engine rejects oversized orders"
+        },
+        {
+          "rule_id": "RISK-002",
+          "name": "Minimum Edge Threshold",
+          "rule": "Do not enter any position where estimated edge AFTER settlement fees is less than 7% (difference between calibrated probability and implied market probability, minus settlement fee impact). Below this threshold, fees and model uncertainty consume the edge. v3.0: Edge calculation uses calibrated probability from Confidence Calibration Engine, not raw agent confidence.",
+          "enforcement": "Orchestrator checks edge calculation (using calibrated probabilities and Kalshi settlement fees via Exchange Manager) before dispatching ExecutionOrder"
+        },
+        {
+          "rule_id": "RISK-003",
+          "name": "Liquidity Floor",
+          "rule": "Do not trade markets with less than $5,000 in 24-hour volume or where the orderbook spread exceeds 8%. Illiquid markets create slippage risk that destroys edge.",
+          "enforcement": "Market Scanner Tier 1 progressive loading filters out illiquid markets before they reach the Parliament"
+        },
+        {
+          "rule_id": "RISK-004",
+          "name": "Daily Loss Limit",
+          "rule": "If cumulative daily losses exceed 10% of starting-day bankroll, halt all trading for the remainder of the day. No exceptions. Resume at midnight UTC.",
+          "enforcement": "Portfolio Tracker monitors intraday P&L in USD; Execution Engine implements hard halt via Exchange Manager"
+        },
+        {
+          "rule_id": "RISK-005",
+          "name": "Consensus Requirement",
+          "rule": "Minimum 4 out of 6 agents must agree on direction before any trade is executed. This threshold CANNOT be lowered. 3:3 splits or worse result in NO_TRADE. EXCEPTION: Verified paired-contract arbitrage (YES + NO < 98 cents after Kalshi settlement fees on the same market) may bypass consensus requirement because the edge is mathematically defined, not probabilistic. Arbitrage bypass requires: (1) spread exceeds 2% after all fees, (2) both sides have sufficient liquidity for simultaneous execution, (3) Market Scanner and arb-detector both independently confirm the opportunity.",
+          "enforcement": "Orchestrator consensus logic — hardcoded, not configurable. Arbitrage carve-out enforced via separate code path with independent validation (see arb-detector skill)."
+        },
+        {
+          "rule_id": "RISK-006",
+          "name": "Dissent Acknowledgment",
+          "rule": "When a trade executes on a split vote (4:2 or 5:1), the dissent report MUST be logged and the position size MUST be reduced by at least 25% from Kelly-optimal. Unanimous (6:0) trades get full Kelly-fraction sizing.",
+          "enforcement": "Orchestrator applies automatic size reduction on split consensus; Kelly Sizer accepts consensus_split parameter"
+        },
+        {
+          "rule_id": "RISK-007",
+          "name": "Maximum Concurrent Positions",
+          "rule": "No more than 10 concurrent open positions at any time. Portfolio concentration beyond this level creates correlated risk that consensus cannot mitigate.",
+          "enforcement": "Portfolio Tracker blocks new ExecutionOrders when limit reached"
+        },
+        {
+          "rule_id": "RISK-008",
+          "name": "Time-to-Resolution Minimum",
+          "rule": "Do not enter markets resolving in less than 2 hours unless executing a paired-contract arbitrage (which is time-insensitive). Short-resolution markets have high volatility and limited time for edge to materialize.",
+          "enforcement": "Market Scanner Tier 1 progressive loading filters on resolution deadline (Kalshi market close_time via Exchange Manager)"
+        },
+        {
+          "rule_id": "RISK-009",
+          "name": "Kelly Fraction Cap",
+          "rule": "Use half-Kelly (0.5x Kelly-optimal) as the default position sizing. Full Kelly is too aggressive for prediction markets given model uncertainty. Quarter-Kelly (0.25x) for markets with high agent disagreement (4:2 split). v3.0: Kelly calculation uses calibrated probabilities, not raw confidence.",
+          "enforcement": "Kelly Sizer skill applies fraction based on consensus strength and calibrated confidence"
+        },
+        {
+          "rule_id": "RISK-010",
+          "name": "No Override Without Human Approval",
+          "rule": "No agent, orchestrator component, swarm validator, or automated process may disable or modify these rules. Only a human operator with direct CLAUDE.md file access can change risk parameters. The system must treat CLAUDE.md as immutable at runtime.",
+          "enforcement": "CLAUDE.md must be set to read-only permissions at OS level (chmod 444 / attrib +R) during trading sessions. Portfolio Tracker must perform a SHA-256 hash check of CLAUDE.md at startup and compare against a committed known-good hash; halt trading if mismatch detected. Changes require git commit and manual restart."
+        },
+        {
+          "rule_id": "RISK-011",
+          "name": "Swarm Threshold",
+          "rule": "v3.0: Positions exceeding 3% of total bankroll must be validated by the Multi-Model Swarm before execution. Swarm refusal = NO_TRADE regardless of parliament consensus. Swarm reduce = position size cut by 50%. Swarm validation is optional for positions below this threshold.",
+          "enforcement": "Orchestrator checks position size against swarm_threshold before dispatching to Execution Engine; triggers swarm validator when threshold exceeded"
+        },
+        {
+          "rule_id": "RISK-012",
+          "name": "RBI Gate",
+          "rule": "v3.0: No new strategy type may be deployed live without first passing RBI Backtest Engine validation: minimum 100 simulated trades on Kalshi historical data, positive Sharpe ratio, and walk-forward validation on out-of-sample period. This applies to new agent configurations, new market categories, and new sizing rules.",
+          "enforcement": "Orchestrator checks strategy validation status before allowing trades in new categories or with new configurations. RBI Backtest Engine maintains a registry of validated strategies."
+        },
+        {
+          "rule_id": "RISK-013",
+          "name": "Swarm Cost Budget",
+          "rule": "v3.0: Daily API spend on Multi-Model Swarm queries must not exceed $50 USD. When budget is exhausted, swarm validation is skipped for the remainder of the day and positions above swarm_threshold are capped at half their computed size as a compensating control.",
+          "enforcement": "Model Registry tracks cumulative daily spend; Orchestrator checks budget before triggering swarm"
+        }
+      ]
+    },
+    "subagent_orchestration": {
+      "description": "How Claude Code's native subagent system is used to run the 6 specialist agents in parallel, with optional escalation to multi-model swarm.",
+      "pattern": "The Orchestrator is implemented as the primary Claude Code session. For each parliament vote, it spawns 6 subagents using Claude Code's built-in agent dispatch mechanism. Each subagent receives: (1) its specialist system prompt, (2) the CandidateMarket JSON with Kalshi market details (all prices in cents), (3) its domain-specific data feeds (pre-fetched by Market Scanner), and (4) access only to MCP tools relevant to its domain (e.g., Crypto Agent gets crypto market data tools but not economic data tools; Economics Agent gets FRED/BLS tools but not sports feeds). Subagents run in parallel with a 30-second timeout. Results are collected as structured JSON. v3.0: For high-value positions, a second round dispatches the trade question to 5+ external model providers via the Multi-Model Swarm Validator, running in parallel with a 45-second timeout. Claude Code hooks trigger Telegram alerts on dissent escalations, swarm refusals, calibration warnings, and circuit breaker activations.",
+      "agent_dispatch_config": {
+        "max_parallel_agents": 6,
+        "timeout_ms": 30000,
+        "timeout_behavior": "ABSTAIN vote with reason 'timeout'",
+        "retry_policy": "No retries — timeout means the agent could not form a view in time, which is informative",
+        "isolation": "Each subagent has its own system prompt, its own tool permissions, and its own data context. No shared state between agents during a voting session. Claude Code implementation: each subagent gets a different CLAUDE.md configuration scoping its data access — this is the mechanism for isolated context scoping.",
+        "result_schema": {
+          "direction": "YES | NO | ABSTAIN",
+          "confidence": "integer 0-100 (raw, pre-calibration)",
+          "calibrated_confidence": "integer 0-100 (post-calibration, filled by Calibration Engine)",
+          "reasoning": "string, minimum 100 characters",
+          "sources": "string[], at least 1 source required unless ABSTAIN",
+          "domain_signals": "object, agent-specific structured data supporting the vote",
+          "processing_time_ms": "integer, how long the agent took to analyze",
+          "data_freshness": "object, timestamps of data feeds used — agent must report if primary data was unavailable"
+        }
+      },
+      "swarm_dispatch_config": {
+        "max_parallel_models": 8,
+        "timeout_ms": 45000,
+        "timeout_behavior": "Model excluded from consensus (does not count as vote)",
+        "min_models_for_validity": 3,
+        "cost_tracking": "Per-query cost tracked by Model Registry; cumulative daily spend checked against RISK-013 budget"
+      }
+    },
+    "progressive_signal_loading": {
+      "description": "Mechanism for incrementally adding or removing agents and data feeds without rebuilding the system, combined with tiered execution that optimizes for speed and computational efficiency. The Parliament is designed as a plug-in architecture where new specialist agents can be registered, existing agents can have their data feeds updated, and the consensus threshold adjusts automatically. Progressive context loading ensures basic checks run first, with deep computations firing only when warranted.",
+      "mechanism": [
+        "TIER 1 (Basic Checks): Liquidity validation, spread check, contract availability, time-to-resolution filter. Run by Market Scanner on all scanned markets. Rejects 90%+ of scans with minimal computation. Target: <100ms per market.",
+        "TIER 2 (Edge Estimation): Implied probability calculation, P(real) vs P(market) comparison, EV computation, settlement fee impact. Run by market-analyzer skill on markets passing Tier 1. Target: <500ms per market.",
+        "TIER 3 (Parliament Dispatch): Full 6-agent parallel evaluation with isolated contexts, dissent processing, calibrated confidence aggregation. Run by parliament-session skill on markets passing Tier 2. Target: <120s per market.",
+        "TIER 4 (Swarm Validation): Multi-model cross-architecture validation. Triggered only for positions above swarm_threshold. Run by swarm-validator skill. Target: <60s additional latency.",
+        "Agent Registry: a JSON config file listing all active agents with their system prompts, tool permissions, data feed configurations, and Kalshi category assignments. Adding a new agent = adding an entry to this registry.",
+        "Dynamic Consensus Threshold: threshold is defined as ceil(n_agents * 0.6), so 4/6, 4/7, 5/8, etc. This maintains the ~60% supermajority requirement as agents are added.",
+        "Data Feed Routing: each agent's data feeds are defined in its registry entry. The Orchestrator's data loading step reads these configs and prepares isolated data packages dynamically.",
+        "Kalshi Category/Tag Mapping: each agent declares which Kalshi event categories and tags it specializes in (discoverable via GET /search/tags_by_categories through Exchange Manager). When new categories or tags appear on Kalshi, they can be assigned to existing agents or trigger creation of a new specialist. The Sports Agent additionally uses GET /search/filters_by_sport for sport-specific competition discovery.",
+        "Hot-swap Capability: agents can be disabled (set active: false) without removing them, allowing A/B testing of parliament configurations.",
+        "Signal Priority Levels: data feeds can be tagged as 'critical' (must load before vote), 'supplementary' (load if available, proceed without), or 'background' (async, may arrive after vote starts). This prevents slow data feeds from blocking the entire parliament."
+      ],
+      "TODO_schemas": "Define a CandidateMarketPackage schema specifying the exact structure of the pre-loaded data package each agent receives (base Kalshi market JSON with prices in cents + domain-specific feed payloads + feed freshness timestamps + tier1/tier2 pass metadata). Also define an agent_registry_schema for the Agent Registry config file, specifying required fields (agent_id, system_prompt, tool_permissions[], data_feed_configs[], kalshi_categories[], kalshi_tags[], subaccount_id?, active: boolean, model_provider?: string) so the Orchestrator can validate registry entries and route domain-specific data correctly. Category/tag mappings should be sourced from GET /search/tags_by_categories via Exchange Manager at startup."
+    },
+    "open_source_reference_implementations": {
+      "description": "v3.0 addition: Four open-source repositories providing starting points for building multi-agent trading systems. These are reference architectures to study and adapt, not drop-in solutions for Kalshi.",
+      "repos": [
+        {
+          "name": "Paperclip",
+          "type": "General-purpose agent framework",
+          "relevance": "Applicable to trading automation fundamentals — agent lifecycle, tool management, state persistence",
+          "adaptation_notes": "General framework; requires custom Kalshi adapter and trading-specific extensions"
+        },
+        {
+          "name": "MiroFish",
+          "type": "Prediction market trading bot",
+          "relevance": "Multi-agent signal processing for prediction markets — closest to the Market Scanner + agent pipeline pattern",
+          "adaptation_notes": "Originally designed for non-Kalshi platforms; requires Exchange Manager adapter for Kalshi API integration"
+        },
+        {
+          "name": "Hermes (Nous Research)",
+          "type": "Multi-agent orchestration framework",
+          "relevance": "Parliament-style voting systems with consensus mechanisms — most relevant for implementing the 6-agent parliament and dissent processing",
+          "adaptation_notes": "Provides the orchestration patterns; needs Kalshi-specific agent specializations and trading logic layered on top"
+        },
+        {
+          "name": "OpenClaw",
+          "type": "Claude Code-based trading system",
+          "relevance": "Most directly applicable to Claude Code infrastructure — skills, subagents, MCP server patterns for trading",
+          "adaptation_notes": "Closest to our target architecture; study its skill system and subagent dispatch patterns. Adapt for parliament consensus and Exchange Manager integration."
+        }
+      ]
+    },
+    "environment_variables": [
+      "KALSHI_API_KEY_ID — Kalshi API key ID for RSA-PSS request signing (used in KALSHI-ACCESS-KEY header)",
+      "KALSHI_PRIVATE_KEY_PATH — Path to PEM private key file for RSA-PSS signing",
+      "KALSHI_API_BASE — https://api.elections.kalshi.com/trade-api/v2 (production) or https://demo-api.kalshi.co/trade-api/v2 (demo)",
+      "KALSHI_WS_URL — wss://api.elections.kalshi.com/trade-api/ws/v2 (production) or demo equivalent",
+      "ANTHROPIC_API_KEY — Claude API key for programmatic subagent instantiation and swarm",
+      "OPENAI_API_KEY — GPT API key for Multi-Model Swarm Validator",
+      "GOOGLE_AI_API_KEY — Gemini API key for Multi-Model Swarm Validator",
+      "DEEPSEEK_API_KEY — DeepSeek API key for Multi-Model Swarm Validator",
+      "TOGETHER_API_KEY — Together AI API key for Llama models in Multi-Model Swarm Validator",
+      "TELEGRAM_BOT_TOKEN — Telegram bot token for notification webhook",
+      "TELEGRAM_CHAT_ID — Target Telegram chat/channel for alerts",
+      "FRED_API_KEY — Federal Reserve Economic Data API key for Economics Agent",
+      "X_API_CLIENT_ID — X API OAuth client ID (existing MCP server)",
+      "X_API_CLIENT_SECRET — X API OAuth client secret (existing MCP server)",
+      "SWARM_DAILY_BUDGET_CENTS — Daily API spend limit for swarm queries (default: 5000 = $50)"
+    ]
+  },
+  "risks": [
+    {
+      "risk_id": "R-001",
+      "category": "Model Risk — Correlated Failure",
+      "description": "All 6 parliament agents use the same underlying LLM (Claude), creating correlated failure modes. If the base model has a systematic bias or blind spot, all agents may share it despite having different prompts and data. v3.0 note: this is the primary motivation for the Multi-Model Swarm tier.",
+      "severity": "high",
+      "mitigation": "v3.0 mitigation: The Multi-Model Swarm Validator queries Claude, GPT, Gemini, DeepSeek, and Llama on high-value trades, introducing genuine model architecture diversity. If all Claude parliament agents agree but non-Claude swarm models disagree, this signals a Claude-specific bias that the parliament alone cannot detect. For lower-value trades where swarm is not triggered, monitor for correlated errors across parliament agents using the Audit Trail's per-agent accuracy tracking. Consider long-term migration to mixed-model parliament (e.g., 3 Claude, 1 GPT, 1 Gemini, 1 Llama) if swarm consistently reveals Claude-specific biases."
+    },
+    {
+      "risk_id": "R-002",
+      "category": "Data Risk — Feed Staleness",
+      "description": "Domain-specific data feeds may be stale, incomplete, or unavailable. If the Economics Agent receives no Fed minutes, its vote quality degrades but it may still vote with false confidence.",
+      "severity": "medium",
+      "mitigation": "Each agent must report data freshness in its vote response (see result_schema.data_freshness). If primary data feeds are unavailable, agent should ABSTAIN rather than guess. Implement data feed health monitoring with Telegram alerts on feed failures. v3.0: The Confidence Calibration Engine will detect agents voting confidently with stale data — if calibration shows degraded accuracy when data_freshness is old, the agent's calibration curve adjusts downward automatically."
+    },
+    {
+      "risk_id": "R-003",
+      "category": "Execution Risk — Latency",
+      "description": "Market conditions can change between parliament vote completion and order execution. A 60-second deliberation window may be too slow for fast-moving markets. Adding swarm validation (v3.0) increases total latency by up to 60 additional seconds. Kalshi's orderbook may have thin liquidity on certain contracts.",
+      "severity": "medium",
+      "mitigation": "Slippage protection: Execution Engine rejects trades where best available price has moved >2% from analysis time. For arbitrage opportunities (paired YES/NO contracts), bypass parliament for speed per the RISK-005 arbitrage carve-out. Use Kalshi WebSocket (via Exchange Manager) for real-time orderbook monitoring during execution. v3.0: Swarm validation adds latency only for high-value positions (>3% of bankroll) where the cost of a wrong decision justifies the extra validation time. Progressive context loading ensures most markets are rejected at Tier 1/2 in <500ms."
+    },
+    {
+      "risk_id": "R-004",
+      "category": "Overfitting Risk — Small Sample",
+      "description": "The 23% ROI improvement was measured over only 14 days and 47 markets. The Science Agent's 80% dissent accuracy is from a 5-sample pilot. These sample sizes are insufficient for statistical significance. The system may be overfitting to a specific market regime.",
+      "severity": "high",
+      "mitigation": "Run extended paper trading on Kalshi demo API (minimum 30 days, 200+ markets) before deploying real capital. Track performance across multiple Kalshi event categories and market regimes. Implement walk-forward validation via RBI Backtest Engine: train weights on historical data, validate on subsequent unseen period. v3.0: The RBI Backtest Engine gates all strategies through historical validation (minimum 100 simulated trades, positive Sharpe) before live deployment. The Confidence Calibration Engine provides Brier scores and confidence intervals, making overfitting detectable. Science Agent dissent accuracy must reach 30+ solo-dissent events before any automated escalation decisions."
+    },
+    {
+      "risk_id": "R-005",
+      "category": "Consensus Collapse — Diversity Loss",
+      "description": "If agents learn to agree with each other (prompt drift, shared training data updates), the consensus mechanism loses its value. The parliament degenerates into a single-agent system with extra steps.",
+      "severity": "medium",
+      "mitigation": "Monitor inter-agent agreement rate. If it exceeds 85% over a 7-day window, it indicates loss of diversity. Trigger system prompt review and data feed isolation audit. Consider introducing a mandatory 'devil's advocate' rotation. v3.0: The Agent Diversity success metric tracks full vote split distribution (6:0, 5:1, 4:2, no-consensus) and alerts if 6:0 rate exceeds 35%. The Multi-Model Swarm provides a cross-architecture diversity check that is immune to prompt drift within the Claude parliament."
+    },
+    {
+      "risk_id": "R-006",
+      "category": "API / Infrastructure Risk",
+      "description": "Dependency on multiple external APIs (Kalshi, news feeds, FRED, crypto data feeds, plus in v3.0: OpenAI, Google, DeepSeek, Together AI for swarm). Any API outage, rate limit, or breaking change can disable part or all of the system.",
+      "severity": "medium",
+      "mitigation": "Implement graceful degradation: if non-critical MCP servers are down, remaining agents still vote with available data. If Kalshi API is down, queue approved trades for execution when connectivity restores. v3.0: Exchange Manager provides centralized health checking and circuit breaking for Kalshi API. Model Registry provides health verification for swarm providers with fallback chains. If swarm providers are unavailable, swarm validation is skipped and position size is capped as compensating control per RISK-013. RSA-PSS signing is stateless (no token expiry risk). Cache market data to reduce API call frequency."
+    },
+    {
+      "risk_id": "R-007",
+      "category": "Regulatory Risk",
+      "description": "Kalshi is a CFTC-regulated Designated Contract Market (DCM), which provides legal clarity for US-based trading. However, automated bot trading on regulated exchanges may still carry compliance considerations. CFTC regulations on event contracts could change.",
+      "severity": "medium",
+      "mitigation": "Kalshi's CFTC regulation provides a significantly more favorable legal posture than offshore platforms. Maintain full audit trail for regulatory compliance. Operate within Kalshi's Terms of Service. Monitor CFTC regulatory developments via the Geopolitics Agent's data feeds. Implement a platform-specific kill switch via Exchange Manager that can disable all trading immediately. Legal review is still recommended before deployment to confirm automated trading permissibility on Kalshi. v3.0: Dissent reports include Kalshi-specific regulatory risk flags. Exchange Manager enforces jurisdictional routing (US = Kalshi only)."
+    },
+    {
+      "risk_id": "R-008",
+      "category": "Position Limit Risk",
+      "description": "Kalshi enforces per-market position limits (varies by contract, often $25K-$100K notional). The system must respect these limits, which may constrain position sizing on high-conviction trades.",
+      "severity": "low",
+      "mitigation": "Portfolio Tracker queries Kalshi market rules via Exchange Manager and enforces per-market position limits before order placement. Kelly Sizer output is capped at the lesser of CLAUDE.md max and Kalshi's per-market limit. For high-conviction trades near position limits, consider spreading across related markets within the same Kalshi event."
+    },
+    {
+      "risk_id": "R-009",
+      "category": "Confidence Calibration Risk — Cold Start",
+      "description": "v3.0: The Confidence Calibration Engine requires historical outcome data to build meaningful calibration curves. During the cold-start phase (first 50 settled votes per agent), calibration uses uninformative priors, meaning Kelly sizing operates on uncalibrated confidence. This period has the highest risk of position mis-sizing.",
+      "severity": "medium",
+      "mitigation": "Use quarter-Kelly (0.25x) during the cold-start phase until each agent has 50+ settled votes with outcomes. Monitor Brier scores continuously — any agent with Brier score > 0.3 during cold-start should have its vote weight reduced. Run cold-start phase on Kalshi demo API with paper trading to accumulate calibration data before risking real capital."
+    },
+    {
+      "risk_id": "R-010",
+      "category": "Swarm Cost Risk",
+      "description": "v3.0: Querying 5+ model providers per swarm validation incurs significant API costs. At $0.03-0.15 per query across providers, a busy day with 10 swarm validations could cost $1.50-7.50. Over time, this accumulates and may erode trading profits on smaller accounts.",
+      "severity": "low",
+      "mitigation": "RISK-013 enforces a daily swarm budget ($50/day). Model Registry tracks per-query costs. Swarm triggers only for positions above 3% of bankroll — small positions skip swarm entirely. Monitor swarm's incremental value: if swarm validation rarely changes parliament decisions, raise the threshold or reduce the minimum model count."
+    },
+    {
+      "risk_id": "R-011",
+      "category": "Survivorship Bias Risk",
+      "description": "v3.0: The source material (parliament 74% win rate, skill architecture $1K to $45K, PHANTOM $1.18 to $3.3M) consists of success stories that went viral. Identical architectures that failed are invisible. These results may not be reproducible, and no source provides confidence intervals, drawdown statistics during losing streaks, or performance across different market regimes.",
+      "severity": "high",
+      "mitigation": "Treat all source performance claims as directional hypotheses, not guaranteed outcomes. The RBI Backtest Engine provides the validation layer: no strategy goes live without backtesting on Kalshi historical data with confidence intervals. Track our own performance rigorously with Brier scores, calibration curves, and drawdown statistics. Define failure criteria upfront: if the system does not achieve 20% ROI over single-agent baseline within 90 days, conduct a full architecture review."
+    },
+    {
+      "risk_id": "R-012",
+      "category": "Black Swan Risk",
+      "description": "v3.0: Multi-agent consensus assumes diversity of perspective creates robustness. But a truly novel event (unprecedented regulatory action, new Kalshi contract category, market regime never seen in training data) may produce uniform uncertainty across all agents AND all swarm models, making consensus meaningless.",
+      "severity": "medium",
+      "mitigation": "The system's default behavior on uncertainty is NO_TRADE — when agents cannot reach consensus, no position is taken. This is the correct behavior for black swan events. Additionally, the daily loss limit (RISK-004) provides a hard cap on damage from any single regime. Monitor for correlated ABSTAIN votes across agents — if all 6 agents ABSTAIN on the same market, flag it as a potential blind spot for human review."
+    }
+  ],
+  "success_criteria": [
+    {
+      "metric": "ROI vs Single-Agent Baseline",
+      "target": "20%+ improvement over single-agent approach on identical market set",
+      "measurement": "A/B test: run parliament and single-agent on same Kalshi markets for 30 days, compare total ROI in USD",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Win Rate",
+      "target": "74%+ on executed trades (vs ~60% single-agent baseline). A 'win' is defined as a settled or exited position where total USD return (payout minus cost minus Kalshi settlement fees) is strictly positive. Positions exited early at a loss count as losses. Positions exited early at a profit count as wins. Unsettled positions are excluded from win rate calculation until settled or exited.",
+      "measurement": "Count of profitable settled/exited trades / total settled/exited trades executed by parliament",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Average Loss Reduction",
+      "target": "50%+ reduction in average loss size compared to single-agent",
+      "measurement": "Mean USD loss on losing trades: parliament vs single-agent baseline",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Dissent Signal Value",
+      "target": "Minority dissent accuracy > 60% when dissent quality score exceeds 70. Science Agent solo-dissent accuracy target: validate the 80% pilot figure over 30+ events before trusting for automated decisions.",
+      "measurement": "Track outcomes of trades where high-quality dissent was overridden vs heeded. Separate tracking for Science Agent solo-dissent events.",
+      "timeframe": "60-day cumulative measurement (requires sufficient sample of 30+ dissent events)"
+    },
+    {
+      "metric": "Maximum Drawdown",
+      "target": "< 15% of peak bankroll (in USD) at any point",
+      "measurement": "Continuous monitoring by Portfolio Tracker",
+      "timeframe": "Continuous"
+    },
+    {
+      "metric": "Trades Filtered",
+      "target": "System should refuse 40-60% of candidate markets (consensus not reached). Progressive loading should reject 90%+ at Tier 1/2 before reaching parliament.",
+      "measurement": "Count of NO_TRADE decisions / total markets evaluated by parliament. Count of Tier 1/2 rejections / total markets scanned.",
+      "timeframe": "30-day rolling measurement"
+    },
+    {
+      "metric": "Latency",
+      "target": "Full parliament vote cycle p50 < 60 seconds, p95 < 120 seconds from market dispatch to decision. Pre-fetched data packages must be delivered to agents at dispatch time. Swarm validation (when triggered) adds p50 < 30 seconds, p95 < 60 seconds additional.",
+      "measurement": "Timestamp logging on Orchestrator: dispatch_time to decision_time, plus per-agent processing_time_ms breakdown and swarm_validation_time_ms",
+      "timeframe": "Per-session, with p50, p95 and p99 tracking"
+    },
+    {
+      "metric": "Agent Diversity",
+      "target": "Inter-agent unanimous agreement rate < 35% (agents should disagree frequently to demonstrate genuine analytical diversity). With 6 agents, track full vote split distribution: 6:0, 5:1, 4:2, and no-consensus outcomes. Healthy distribution target: 6:0 < 15%, 5:1 ~ 25-35%, 4:2 ~ 30-40%, no-consensus ~ 15-25%.",
+      "measurement": "Percentage of parliament sessions by vote split pattern (6:0, 5:1, 4:2, no-consensus). Alert if 6:0 rate exceeds 35% over rolling window (indicates diversity collapse).",
+      "timeframe": "7-day rolling measurement"
+    },
+    {
+      "metric": "Confidence Calibration Quality",
+      "target": "Per-agent Brier score < 0.25 after calibration (well-calibrated agents). No agent should have systematic bias exceeding 10% (e.g., claimed 80%, actual below 70% or above 90%) after the 50-vote cold-start phase.",
+      "measurement": "Brier score per agent per Kalshi category. Calibration curve deviation from the diagonal. Computed by Confidence Calibration Engine.",
+      "timeframe": "30-day rolling, after 50+ settled votes per agent"
+    },
+    {
+      "metric": "Swarm Incremental Value",
+      "target": "Swarm validation should change parliament decisions on at least 10% but no more than 30% of triggered validations. Below 10% means swarm adds cost without value; above 30% means parliament is unreliable.",
+      "measurement": "Count of swarm refusals + reductions / total swarm validations triggered",
+      "timeframe": "30-day rolling measurement, after swarm deployment (Phase 5)"
+    },
+    {
+      "metric": "RBI Backtest Gate Rate",
+      "target": "At least 60% of strategy hypotheses should be rejected by RBI backtesting before reaching live deployment. This validates that the gate is working — if everything passes, the bar is too low.",
+      "measurement": "Count of rejected strategies / total strategies submitted to RBI Backtest Engine",
+      "timeframe": "Ongoing from Phase 4"
+    }
+  ],
+  "notes": "v3.0 UPGRADE SUMMARY: This version integrates five major architectural concepts from the knowledge overview into the existing v2.0 parliament system:\n\n1. PARLIAMENT WITH DISSENT REPORTS: Formalized the dissent mechanism as a first-class architectural component. The Science Agent's empirical role as 'most valuable minority dissenter' (4/5 correct on solo dissents, saving $890 — 5-sample pilot, validation pending) is systematically tracked and exploited via the Dissent Analyzer. Dissent reports now include Kalshi-specific regulatory risk flags. The key insight: 'A single dissenting agent proved more valuable than the rest of the system combined on its minority calls.'\n\n2. MULTI-MODEL SWARM CONSENSUS: Added as an optional second tier on high-value positions. Queries Claude, GPT, Gemini, DeepSeek, and Llama in parallel to eliminate single-provider bias. The swarm does not replace the parliament — it ratifies or refuses parliament-approved trades. Different model architectures have different failure modes, so cross-model agreement provides a confidence signal that same-model parliament consensus cannot. The Model Registry enables easy model updates as new versions release.\n\n3. SKILL ARCHITECTURE WITH PROGRESSIVE CONTEXT LOADING: Trading capabilities decomposed into modular skills (market-analyzer, kelly-sizer, bayesian-updater, dissent-reporter, parliament-session, arb-detector, swarm-validator) with typed I/O contracts. Progressive loading activates in 4 tiers: Tier 1 (basic checks, <100ms) -> Tier 2 (edge estimation, <500ms) -> Tier 3 (parliament, <120s) -> Tier 4 (swarm, <60s additional). Scans 147+ contracts per session but only 2-3 pass all tiers. This is the pattern that achieved 79% win rate and Sharpe 2.59 in the source material.\n\n4. RBI FRAMEWORK: Research-Backtest-Implement gates all strategies through historical validation using Kalshi's archived market data (GET /historical/markets, GET /historical/trades) before live deployment. No strategy goes live without minimum 100 simulated trades, positive Sharpe, and walk-forward validation. This addresses the survivorship bias risk (R-011) head-on.\n\n5. EXCHANGE MANAGER: A routing abstraction layer decoupling all trading logic from Kalshi-specific API details. Currently configured with Kalshi as the sole adapter (US-legal, CFTC-regulated). Enables future platform additions without changing agent logic. Enforces jurisdictional routing (US = Kalshi only for CFTC compliance).\n\nNEW IN V3.0 — CONFIDENCE CALIBRATION: Addresses the knowledge gap identified in the overview where 'confidence calibration across agents is unaddressed.' The Confidence Calibration Engine maintains per-agent, per-domain calibration curves mapping raw confidence to calibrated probabilities. Uses Platt scaling or isotonic regression. Bootstraps with uninformative priors during cold-start (first 50 votes per agent), then switches to empirical calibration. Feeds calibrated probabilities to Kelly Sizer for more accurate position sizing.\n\nNEW IN V3.0 — KNOWLEDGE GAPS ADDRESSED:\n- Kalshi API orchestration: Exchange Manager provides the missing Kalshi adapter layer. All Kalshi-specific details (RSA-PSS signing, cents pricing, contract types, rate limits) are encapsulated in the Exchange Manager, with a platform-agnostic interface above.\n- Confidence calibration: Confidence Calibration Engine with Brier scores, calibration curves, and systematic bias detection.\n- Agent disagreement resolution: Dissent Analyzer with quality scoring, historical accuracy tracking, and graduated response (PROCEED/REDUCE_SIZE/HUMAN_REVIEW/ABORT). Automated handling gated behind 30-event minimum sample size per agent.\n- Infrastructure costs: RISK-010 and RISK-013 address swarm API costs with daily budgets. Model Registry tracks per-query costs.\n- Survivorship bias: RISK-011 explicitly acknowledges this risk. RBI Backtest Engine provides the validation gate.\n\nOPEN-SOURCE REFERENCES: Four repos inform the implementation — Paperclip (general agent framework), MiroFish (prediction market bot), Hermes by Nous Research (parliament-style voting, most relevant for consensus mechanisms), and OpenClaw (Claude Code integration, most relevant for skill/subagent patterns). These are starting points, not production Kalshi integrations.\n\nCLAUDE CODE INFRASTRUCTURE: The architecture maps naturally to Claude Code's native capabilities: MCP servers for Kalshi API and data feeds, CLAUDE.md for immutable risk rules loaded into every agent's context, Skills for encapsulating each trading capability (market-analyzer, kelly-sizer, etc.) as reusable modules with progressive loading, Subagents for running parliament members in parallel with isolated context scoping (each gets different system prompt + tool permissions), and Hooks for event-driven Telegram alerts on fills, dissent escalations, swarm refusals, calibration warnings, and circuit breaker activations.\n\nKEY ARCHITECTURAL INSIGHT (unchanged from v2.0): The Parliament's edge comes NOT from any individual agent being smarter, but from the built-in mechanism of doubt that a single model cannot replicate. The most profitable traders 'almost never bet on the same thing at the same time' — they think differently, and that diversity is exactly what makes each profitable. The architecture replicates this cognitive diversity synthetically through isolated contexts and specialized data feeds. v3.0 adds a second layer of diversity through multi-model swarm consensus — not just different perspectives on the same model, but fundamentally different model architectures evaluating the same question.\n\nCRITICAL ANTI-PATTERN (unchanged from v2.0): Giving all agents the same information. If every agent sees everything, they converge on the same conclusion, and the parliament becomes a single agent with 6x the cost and zero additional insight. Information isolation between agents is not a nice-to-have — it is the fundamental mechanism that creates the edge."
+}

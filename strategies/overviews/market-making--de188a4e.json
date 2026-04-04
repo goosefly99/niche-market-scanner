@@ -1,0 +1,523 @@
+{
+  "overview_id": "de188a4e",
+  "title": "Non-Directional Liquidity Capture & Market Making",
+  "created_date": "2026-04-03T14:32:00.000Z",
+  "status": "complete",
+  "sources": [
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039777322077933879", "title": "Stoikov pricing bot +654% ROI"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039798489522053626", "title": "Multi-strategy bot Sharpe 2.59"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2039134585737400689", "title": "Three competing liquidity capture bots"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2038654832819535895", "title": "1000+ bots experience report"},
+    {"collection": "trading-strategies-v3", "item_id": "tweet_2038903376453259756", "title": "6 non-predictive structural edges"}
+  ],
+  "summary": "This overview synthesizes 5 sources covering non-directional liquidity capture and market-making strategies on prediction markets, focused on adaptation to Kalshi (CFTC-regulated, US-legal). The central insight across all sources is that profitable automated strategies extract edge from market microstructure and liquidity provision rather than directional prediction -- controlling the flow of liquidity beats reacting to it. Documented approaches include Stoikov-model quote placement ($157K to $1.03M, +654% ROI), laddered bid architectures across complementary contracts, non-linear order distribution curves, position merging for capital recycling, and structural mispricing detection via six non-predictive edge categories. All strategies require adaptation from Polymarket's CLOB/AMM hybrid to Kalshi's order book mechanics, fee structure, and available contract types, with several critical unknowns around Kalshi's market microstructure that must be resolved before implementation.",
+  "concepts": [
+    {
+      "name": "Stoikov Market Making Model",
+      "category": "technique",
+      "description": "A quantitative framework for optimal bid/ask quote placement that simultaneously manages inventory risk and maximizes spread capture. The Stoikov pricing rule adjusts the reservation price based on current inventory, volatility, risk aversion, and time remaining. Formula: r = s - q * gamma * sigma^2 * (T - t), where r is the reservation price adjustment, s is the mid-price, q is current inventory, gamma is risk aversion parameter, sigma is volatility, and T-t is time to contract expiry. Combined with Bayesian probability updates P(H|D) for real-time belief revision and Kelly criterion f = (bp - q) / b for position sizing.",
+      "key_details": [
+        "Core formula r = s - q*gamma*sigma^2*(T-t) adjusts quote placement away from mid-price based on accumulated inventory -- when long, bid lower to discourage further buying; when short, ask lower to attract fills",
+        "Bayesian update P(H|D) continuously revises the probability estimate as new market data arrives, keeping the reservation price anchored to current information rather than stale beliefs",
+        "Kelly sizing f = (bp - q) / b determines optimal fraction of capital per trade, where b is the payoff odds, p is estimated win probability, and q is estimated loss probability",
+        "Documented performance: $157K deposit grew to $1.03M PnL (+654% ROI) in 2 months on crypto UP/DOWN contracts",
+        "The model naturally becomes more aggressive (wider quotes) when inventory is low and more defensive (tighter quotes, skewed away from exposure) when inventory accumulates on one side",
+        "YES + NO spreads below 100 cents create the fundamental profit opportunity -- the Stoikov model optimizes capture of this guaranteed sub-dollar spread",
+        "Gamma (risk aversion) parameter must be tuned per market: too low allows dangerous inventory accumulation, too high leaves profitable spread on the table",
+        "Time-to-expiry component (T-t) causes the model to widen spreads as expiry approaches and inventory risk increases -- critical for short-duration prediction market contracts"
+      ],
+      "source_items": [
+        "tweet_2039777322077933879"
+      ],
+      "relationships": [
+        {
+          "concept": "Inventory Management & Directional Risk Control",
+          "relationship": "manages inventory via reservation price adjustment"
+        },
+        {
+          "concept": "Kelly Criterion & Position Sizing",
+          "relationship": "uses Kelly formula for capital allocation per trade"
+        },
+        {
+          "concept": "Bid Ladder Architecture",
+          "relationship": "provides the mathematical foundation for ladder placement"
+        },
+        {
+          "concept": "Non-Linear Order Distribution",
+          "relationship": "Stoikov output can be shaped into non-linear curves for quote placement"
+        }
+      ]
+    },
+    {
+      "name": "Bid Ladder Architecture",
+      "category": "technique",
+      "description": "A market-making order placement strategy that distributes resting orders at multiple price levels on both YES and NO sides of a prediction market contract. Rather than placing a single bid/ask pair, the bot creates a ladder of orders at 1-cent increments, ensuring it captures fills across a range of price movements. Ladder Larry demonstrated this approach with +$12,450 in a 24-hour competition using high-frequency laddering across both contract sides.",
+      "key_details": [
+        "Orders placed at 1-cent increments across both YES and NO sides of the same event contract",
+        "As price trends in one direction, the bot naturally accumulates more positions on the winning side -- this structural imbalance is the core profit mechanism",
+        "Ladder Larry bot achieved +$12,450 in 24 hours using flat HF laddering, but was outperformed by non-linear curve approaches",
+        "Both sides of every market are laddered simultaneously, capturing fills regardless of direction",
+        "The width of the ladder (how many price levels above and below mid) determines the balance between fill frequency and adverse selection risk",
+        "Wider ladders capture more fills but expose to more adverse selection; narrower ladders are safer but miss volatile moves",
+        "Queue priority at each price level is determined by FIFO -- earlier orders fill first, creating latency competition even within the ladder structure",
+        "For Kalshi adaptation: need to determine if Kalshi supports resting limit orders at arbitrary price levels and what the minimum tick size is"
+      ],
+      "source_items": [
+        "tweet_2039134585737400689",
+        "tweet_2038654832819535895"
+      ],
+      "relationships": [
+        {
+          "concept": "Non-Linear Order Distribution",
+          "relationship": "is improved by replacing flat distribution with non-linear curves"
+        },
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "Stoikov output determines optimal ladder center and width"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "creates the structural imbalance through asymmetric fills"
+        },
+        {
+          "concept": "Queue Priority & Execution Speed",
+          "relationship": "FIFO matching determines which ladder orders get filled"
+        }
+      ]
+    },
+    {
+      "name": "Non-Linear Order Distribution",
+      "category": "technique",
+      "description": "The practice of distributing order sizes across price levels using non-linear (curved) functions rather than flat equal-size allocations. The Curve Alchemist bot demonstrated this approach with +$18,920 in 24 hours, outperforming both flat laddering (+$12,450) and capital recycling focus (+$9,830). This is identified across multiple sources as the single most important differentiator among market-making bots, yet the specific curve shapes are never disclosed.",
+      "key_details": [
+        "Curve Alchemist bot: +$18,920 in 24 hours, the top performer in the three-bot competition",
+        "Outperformed flat laddering by 52% ($18,920 vs $12,450) using identical capital and market conditions",
+        "Larger order sizes near the mid-price (where fills are most likely) and smaller sizes at the extremes (where adverse selection is highest)",
+        "The exact curve functions are proprietary and never shared in public sources -- described as requiring live testing and impossible to backtest accurately",
+        "Possible curve shapes include quadratic, exponential decay from mid, sigmoid, or custom piecewise functions",
+        "The curve must adapt to current volatility: flatter in low-vol environments (more fills needed for profitability), steeper in high-vol (protect against adverse selection)",
+        "Multiple sources emphasize that simple copies with flat distributions fail to replicate results -- the curve IS the edge",
+        "For Kalshi: curve optimization depends on Kalshi's specific order book depth profile and typical spread characteristics, which differ from Polymarket"
+      ],
+      "source_items": [
+        "tweet_2039134585737400689",
+        "tweet_2038654832819535895"
+      ],
+      "relationships": [
+        {
+          "concept": "Bid Ladder Architecture",
+          "relationship": "is an optimization applied to the basic ladder structure"
+        },
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "Stoikov reservation price informs the center; curve shapes the distribution around it"
+        },
+        {
+          "concept": "Inventory Management & Directional Risk Control",
+          "relationship": "curve shape affects inventory accumulation rate and adverse selection"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "non-linear distribution amplifies the natural structural imbalance"
+        }
+      ]
+    },
+    {
+      "name": "Structural Imbalance Profit Mechanism",
+      "category": "strategy",
+      "description": "The core profit engine of non-directional market making: when the market trends in one direction, a bot with laddered bids on both YES and NO sides mechanically accumulates more positions on the winning side than the losing side. This happens through how price moves through discrete bid levels, not through any prediction. Over many iterations, this asymmetry becomes the primary source of profit, effectively creating a directional edge without directional intent.",
+      "key_details": [
+        "If market trends upward, the bot fills more bids on the UP side (price moves through those price levels, triggering fills)",
+        "DOWN side orders receive fewer fills because price moves away from those levels",
+        "Creates a natural long bias on the correct side without any directional view being expressed",
+        "Not based on prediction -- purely a mechanical consequence of laddered order placement across discrete price levels",
+        "Works because the bot is 'structurally owning the platform' -- providing the infrastructure other traders execute against",
+        "Over many iterations and many markets, the imbalance becomes statistically reliable income",
+        "The non-linear distribution amplifies this effect: more capital near mid-price captures more fills on the trending side",
+        "Losing positions on the wrong side are cleaned up via position merging rather than held to expiry"
+      ],
+      "source_items": [
+        "tweet_2038654832819535895",
+        "tweet_2039134585737400689"
+      ],
+      "relationships": [
+        {
+          "concept": "Bid Ladder Architecture",
+          "relationship": "the ladder structure creates the imbalance mechanically"
+        },
+        {
+          "concept": "Position Merging & Capital Recycling",
+          "relationship": "cleans up losing-side positions to free capital"
+        },
+        {
+          "concept": "Non-Linear Order Distribution",
+          "relationship": "amplifies the imbalance through concentration near mid-price"
+        },
+        {
+          "concept": "Spread Capture & YES+NO Arbitrage",
+          "relationship": "the sub-$1 combined cost provides the initial profit buffer"
+        }
+      ]
+    },
+    {
+      "name": "Position Merging & Capital Recycling",
+      "category": "technique",
+      "description": "On prediction markets, holding both YES and NO shares of the same contract guarantees a $1 payout at settlement. Position merging combines opposing positions to realize this guaranteed payout, freeing locked capital for new orders. Most merges occur at a slight loss, which is intentional -- merging is a capital-efficiency mechanism, not a profit center. The Merge Phantom bot specialized in this approach, earning +$9,830 in 24 hours primarily through capital recycling.",
+      "key_details": [
+        "YES + NO = guaranteed $1 payout at settlement, regardless of outcome",
+        "Merges intentionally take small losses to free capital for higher-expected-value new orders",
+        "Merge Phantom bot: +$9,830 in 24 hours through capital recycling specialization",
+        "Without merging, capital locks up in losing inventory positions and the bot eventually runs out of order capital",
+        "Critical for long-running market-making strategies that operate across hundreds of contracts",
+        "The YES + NO < 100 cents condition is what creates the initial spread profit opportunity -- the gap below $1 is the market maker's gross margin",
+        "Timing of merges matters: merging too early locks in losses unnecessarily; merging too late ties up capital",
+        "For Kalshi: must determine if Kalshi supports position merging or equivalent capital recycling mechanism, and what the settlement mechanics are"
+      ],
+      "source_items": [
+        "tweet_2039134585737400689",
+        "tweet_2038654832819535895",
+        "tweet_2039777322077933879"
+      ],
+      "relationships": [
+        {
+          "concept": "Inventory Management & Directional Risk Control",
+          "relationship": "is the primary mechanism for reducing accumulated inventory"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "cleans up the losing side so capital can be redeployed"
+        },
+        {
+          "concept": "Spread Capture & YES+NO Arbitrage",
+          "relationship": "the sub-$1 spread creates the profit; merging realizes the guaranteed settlement"
+        },
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "Stoikov model signals when inventory justifies a merge"
+        }
+      ]
+    },
+    {
+      "name": "Spread Capture & YES+NO Arbitrage",
+      "category": "strategy",
+      "description": "The foundational profit mechanism for all non-directional strategies: when the combined cost of YES and NO shares on the same contract is less than $1, acquiring both sides locks in a guaranteed profit at settlement. This is the atomic unit of market-making profit in prediction markets. The multi-strategy bot used this as one of its core components alongside copytrade, pump sniping, and news edge, achieving 73% win rate and Sharpe 2.59.",
+      "key_details": [
+        "Core condition: YES price + NO price < 100 cents creates guaranteed profit opportunity",
+        "Example: YES at 54 cents + NO at 43 cents = 97 cents total cost, guaranteed $1 payout = 3 cents risk-free profit",
+        "Automated scanning across dozens of markets to find spread opportunities continuously",
+        "Part of the multi-strategy bot that achieved 73% win rate, 1,672 trades, Sharpe ratio 2.59",
+        "Low-edge trades filtered automatically -- minimum spread threshold prevents wasting capital on sub-marginal opportunities",
+        "Combined with other strategies (copytrade, pump sniper, news edge) in layered skill architecture",
+        "The spread width varies by market liquidity: thin markets offer wider spreads but slower fills; liquid markets offer tighter spreads but more volume",
+        "For Kalshi: need to verify that Kalshi binary contracts have complementary YES/NO pricing that sums to near $1, and what fees eat into the spread"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626",
+        "tweet_2039777322077933879",
+        "tweet_2038654832819535895"
+      ],
+      "relationships": [
+        {
+          "concept": "Position Merging & Capital Recycling",
+          "relationship": "merging realizes the guaranteed $1 settlement from both sides"
+        },
+        {
+          "concept": "Multi-Strategy Skill Architecture",
+          "relationship": "one strategy module within the layered execution system"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "the sub-$1 spread is the gross margin that funds the market maker"
+        },
+        {
+          "concept": "Kalshi Platform Adaptation",
+          "relationship": "fee structure directly determines whether spreads are capturable"
+        }
+      ]
+    },
+    {
+      "name": "Inventory Management & Directional Risk Control",
+      "category": "risk management",
+      "description": "Managing the accumulation of directional exposure that results from market-making activity. When the market moves sharply, the bot fills more orders on the losing side before it can adjust, creating dangerous directional concentration. Strict inventory limits, Stoikov reservation price adjustment, and position merging work together to prevent single-direction exposure from accumulating to catastrophic levels.",
+      "key_details": [
+        "Primary risk in all market-making strategies: sharp moves leave the bot heavily exposed on the losing side",
+        "Stoikov model handles this mathematically: reservation price adjustment skews quotes away from accumulated inventory direction",
+        "Position merging (YES+NO=$1) is the tactical mechanism for reducing inventory when it exceeds limits",
+        "Insufficient capital reduces fill frequency across the ladder, degrading overall edge",
+        "Inventory limits must be hard-coded: maximum position size per contract, maximum total directional exposure across all contracts",
+        "The gamma parameter in the Stoikov model controls how aggressively the bot adjusts quotes in response to inventory -- this is the key tuning parameter for risk tolerance",
+        "In the three-bot competition, all three bots maintained near-zero net directional exposure despite thousands of fills -- inventory management worked as designed",
+        "For Kalshi: inventory management approach depends on Kalshi's position limits, margin requirements, and whether real-time position data is available via API"
+      ],
+      "source_items": [
+        "tweet_2038654832819535895",
+        "tweet_2039134585737400689",
+        "tweet_2039777322077933879"
+      ],
+      "relationships": [
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "Stoikov gamma parameter is the mathematical control for inventory risk"
+        },
+        {
+          "concept": "Position Merging & Capital Recycling",
+          "relationship": "merging is the primary inventory reduction mechanism"
+        },
+        {
+          "concept": "Kelly Criterion & Position Sizing",
+          "relationship": "Kelly determines maximum per-trade sizing which bounds inventory growth rate"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "inventory management preserves the profitable imbalance while preventing catastrophic exposure"
+        }
+      ]
+    },
+    {
+      "name": "Kelly Criterion & Position Sizing",
+      "category": "risk management",
+      "description": "The Kelly criterion formula f = (bp - q) / b determines the optimal fraction of capital to risk on each trade, where b is the payout odds, p is the estimated probability of winning, and q = 1-p is the probability of losing. In the context of market making, Kelly prevents both over-sizing (which leads to ruin from variance) and under-sizing (which leaves edge on the table). The Stoikov bot combined Kelly sizing with Bayesian probability updates to continuously adjust position sizing as market conditions changed.",
+      "key_details": [
+        "Formula: f = (bp - q) / b where f is fraction of capital, b is payout odds, p is win probability, q is loss probability",
+        "Prevents catastrophic loss from variance even when the strategy has positive expected value",
+        "Fractional Kelly (e.g., half-Kelly) is often used in practice to reduce variance at the cost of lower growth rate",
+        "Combined with Bayesian P(H|D) updates in the Stoikov bot: as new data arrives, p is revised, and Kelly sizing adjusts automatically",
+        "Human traders systematically violate Kelly: sizing up after wins (overconfidence) and sizing down after losses (fear), which is the exact opposite of what the math prescribes",
+        "Maximum single position size should be capped at 8% of total portfolio regardless of Kelly output -- Kelly can recommend large positions on high-edge opportunities that still carry ruin risk",
+        "The multi-strategy bot used Kelly-like sizing across all four strategy modules, contributing to the Sharpe 2.59 result"
+      ],
+      "source_items": [
+        "tweet_2039777322077933879",
+        "tweet_2039798489522053626"
+      ],
+      "relationships": [
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "Kelly sizes the positions that Stoikov places"
+        },
+        {
+          "concept": "Inventory Management & Directional Risk Control",
+          "relationship": "Kelly caps the growth rate of inventory per trade"
+        },
+        {
+          "concept": "Structural Imbalance Profit Mechanism",
+          "relationship": "ensures position sizes are optimal for the imbalance to compound"
+        }
+      ]
+    },
+    {
+      "name": "Queue Priority & Execution Speed",
+      "category": "technique",
+      "description": "Prediction market order books use FIFO (first-in, first-out) matching at each price level, meaning the earliest orders get filled first. This creates intense latency competition among market-making bots, as the bot that posts orders fastest at the best prices captures the most fills. Even a well-designed strategy underperforms without infrastructure advantage -- the queue decides who gets the profitable fills.",
+      "key_details": [
+        "FIFO matching: first orders at a price level receive priority for fills from incoming market orders",
+        "Multiple bots compete to place orders within milliseconds when new contract windows open or prices move",
+        "Infrastructure (low-latency API connections, efficient order management, reliable uptime) is not optional for competitive market making",
+        "Slower bots get fewer fills even with identical strategies and capital -- the fill rate directly determines profitability",
+        "Queue priority creates a natural moat: established bots with resting orders have positional advantage over new entrants",
+        "For Kalshi: FIFO vs pro-rata matching makes a significant difference to market-making profitability -- must determine Kalshi's matching engine rules"
+      ],
+      "source_items": [
+        "tweet_2038654832819535895",
+        "tweet_2039134585737400689"
+      ],
+      "relationships": [
+        {
+          "concept": "Bid Ladder Architecture",
+          "relationship": "determines which ladder orders get filled when multiple bots ladder at the same levels"
+        },
+        {
+          "concept": "Non-Linear Order Distribution",
+          "relationship": "curve shape interacts with queue position to determine actual fill distribution"
+        },
+        {
+          "concept": "Kalshi Platform Adaptation",
+          "relationship": "Kalshi matching engine rules determine whether FIFO queue priority applies"
+        }
+      ]
+    },
+    {
+      "name": "Structural Edge Detection (Non-Predictive)",
+      "category": "strategy",
+      "description": "Using AI to identify structural mispricings in prediction markets by comparing market-implied probabilities against external data, historical base rates, and cross-market consistency -- without attempting to predict outcomes. Six specific edge categories are identified: base rate neglect (crowds follow narratives over historical frequency), cross-market inconsistency (related contracts contradict each other), mechanical price moves (thin-liquidity noise vs real information), cross-platform comparison (same event priced differently), certainty overpaying (crowds overpay for high-confidence outcomes), and time decay mispricing (markets fail to price narrowing time horizons).",
+      "key_details": [
+        "Base rate neglect: historical frequency of similar outcomes contradicts narrative-driven pricing -- bills stall, scandals fade, campaigns recover, but crowds buy the story",
+        "Cross-market inconsistency: related contracts on same event can be internally inconsistent (e.g., candidate weak in state polls but strong nationally)",
+        "Mechanical price moves: distinguishing real information-driven moves from thin-orderbook noise in low-liquidity markets",
+        "Cross-platform comparison: same event priced differently on Kalshi vs other platforms creates arbitrage without prediction",
+        "Certainty overpaying: crowds systematically overpay for high-confidence outcomes and underpay for uncertain ones -- known calibration bias from decades of betting market research",
+        "Time decay mispricing: markets stay too expensive as calendar narrows remaining possibilities -- every quiet day, missed catalyst, and approaching deadline matters",
+        "Claude is useful here because it does not get emotional, does not follow crowd excitement, checks records consistently -- edge comes from consistency, not intelligence",
+        "These edges are complementary to spread capture: structural detection can inform when to tighten/widen spreads or increase/decrease position sizes"
+      ],
+      "source_items": [
+        "tweet_2038903376453259756"
+      ],
+      "relationships": [
+        {
+          "concept": "Stoikov Market Making Model",
+          "relationship": "structural detection can inform the probability estimates that feed Stoikov"
+        },
+        {
+          "concept": "Spread Capture & YES+NO Arbitrage",
+          "relationship": "structural edges identify which contracts offer the best spread opportunities"
+        },
+        {
+          "concept": "Multi-Strategy Skill Architecture",
+          "relationship": "can serve as a signal source within the multi-agent system"
+        },
+        {
+          "concept": "Kalshi Platform Adaptation",
+          "relationship": "cross-platform comparison is directly applicable between Kalshi and other venues"
+        }
+      ]
+    },
+    {
+      "name": "Multi-Strategy Skill Architecture",
+      "category": "architecture",
+      "description": "A system architecture where multiple specialized strategy modules (spread farming, wallet copytrade, pump sniping, news edge) operate as skills within a layered execution framework. Each skill activates under specific trigger conditions and uses progressive context loading -- basic checks (liquidity, price gaps) run first, with deeper calculations (expected value, Bayesian updates) executed only when initial filters pass. This keeps execution fast by deferring expensive computation until triggered. The system achieved 73% win rate across 1,672 trades with Sharpe ratio 2.59.",
+      "key_details": [
+        "Four core strategy modules: spread farming, wallet copytrade, pump sniping, news-edge trading",
+        "Skills built around core math models: expected value, position sizing, Bayesian updates, log return tracking",
+        "Progressive context loading: basic checks run first (liquidity sufficient? price gap exists? contract active?), deeper calculations only on pass",
+        "Cross-agent confirmation can be required before execution on uncertain signals -- reduces false positive rate",
+        "System produced 1,672 trades with zero human input, 73% win rate, Sharpe ratio 2.59",
+        "Built for $20 of Claude API usage -- the system design itself is the valuable asset, not the infrastructure cost",
+        "Trigger-based activation: skills fire on specific market events (price dislocations, new listings, breaking news, large wallet activity) rather than polling continuously",
+        "For Kalshi: the architecture is platform-agnostic but each skill module needs Kalshi-specific API integration and market discovery logic"
+      ],
+      "source_items": [
+        "tweet_2039798489522053626"
+      ],
+      "relationships": [
+        {
+          "concept": "Spread Capture & YES+NO Arbitrage",
+          "relationship": "spread farming is one skill module within the architecture"
+        },
+        {
+          "concept": "Structural Edge Detection (Non-Predictive)",
+          "relationship": "structural detection can serve as an additional signal source/skill"
+        },
+        {
+          "concept": "Kelly Criterion & Position Sizing",
+          "relationship": "Kelly sizing is a shared math model used across all skill modules"
+        },
+        {
+          "concept": "Kalshi Platform Adaptation",
+          "relationship": "each skill module requires platform-specific adaptation"
+        }
+      ]
+    },
+    {
+      "name": "Kalshi Platform Adaptation",
+      "category": "platform",
+      "description": "The set of platform-specific considerations required to adapt Polymarket-native liquidity capture strategies to Kalshi, the CFTC-regulated US-legal prediction market. All source strategies were documented on Polymarket, but the user requires Kalshi implementation due to US residency. Critical unknowns include Kalshi's order book mechanics, matching engine rules, fee structure for market makers, available order types, position merging equivalents, and API capabilities for automated trading.",
+      "key_details": [
+        "Kalshi is CFTC-regulated and legal for US residents -- the only viable venue for these strategies given user's residency",
+        "Kalshi uses REST API authentication (not Polymarket's two-tier EIP-712/HMAC wallet-signing model) -- simpler auth flow",
+        "Kalshi offers event contracts in politics, economics, climate, crypto -- different market mix than Polymarket's crypto-heavy short-duration contracts",
+        "Critical unknown: does Kalshi use a CLOB with FIFO matching? Pro-rata matching? This fundamentally changes market-making strategy design",
+        "Critical unknown: what order types does Kalshi support? Limit orders, IOC, GTC, post-only? Market-making requires resting limit orders",
+        "Critical unknown: what is Kalshi's fee structure for makers vs takers? Many platforms offer maker rebates that directly subsidize market-making",
+        "Critical unknown: can positions be merged on Kalshi, or does the bot need to hold to settlement? This affects capital efficiency dramatically",
+        "Polymarket specs should be preserved as archived references for potential future Ireland-based trading",
+        "Cross-platform structural edge detection between Kalshi and other platforms (Polymarket from Ireland, sportsbooks) is directly applicable"
+      ],
+      "source_items": [
+        "tweet_2038654832819535895",
+        "tweet_2039134585737400689",
+        "tweet_2038903376453259756"
+      ],
+      "relationships": [
+        {
+          "concept": "Queue Priority & Execution Speed",
+          "relationship": "matching engine rules determine whether FIFO queue advantage applies on Kalshi"
+        },
+        {
+          "concept": "Spread Capture & YES+NO Arbitrage",
+          "relationship": "fee structure determines minimum viable spread for profitability"
+        },
+        {
+          "concept": "Position Merging & Capital Recycling",
+          "relationship": "must determine if merging equivalent exists on Kalshi"
+        },
+        {
+          "concept": "Bid Ladder Architecture",
+          "relationship": "ladder implementation depends on Kalshi's supported order types and tick sizes"
+        },
+        {
+          "concept": "Structural Edge Detection (Non-Predictive)",
+          "relationship": "cross-platform comparison between Kalshi and other venues is directly applicable"
+        }
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Liquidity Provision as Market Infrastructure",
+      "description": "The central thesis across all sources: profitable bots become infrastructure within the market rather than participants betting against it. By providing liquidity through laddered orders on both sides, the bot earns returns from the structural mechanics of order flow rather than from predicting outcomes. The 1000+ bots experience report explicitly states that almost all failures came from directional prediction attempts, while consistent profitability came from controlling liquidity flow.",
+      "concept_names": [
+        "Stoikov Market Making Model",
+        "Bid Ladder Architecture",
+        "Non-Linear Order Distribution",
+        "Structural Imbalance Profit Mechanism",
+        "Spread Capture & YES+NO Arbitrage",
+        "Queue Priority & Execution Speed"
+      ]
+    },
+    {
+      "name": "Inventory & Risk Control for Market Makers",
+      "description": "Market making generates inventory as a byproduct of providing liquidity, and unmanaged inventory accumulation is the primary cause of market-maker failure. The Stoikov model, Kelly sizing, position merging, and hard position limits form layered defenses that keep directional exposure bounded while allowing the profit mechanism to operate. All three bots in the 24-hour competition maintained near-zero net exposure across thousands of fills.",
+      "concept_names": [
+        "Inventory Management & Directional Risk Control",
+        "Position Merging & Capital Recycling",
+        "Kelly Criterion & Position Sizing",
+        "Stoikov Market Making Model"
+      ]
+    },
+    {
+      "name": "Non-Predictive Edge Extraction",
+      "description": "Six structural edge categories that extract profit without predicting outcomes: base rate neglect, cross-market inconsistency, mechanical vs real price moves, cross-platform price discrepancies, certainty overpaying, and time decay mispricing. These edges complement spread capture by informing when to widen/tighten quotes and which contracts to prioritize. They are particularly durable because they exploit persistent cognitive biases and structural inefficiencies rather than transient information advantages.",
+      "concept_names": [
+        "Structural Edge Detection (Non-Predictive)",
+        "Spread Capture & YES+NO Arbitrage",
+        "Multi-Strategy Skill Architecture"
+      ]
+    },
+    {
+      "name": "Kalshi Adaptation & Platform Risk",
+      "description": "All source strategies were documented on Polymarket, but implementation must target Kalshi due to US residency restrictions. Several critical unknowns about Kalshi's market microstructure (CLOB vs pro-rata matching, order types, fee structure, position merging, API capabilities) must be resolved before any strategy can be implemented. The architecture is platform-agnostic in principle, but every execution detail depends on platform-specific mechanics.",
+      "concept_names": [
+        "Kalshi Platform Adaptation",
+        "Bid Ladder Architecture",
+        "Queue Priority & Execution Speed",
+        "Position Merging & Capital Recycling",
+        "Spread Capture & YES+NO Arbitrage"
+      ]
+    }
+  ],
+  "key_findings": [
+    "Non-directional liquidity capture consistently outperforms directional prediction in automated trading. The 1000+ bots experience report found that nearly all bot failures came from trying to predict outcomes, while profitable bots converged on controlling liquidity flow. Three competing liquidity bots generated $12,450-$18,920 each in just 24 hours with zero directional bets.",
+    "The Stoikov pricing model combined with Bayesian updates and Kelly sizing produced +654% ROI ($157K to $1.03M) in 2 months. The formula r = s - q*gamma*sigma^2*(T-t) simultaneously optimizes quote placement and inventory risk, while P(H|D) continuously revises probability estimates and f = (bp-q)/b determines position sizing.",
+    "Non-linear order distribution is the single most important differentiator among market-making bots. In the three-bot competition, Curve Alchemist (non-linear curves, +$18,920) outperformed Ladder Larry (flat HF laddering, +$12,450) by 52% under identical conditions. Multiple sources state that simple copies with flat distributions fail to replicate results -- the curve shape is the edge.",
+    "Position merging (YES+NO = $1 guaranteed) is a capital-efficiency mechanism, not a profit center. Most merges take small losses by design, but they free locked capital for new orders. Without merging, capital accumulates in losing positions and the bot eventually stalls. The Merge Phantom specialized in this approach, earning +$9,830 in 24 hours.",
+    "Six non-predictive structural edges exist in prediction markets: base rate neglect, cross-market inconsistency, mechanical price moves in thin liquidity, cross-platform comparison, certainty overpaying, and time decay mispricing. None require predicting outcomes. These can inform market-making parameters -- when structural detection identifies mispricing, the bot can adjust spread width and position sizing.",
+    "Multi-strategy architectures with progressive context loading achieve superior risk-adjusted returns (Sharpe 2.59, 73% win rate) by combining spread farming, copytrade, pump sniping, and news edge in a layered skill framework. Basic checks filter cheaply before expensive calculations run, keeping execution fast across 1,672 autonomous trades."
+  ],
+  "knowledge_gaps": [
+    "Kalshi order book mechanics are unknown: does Kalshi operate a CLOB with FIFO matching, pro-rata matching, or some hybrid? This is the most critical unknown because FIFO matching favors speed-based queue priority strategies while pro-rata matching favors capital-based sizing strategies. The entire market-making architecture depends on this answer.",
+    "Kalshi fee structure for market makers is undocumented in these sources: does Kalshi offer maker rebates (common on exchanges to incentivize liquidity provision), or do makers pay fees that eat into the spread? The minimum viable spread for profitability depends directly on the per-trade fee for both entry and settlement.",
+    "Kalshi supported order types are not specified: does Kalshi support resting limit orders (required for laddering), post-only orders (prevents accidental taker fees), IOC/GTC modifiers, or bulk order submission via API? Market-making requires placing and managing dozens of resting orders simultaneously.",
+    "Position merging or equivalent capital recycling on Kalshi: can YES and NO positions be combined for early settlement, or must the bot hold to contract expiry? If no merging exists, capital efficiency drops dramatically and the Merge Phantom approach is invalid. The bot would need alternative capital recycling strategies.",
+    "Exact non-linear order distribution curve functions are never disclosed in any source. Multiple sources identify this as the most important factor but state it requires live testing and cannot be backtested. No specific curve shapes, mathematical formulations, or parameter ranges are provided.",
+    "Kalshi API rate limits and WebSocket capabilities: can the API support the order frequency required for HF laddering (hundreds of order updates per minute)? Is real-time market data available via WebSocket, or only REST polling? Latency characteristics of the API directly bound strategy performance.",
+    "Capital requirements for Kalshi market making at scale are not quantified. What constitutes minimum viable capital for a ladder with meaningful order sizes across multiple Kalshi event contracts? Kalshi's market liquidity profile likely differs significantly from Polymarket's crypto-heavy short-duration contracts."
+  ],
+  "open_questions": [
+    "What are Kalshi's specific market microstructure details (matching engine, order types, fee schedule, position limits, margin requirements)? This must be resolved through Kalshi API documentation review and potentially direct communication with Kalshi before any implementation begins.",
+    "Can reinforcement learning automate the non-linear curve optimization that sources describe as requiring manual live-testing iteration? If the curve shape is the primary edge and it cannot be backtested, is there a path to learned curve optimization through simulated or small-capital live exploration?",
+    "How do market-making strategies perform during Kalshi-specific edge cases: low-volume periods, contract settlement windows, and regulatory events that affect CFTC-regulated markets differently from crypto-native platforms?",
+    "What is the game-theoretic equilibrium for multiple market-making bots on the same Kalshi contract? As bot density increases, does individual profitability degrade linearly, or is there a tipping point where the market becomes unviable for new entrants?",
+    "Can structural edge detection (the six non-predictive categories) be integrated directly into the Stoikov model's probability estimates, creating a unified system where structural mispricings dynamically adjust quote placement and sizing rather than operating as separate strategy modules?"
+  ]
+}

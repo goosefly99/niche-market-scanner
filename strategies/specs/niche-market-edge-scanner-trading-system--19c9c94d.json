@@ -1,0 +1,582 @@
+{
+  "spec_id": "19c9c94d-de2b-46d9-a126-ca5dd3b1d57e",
+  "title": "Niche Market Edge Scanner & Trading System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-04",
+  "version": "3.1",
+  "status": "validated",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039281101269504026",
+      "title": "Weather farming $300->$20K across 1,782 predictions, biggest single win $1,896",
+      "relevance": "Core weather mispricing proof: $300 to $20K exploiting NOAA station-level forecasts vs retail weather app pricing on temperature brackets -- directly applicable to Kalshi weather contracts"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039479380368408840",
+      "title": "Chinese dev $5->$5.5M using NO bets + logic arbitrage on causally linked events",
+      "relevance": "Logic arbitrage and systematic NO bets: $5 to $5.5M by trading event cascades and underwriting near-impossible outcomes -- maps to Kalshi cross-vertical cascade opportunities (economics/politics/crypto)"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039493566750224477",
+      "title": "Low-liquidity scanning: 14 golf, 23 esports, 9 goalscorer props with 6-11 participants",
+      "relevance": "Ultra-low-liquidity dead room scanning: 8%+ edges in markets with 6-17 participants vs 2% edges in crowded headline markets -- Kalshi open interest and orderbook depth replace wallet-count as thickness proxy"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039371497370800167",
+      "title": "NBA bot $435K in 24h with ~70% accuracy using Bayesian probability updates",
+      "relevance": "Rapid Bayesian sports prediction: $435K in 24 hours on NBA outcomes -- Kalshi hosts NBA contracts with live data endpoints for in-game mispricing detection"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2025933391003066796",
+      "title": "OpenClaw/Clawdbot A-Z guide: weather trader, copytrading, signal sniper, fast loop skills",
+      "relevance": "OpenClaw automation platform with Simmer SDK supporting Kalshi: pre-built weather, copytrading, and fast-loop skills; documented $1K/day target at $15-25K capital"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2039054376908546475",
+      "title": "Weather ICAO station deep dive: KLGA for NYC, KDAL for Dallas, bucket boundary analysis",
+      "relevance": "ICAO station resolution mechanics: contracts resolve on airport weather stations (KLGA, KDAL) not city averages -- 3-8F gap between station microclimate and urban heat island is the entire trade on narrow buckets"
+    },
+    {
+      "collection": "trading-strategies-v3",
+      "item_id": "tweet_2038636119558939004",
+      "title": "Football favorite bias: swisstony $5.63M profit exploiting underdog bias at scale",
+      "relevance": "Systematic favorite bias exploitation at $5.63M scale: La Liga/UCL favorites underpriced by 15-25pp because retail prefers underdogs -- universal sports psychology transfers to any Kalshi sports vertical"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038608348958834926",
+      "title": "Taleb barbell strategy: $92K on 8% weather odds to $1.11M asymmetric payoff",
+      "relevance": "Taleb barbell on weather: $92K at 8% odds to $1.11M -- asymmetric tail bet structure directly applicable to Kalshi weather contracts priced at 100-800 cents"
+    }
+  ],
+  "overview": {
+    "description": "An automated multi-strategy system for discovering and exploiting systematically mispriced event contracts on Kalshi, a CFTC-regulated prediction market exchange, targeting low-competition niche categories where retail participants use wrong data sources, exhibit persistent psychological biases, or simply never look. Kalshi settles in USD (no crypto, no blockchain), uses a central limit order book (CLOB), and requires RSA-PSS key-pair per-request signing authentication.\n\nv3.0 upgrades integrate seven new knowledge insights from the niche-markets overview: (1) ICAO station mispricing mechanics -- weather contracts resolve on specific airport stations (KLGA for NYC, KDAL for Dallas) where 3-8F microclimate divergence from urban readings constitutes the entire bucket trade, (2) NOAA forecast accuracy vs market pricing -- 85-90% accuracy at 1-2 day horizons vs Kalshi pricing of 15-40% on identical outcomes, (3) football favorite bias at $5.63M scale -- systematic 15-25pp underpricing of favorites due to retail underdog preference, transferable to any Kalshi sports vertical, (4) low-liquidity dead room scanning -- targeting markets with minimal participation where 8%+ edges persist vs 2% in headline markets, using Kalshi open interest and orderbook depth as thickness proxies, (5) logic arbitrage via causal event chains -- trading causally linked events across Kalshi's multi-vertical structure (economics triggers repricing across politics and crypto), with systematic NO bets as risk underwriting on near-impossible outcomes, (6) OpenClaw/Simmer SDK with Kalshi support -- pre-built automation platform with weather, copytrading, and fast-loop skills documented for $1K/day targets, and (7) bucket boundary analysis for weather -- modeling full forecast probability distributions across adjacent temperature buckets rather than point estimates.\n\nThe system targets six distinct market verticals ranked by Kalshi edge transferability:\n\n1. WEATHER/CLIMATE (highest confidence): Kalshi's extensive temperature and climate markets resolve against official weather station readings. NOAA station-level forecasts provide 85-90% accuracy at 1-2 day horizons while retail traders anchor to consumer weather apps pulling wrong station data. The 3-8F gap between airport ICAO station microclimates and urban heat islands is decisive on narrow temperature buckets. Bucket boundary analysis -- modeling where forecast probability distributions sit relative to contract threshold boundaries -- exposes the steepest mispricings. Proven trajectory: $300 to $20K across 1,782 predictions.\n\n2. ECONOMICS (unique to Kalshi, no equivalent elsewhere): CPI, Fed rate decisions, GDP, jobs reports. Pre-release leading indicators (Cleveland Fed Nowcast, ADP Employment, regional Fed surveys) are public, free, and highly predictive, but retail traders anchor to stale consensus. Cross-vertical cascade potential: a Fed rate hold signal reprices multiple contracts across economics, politics, and crypto verticals with lag -- the logic arbitrage window.\n\n3. THIN MARKETS (cross-category): Low-participation contracts across all Kalshi verticals where open interest is minimal and bid-ask spreads are widest. The meta-insight: 'search for the emptiest rooms, not the loudest.' Kalshi does not expose participant counts, so open interest, orderbook depth, and spread width serve as thickness proxies.\n\n4. SPORTS (variable -- depends on coverage depth): Pro Football, College Football, Pro/College Basketball, WNBA, Soccer, Hockey, Baseball on Kalshi. The favorite bias (retail overprices underdogs by 15-25pp) is universal across sports. Kalshi live data endpoints (milestones, game stats) enable in-game Bayesian repricing. CRITICAL UNKNOWN: Kalshi soccer/football coverage depth for La Liga/UCL and liquidity depth for Kelly-optimal sizing.\n\n5. COMPANY EARNINGS (seasonal): Contracts on whether companies beat estimates. Sell-side consensus, whisper numbers, options-implied moves, and historical beat rates provide quantifiable probability baselines. Most active during quarterly earnings seasons.\n\n6. CRYPTO (lowest priority -- crowded): BTC/ETH price contracts exist but face intense latency arbitrage competition from sophisticated traders. Avoid unless thin-market scanner identifies specific low-participation crypto contracts.\n\nAcross all verticals, the architecture combines: AI-driven edge scanning (Claude comparing external data to market-implied probabilities), Kelly criterion position sizing (half-Kelly default, Kalshi per-market limits respected), systematic NO bets as risk underwriting (collecting premium on near-impossible outcomes), and strict risk management (kill switches, daily drawdown limits, consecutive-loss stops) -- with the critical finding that risk controls, not prediction accuracy, determine survival.",
+    "objectives": [
+      "Build a unified market scanner that continuously monitors Kalshi for mispriced contracts across weather/climate, economics, thin markets, sports, earnings, and crypto verticals, filtering by category, open interest, orderbook depth, and edge magnitude using the Kalshi events and markets API with batch orderbook scanning (GET /markets/orderbooks, up to 100 tickers per call)",
+      "Implement ICAO-station-aware weather forecasting that maps each Kalshi weather contract city to its resolution airport weather station (KLGA for NYC, KDAL for Dallas, etc.), pulls station-specific NOAA forecasts, and compares full forecast probability distributions across adjacent temperature buckets to Kalshi contract implied probabilities -- targeting the 3-8F microclimate gap between station readings and urban heat island data used by retail",
+      "Implement bucket boundary analysis that models forecast uncertainty distributions relative to Kalshi temperature threshold boundaries, identifying where retail misprices boundary-adjacent buckets by treating point forecasts as certainties",
+      "Develop a logic arbitrage / event cascade engine that maintains a causal dependency graph across Kalshi's multi-vertical structure (economics -> politics -> crypto), detecting windows where event A triggers repricing of causally linked event B contracts before the market adjusts",
+      "Implement systematic NO bet underwriting that identifies Kalshi contracts pricing near-impossible outcomes above their true probability, collecting premium systematically across diverse positions with strict per-position sizing to survive black swan reversals",
+      "Develop an economics data release edge engine comparing pre-release leading indicators (Cleveland Fed Nowcast for CPI, ADP for jobs, regional Fed surveys, CME FedWatch for rates) to Kalshi implied probabilities on CPI, Fed rate, GDP, and jobs contracts",
+      "Build a dead-room scanner (thin-market scanner) that identifies Kalshi contracts with minimal open interest and wide bid-ask spreads across all categories, ranking by inefficiency score (spread width x time-to-resolution / open-interest), targeting the 'emptiest rooms' where 8%+ edges persist",
+      "Build a sports edge engine leveraging Kalshi's live data endpoints (GET /milestones, GET /live_data/milestone/{id}, GET /live_data/milestone/{id}/game_stats) for in-game Bayesian probability updates, combined with historical favorite bias detection across all Kalshi sports verticals",
+      "Create a company earnings edge scanner comparing sell-side consensus, whisper numbers, options-implied moves, and historical beat rates to Kalshi earnings contract pricing for mega-cap companies",
+      "Implement Kelly Criterion position sizing across all strategies with configurable fractional Kelly (half-Kelly default), per-market position limits (Kalshi-enforced), fee-aware minimum edge thresholds (GET /series/fee_changes), and both concentrated and Taleb barbell modes",
+      "Evaluate OpenClaw/Simmer SDK Kalshi integration as an acceleration path for weather and fast-loop strategies, verifying current Kalshi API support depth and rate limit compatibility before custom-building equivalent functionality",
+      "Provide real-time alerting and control via Telegram with trade signals, execution confirmations, cascade event alerts, and portfolio status updates",
+      "Track all positions with entry thesis, edge type classification, market conditions, and resolution outcomes in a structured trade journal for ongoing strategy calibration and edge decay detection"
+    ],
+    "constraints": [
+      "Kalshi weather contracts resolve against specific weather station readings -- the system MUST identify the resolution ICAO station for each contract before any pricing analysis. Station mapping errors invert the edge entirely because the 3-8F airport microclimate vs urban heat island gap constitutes the full bucket trade.",
+      "Kelly sizing must never exceed half-Kelly on any single position to protect against model error and single-event variance. Systematic NO bet portfolios require additional diversification constraints: no single NO position may exceed 2% of bankroll regardless of Kelly recommendation, AND aggregate NO bet exposure across all concurrent NO positions across all verticals must not exceed 25% of total bankroll.",
+      "Maximum daily drawdown limit of 3-5% of total bankroll (measured per calendar day). Automatic halt after 3 consecutive significant losses per strategy vertical, where 'significant loss' is any single position losing >1% of bankroll. Tail-bet losses (barbell strategy positions at 100-800 cents) exempt from consecutive-loss halt. Kill switch at -40% session drawdown triggers full position unwinding.",
+      "System must run 24/7 on VPS infrastructure. Weather scan default interval is 15 minutes aligned to NOAA update cadence, escalating to 2-minute intervals for positions within 4 hours of resolution. Economics scan aligns to BLS/Fed release schedules with 5-minute intervals in final 48 hours. Sports scan every 5 minutes during active events using live data endpoints. Thin-market scan every 10 minutes. Cascade/logic-arb scan triggers on any high-magnitude edge signal to check causally linked markets.",
+      "Must distinguish between short-range weather forecasts (under 24h, high confidence, tradeable) and long-range forecasts (5-7 days, high uncertainty, avoid or fade overreaction). Focus on sub-24-hour resolution windows where NOAA accuracy is 85-90% and mispricing is steepest.",
+      "Kalshi per-market position limits must be queried and respected via API before sizing orders. When position limits constrain below Kelly-optimal, log the constraint and deploy maximum allowed.",
+      "Per-vertical fee-adjusted minimum edge threshold before entering any position: base threshold of 12pp + estimated round-trip fees (using Kalshi taker fee formula: round_up(0.07 * contracts * P * (1-P))) + estimated slippage for typical position size in that vertical's liquidity profile. Weather thin markets with wide spreads need a higher threshold; economics contracts approaching settlement with tight spreads may use lower thresholds. For systematic NO bets on near-impossible outcomes, the threshold is inverted: model probability of YES must be below the Kalshi YES price by the fee-adjusted threshold for that vertical.",
+      "Minimum bankroll thresholds per vertical to prevent capital fragmentation: a vertical is only activated when total bankroll supports at least 10 simultaneous half-Kelly positions in that vertical's typical liquidity profile. Without activation minimums, the system could spread a small bankroll across 6 verticals with allocations too small for meaningful Kelly sizing. Non-activated verticals remain in paper-trade-only mode.",
+      "Must support paper trading mode for all strategies via Kalshi demo API (demo-api.kalshi.co) before live capital deployment. Minimum 2-week paper trading per strategy vertical.",
+      "All trades logged locally in trade journal. Kalshi provides portfolio/positions and portfolio/fills endpoints for reconciliation. Logic arbitrage trades must log the causal chain (triggering event -> dependent contract) for post-hoc validation of cascade hypothesis quality.",
+      "Cascade/logic-arb engine must rate-limit execution speed: the first trader to identify a cascade captures the full spread, but false positive cascades at high speed risk oversized losses. Require confirmation from at least 2 independent data sources before executing cascade trades."
+    ],
+    "assumptions": [
+      "Kalshi REST API (api.elections.kalshi.com/trade-api/v2) provides real-time access to events, markets, orderbook data, and order placement with RSA-PSS per-request signing authentication (stateless, no tokens). Prices are in cents (0-10000 range). Balance is also in cents.",
+      "Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) provides real-time orderbook and fill streaming for monitoring positions and detecting rapid price changes that may signal cascade events",
+      "NOAA Weather.gov provides station-specific temperature forecasts with 85-90% accuracy at 1-2 day horizons, applicable to Kalshi weather contract resolution stations. The same ICAO station insight from research (KLGA for NYC, KDAL for Dallas) applies to Kalshi -- must verify station assignments per city.",
+      "Kalshi weather/climate contracts use temperature threshold format ('Will high exceed X?') or bucket format, resolving against official weather station readings. Bucket widths and boundary definitions on Kalshi may differ from other platforms and must be mapped before bucket boundary analysis is valid.",
+      "Retail trader biases (weather app anchoring, narrative-driven betting, underdog preference, tail risk overpricing, attention misallocation to headline markets) are structural, persistent, and platform-agnostic. As Kalshi grows its retail user base, these mispricings will increase rather than decrease.",
+      "BLS, Federal Reserve, and BEA publish economic data on known schedules with pre-release leading indicators that provide informational edge on Kalshi economics contracts. Cross-vertical causal dependencies exist between Fed decisions, CPI prints, and related contracts across economics, politics, and crypto verticals.",
+      "Kalshi's multi-vertical structure (weather, economics, politics, crypto, sports) creates richer cross-category cascade opportunities than single-vertical platforms. Logic arbitrage requires building and maintaining a causal dependency graph across verticals.",
+      "Kalshi cash-settled USD contracts eliminate gas fees, blockchain complexity, and wallet management. All position sizes down to 1 cent per contract are economically viable, making micro-Kelly weather positions and systematic NO bet portfolios feasible.",
+      "Kalshi sports coverage includes Pro Football, College Football, Pro/College Basketball, WNBA, Soccer, Hockey, and Baseball with live data endpoints. Specific league coverage depth (La Liga, UCL, international soccer) and liquidity for Kelly-optimal sizing are unverified assumptions requiring validation.",
+      "The Simmer SDK within OpenClaw explicitly supports Kalshi alongside other platforms. Kalshi API support depth, rate limits, and real-time streaming capabilities within the SDK require verification before adopting as the execution layer vs building custom."
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "MarketScanner",
+        "description": "Core scanning engine that polls Kalshi events and markets API on configurable intervals. Uses GET /events with category filters to discover event groupings, then retrieves individual contracts within each event. Extracts contract ticker, current YES/NO prices (cents, 0-10000), volume, open interest, close time, and settlement details. Batch-fetches orderbooks for up to 100 tickers via GET /markets/orderbooks -- critical for efficiently scanning many niche markets. Uses GET /search/tags_by_categories for category discovery and GET /search/filters_by_sport for sports-specific filters. Maintains an in-memory market registry with deduplication and state tracking. Supports WebSocket subscription for real-time orderbook updates on actively monitored markets. Feeds raw market data to all downstream edge engines in parallel.",
+        "responsibilities": [
+          "Poll Kalshi events API on configurable intervals per category",
+          "Batch-fetch orderbooks for up to 100 tickers per API call",
+          "Discover all available market categories via tag and sport filter endpoints",
+          "Maintain in-memory market registry with deduplication and state tracking",
+          "Subscribe to WebSocket for real-time orderbook updates on active positions",
+          "Route market data to all downstream edge engines in parallel",
+          "Track market metadata: open interest, volume, spread, time-to-resolution"
+        ],
+        "outputs": ["list[Event]", "list[Market]", "dict[str, OrderBook]", "WebSocketStream"]
+      },
+      {
+        "name": "WeatherEdgeEngine",
+        "description": "Weather-station-aware mispricing detector for Kalshi weather contracts, implementing the ICAO station resolution insight and bucket boundary analysis from the knowledge overview. Maintains a verified mapping of Kalshi weather contract cities to their resolution ICAO airport weather stations (NYC -> KLGA/LaGuardia, Dallas -> KDAL/Love Field, etc.). The 3-8F gap between airport microclimate readings and urban heat island data used by consumer weather apps is the foundation of the edge. Pulls station-specific forecasts from NOAA Weather.gov. For threshold-based contracts ('Will temp exceed X?'), models full forecast probability distributions (not point estimates) to calculate the probability that the station reading will cross the threshold. Implements bucket boundary analysis: when a forecast clusters near a bucket boundary (e.g., forecast 62.4F for a 62-63F bucket), the probability distribution across adjacent buckets diverges significantly from market pricing. Detects three systematic mispricing patterns: (1) wrong data source anchoring (consumer apps vs ICAO stations), (2) overreaction to 5-7 day forecasts when sub-24h forecasts are far more accurate, and (3) ignoring time decay near resolution where forecast confidence is highest but contracts remain mispriced. Uses Visual Crossing API for historical calibration. Uses historical endpoints for backtesting against settled data. Supports both concentrated bets on high-probability outcomes and Taleb barbell tail bets at 100-800 cents.",
+        "responsibilities": [
+          "Maintain verified ICAO station mapping for all Kalshi weather market cities",
+          "Fetch station-specific forecasts from NOAA Weather.gov at configurable intervals",
+          "Model full forecast probability distributions across adjacent buckets (not point estimates)",
+          "Implement bucket boundary analysis detecting mispricing near threshold edges",
+          "Calculate threshold probability using forecast uncertainty distributions",
+          "Detect three systematic mispricing patterns: wrong data source, stale forecast anchoring, time decay neglect",
+          "Classify trade type: tail bet, concentrated, or fade-overreaction",
+          "Track forecast percentile history to detect probability shifts over time",
+          "Backtest weather edge models against historical settled market data"
+        ],
+        "inputs": ["Market", "WeatherStation", "TemperatureForecast"],
+        "outputs": ["EdgeSignal", "ThresholdAnalysis", "BacktestResult"],
+        "dependencies": ["MarketScanner", "NOAA Weather.gov API", "Visual Crossing API"]
+      },
+      {
+        "name": "EconomicsEdgeEngine",
+        "description": "Edge detection engine for Kalshi economic data release contracts (CPI, Fed rate, GDP, jobs). Maintains a calendar of upcoming BLS/Fed/BEA data releases. Pulls pre-release leading indicators: Cleveland Fed Nowcast for CPI, ADP Employment Report for jobs, regional Fed manufacturing surveys (Empire State, Philly Fed), CME FedWatch probabilities for rate decisions. Compares leading indicator signals to Kalshi contract implied probabilities. The key insight: these indicators are public, free, and highly predictive, but retail Kalshi traders price based on stale consensus. Release-day contracts are highest priority as forecast accuracy tightens in the final 24-48 hours. Economics contracts are unique to Kalshi (no equivalent on other prediction markets) and serve as the foundation for cross-vertical logic arbitrage -- a Fed decision reprices not just rate contracts but cascades into politics and crypto verticals.",
+        "responsibilities": [
+          "Maintain economic data release calendar (BLS, Fed, BEA schedules)",
+          "Fetch leading indicators: Cleveland Fed Nowcast, ADP, FRED, regional Fed surveys",
+          "Fetch CME FedWatch implied probabilities for rate decision comparison",
+          "Calculate model probability combining multiple leading indicators per release type",
+          "Detect edge when Kalshi pricing diverges >12pp from model probability",
+          "Intensify scanning to 5-minute intervals in final 48 hours before scheduled releases",
+          "Emit cascade trigger signals when economics events have cross-vertical implications",
+          "Backtest against historical resolved economics contracts"
+        ],
+        "inputs": ["Market", "EconomicRelease", "LeadingIndicator"],
+        "outputs": ["EdgeSignal", "NowcastEstimate", "CascadeTrigger"],
+        "dependencies": ["MarketScanner", "BLS API", "FRED API", "Cleveland Fed Nowcasting", "CME FedWatch"]
+      },
+      {
+        "name": "CascadeArbitrageEngine",
+        "description": "New in v3.0. Logic arbitrage engine that identifies and trades causally linked events across Kalshi's multi-vertical structure. Maintains a causal dependency graph mapping how events in one vertical trigger repricing in others (e.g., Fed rate hold -> multiple rate-dependent contracts, CPI surprise -> Fed expectations -> crypto sentiment). When a triggering event occurs or becomes highly likely, scans dependent markets for repricing lag. The repricing lag between causally linked markets is the tradeable window. Also implements systematic NO bet underwriting: identifies contracts pricing near-impossible outcomes above true probability and collects premium by selling YES / buying NO across a diversified portfolio. The $5 to $5.5M track record from the knowledge overview demonstrates the viability of combining logic arbitrage with systematic NO bets. Requires confirmation from at least 2 independent data sources before executing cascade trades to manage false positive risk.",
+        "responsibilities": [
+          "Maintain causal dependency graph across Kalshi verticals (economics -> politics -> crypto -> sports)",
+          "Monitor triggering events and scan dependent markets for repricing lag",
+          "Calculate cascade edge: probability shift in dependent market minus current market adjustment",
+          "Implement systematic NO bet underwriting across diversified near-impossible outcomes",
+          "Require 2+ independent data source confirmation before cascade execution",
+          "Track cascade hypothesis quality: did dependent markets actually reprice as predicted?",
+          "Rate-limit cascade execution to prevent oversized losses from false positive cascades",
+          "Log complete causal chain for each trade: triggering event -> hypothesis -> dependent contract -> outcome"
+        ],
+        "inputs": ["EdgeSignal", "CascadeTrigger", "Market"],
+        "outputs": ["CascadeEdgeSignal", "NOBetSignal"],
+        "dependencies": ["EconomicsEdgeEngine", "MarketScanner", "SportsEdgeEngine"]
+      },
+      {
+        "name": "ThinMarketScanner",
+        "description": "Dead-room scanner for low-participation Kalshi markets across all categories. Implements the 'search for the emptiest rooms, not the loudest' principle from the knowledge overview. Unlike platforms where wallet-level participant counts are visible, Kalshi exposes open interest and orderbook depth as thickness proxies. Leverages batch orderbook scanning (GET /markets/orderbooks, up to 100 tickers per call) for efficient scanning of many thin markets. Ranks markets by an inefficiency score combining spread width, open interest depth, and time to resolution. The core insight: 50,000 traders compete for 2% edges in headline markets while thin markets across economics, weather, sports props, and crypto offer 8%+ edges to the handful of systematic traders who look. Discovers categories via GET /search/tags_by_categories for comprehensive cross-category scanning.",
+        "responsibilities": [
+          "Scan all Kalshi event categories for contracts with low open interest",
+          "Batch-fetch orderbooks for up to 100 tickers to assess market thickness",
+          "Rank markets by inefficiency score: spread_width x time_to_resolution / open_interest",
+          "Categorize thin markets by vertical for routing to appropriate edge engines",
+          "Track thin market inventory over time to detect when dead rooms get discovered by competitors",
+          "Alert when new Kalshi categories are added (potential fresh dead rooms)"
+        ],
+        "inputs": ["list[Market]", "dict[str, OrderBook]"],
+        "outputs": ["list[RankedMarket]", "dict[str, list[Market]]"],
+        "dependencies": ["MarketScanner"]
+      },
+      {
+        "name": "SportsEdgeEngine",
+        "description": "Sports outcome mispricing detector leveraging Kalshi's sports coverage (Pro Football, College Football, Pro/College Basketball, WNBA, Soccer, Hockey, Baseball) and live data endpoints. Applies the favorite bias detection proven at $5.63M scale: retail traders psychologically overprice underdogs, creating persistent 15-25pp edges on favorites. Maintains historical win rate database conditioned on opponent strength tier, home/away, and trailing form -- simple unconditional win rates are insufficient for Kelly sizing. Integrates Kalshi's live data for in-game Bayesian probability updates: GET /milestones for event discovery, GET /live_data/milestone/{id} for real-time game data, GET /live_data/milestone/{id}/game_stats for play-by-play stats. The speed of probability updating, not base model accuracy, provides the in-game tradeable edge. The favorite bias psychology is universal across sports and platform-agnostic.",
+        "responsibilities": [
+          "Discover sports events via GET /milestones with category and competition filters",
+          "Maintain historical win rate database conditioned on opponent tier, home/away, and form",
+          "Compare Kalshi implied probability to context-adjusted true probability",
+          "Detect favorite bias: flag when favorites are underpriced by >12pp",
+          "Integrate live game data for in-game Bayesian probability updates",
+          "Support bidirectional trading: YES on underpriced favorites AND NO on overpriced underdogs",
+          "Track sport-specific liquidity depth to determine which sports support Kelly-optimal sizing"
+        ],
+        "inputs": ["Market", "Milestone", "LiveGameData", "MatchContext"],
+        "outputs": ["EdgeSignal", "LiveEdgeSignal"],
+        "dependencies": ["MarketScanner", "nba_api", "NFL data sources", "Kalshi Live Data API", "Football-Data.org (optional, conditional on Kalshi soccer coverage)"]
+      },
+      {
+        "name": "EarningsEdgeEngine",
+        "description": "Edge detection engine for Kalshi company earnings contracts. Compares Kalshi implied probabilities against sell-side analyst consensus, whisper numbers, options-implied expected moves, and historical beat rates. Systematic edge comes from retail anchoring to headline consensus while this engine incorporates multiple probability signals. Most effective during earnings season (Jan-Feb, Apr-May, Jul-Aug, Oct-Nov). Lower priority than weather, economics, and thin-market strategies due to seasonal availability.",
+        "responsibilities": [
+          "Track earnings calendar for mega-cap companies with Kalshi contracts",
+          "Fetch consensus estimates, whisper numbers, and options-implied moves",
+          "Calculate beat probability from multi-signal model",
+          "Detect mispricing when Kalshi implied probability diverges >12pp from model",
+          "Track historical beat rates by company for calibration"
+        ],
+        "inputs": ["Market", "ConsensusEstimates", "WhisperEstimate"],
+        "outputs": ["EdgeSignal"],
+        "dependencies": ["MarketScanner", "Financial Data API"]
+      },
+      {
+        "name": "KellyPositionSizer",
+        "description": "Unified position sizing engine implementing Kelly Criterion across all strategies. Kelly fraction = (true_prob - market_price) / (1 - market_price), where market_price is Kalshi cents divided by 10000. Applies fractional Kelly (default 0.5x). Supports three modes: (1) concentrated for high-confidence edges with large positions, (2) Taleb barbell for many small tail bets at 100-800 cents (proven $92K to $1.11M on weather tail bets), and (3) NO-bet underwriting for systematic premium collection with strict per-position caps (max 2% of bankroll per NO position). Enforces Kalshi per-market position limits, fee-aware minimum edge thresholds (GET /series/fee_changes), daily loss limits, and kill switch at -40% session drawdown. Queries Kalshi API for position limits before sizing.",
+        "responsibilities": [
+          "Calculate Kelly fraction for each edge signal with fractional adjustment",
+          "Size positions in concentrated, barbell, or NO-bet underwriting mode",
+          "Enforce half-Kelly cap on all individual positions",
+          "Enforce 2% bankroll cap on individual NO-bet underwriting positions",
+          "Enforce 25% aggregate NO bet exposure cap: no more than 25% of total bankroll deployed in concurrent NO positions across all verticals combined, regardless of per-position 2% cap. This prevents the scenario where 50 small NO positions create 100% notional exposure",
+          "Check Kalshi per-market position limits via API before sizing",
+          "Incorporate fee structure into minimum profitable edge calculations",
+          "Detect portfolio-level correlation (same weather system, same macro trend) and reduce aggregate sizing",
+          "Trigger kill switch at -40% session drawdown with automatic position unwinding"
+        ],
+        "inputs": ["EdgeSignal", "Portfolio", "FeeStructure"],
+        "outputs": ["PositionSize", "RiskCheck"],
+        "dependencies": ["Kalshi REST API"]
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles order placement, monitoring, and exit on Kalshi via REST API and WebSocket. Authentication uses RSA-PSS key-pair per-request signing: loads PEM private key from KALSHI_PRIVATE_KEY_PATH, signs '{timestamp_ms}{HTTP_METHOD}{path_without_query_params}' with RSA-PSS SHA-256/MGF1-SHA256/salt=digest_length. Stateless -- no tokens, no refresh. Supports limit and market orders, batch operations (create/cancel up to 20), order amendment, position monitoring, fill tracking, settlements, and balance queries. Manages exit conditions: take-profit, stop-loss, and time-based exit. Supports up to 32 subaccounts for capital isolation across strategy verticals. Requires cryptography Python package.",
+        "responsibilities": [
+          "Sign each API request using RSA-PSS per-request authentication",
+          "Place limit and market orders with correct cent-denominated pricing",
+          "Execute batch order create/cancel (up to 20 per batch)",
+          "Amend existing orders (price or count) without cancel/replace",
+          "Monitor open positions, fills, settlements, and balance",
+          "Manage exit conditions: take-profit, stop-loss, time-based exits",
+          "Track slippage and fill rates for strategy calibration",
+          "Check exchange schedule for trading hours",
+          "Manage up to 32 subaccounts for capital isolation"
+        ],
+        "inputs": ["PositionSize", "OrderParams"],
+        "outputs": ["OrderResult", "Position", "Fill", "Settlement"],
+        "dependencies": ["Kalshi REST API", "Kalshi WebSocket", "KellyPositionSizer"]
+      },
+      {
+        "name": "AlertManager",
+        "description": "Telegram-based alerting and control interface. Sends real-time notifications for: new edge signals (with edge type classification), cascade event triggers, orders placed, positions filled, NO-bet portfolio status, exits triggered, daily P&L summary, risk limit warnings, and kill switch activation. Supports command interface for remote control: start/stop scanning per vertical, adjust parameters, query portfolio, force-exit positions, reload config.",
+        "responsibilities": [
+          "Send edge signal alerts with type classification and causal chain for cascade trades",
+          "Send execution confirmations with slippage tracking",
+          "Send daily P&L summary per strategy vertical",
+          "Handle remote commands: /start, /stop, /status, /positions, /exit_all, /set_params, /reload_config",
+          "Send risk warnings and kill switch activation alerts"
+        ],
+        "inputs": ["EdgeSignal", "OrderResult", "Portfolio", "RiskWarning"],
+        "outputs": ["TelegramMessage", "CommandResponse"]
+      },
+      {
+        "name": "ConfigManager",
+        "description": "Centralized configuration owner loading all tunable system parameters from YAML or TOML. Manages Kelly fraction, drawdown thresholds, edge minimums, scan intervals, position size caps, ICAO weather station mappings, economic release calendar, earnings calendar, causal dependency graph definitions, NO-bet portfolio limits, and per-strategy toggles. Provides validated typed config to all components and supports hot-reload via Telegram command.",
+        "responsibilities": [
+          "Load and validate configuration from YAML/TOML",
+          "Provide typed config object to all components",
+          "Support hot-reload via Telegram /reload_config command",
+          "Manage ICAO station mapping configuration",
+          "Manage causal dependency graph configuration for cascade engine"
+        ],
+        "inputs": ["config file path"],
+        "outputs": ["SystemConfig"]
+      },
+      {
+        "name": "TradeJournal",
+        "description": "Persistent trade logging and strategy performance analytics. Records every trade with: entry thesis (edge type, data source comparison, edge magnitude, causal chain for cascade trades), market conditions at entry (open interest, volume, time to resolution, orderbook depth), position sizing rationale (Kelly fraction, mode, bankroll at entry), and resolution outcome. Calculates rolling performance per strategy vertical including win rate, average edge captured, Sortino ratio (preferred over Sharpe for binary payoffs), and maximum drawdown. Tracks NO-bet portfolio performance separately. Provides edge decay detection and strategy calibration feedback.",
+        "responsibilities": [
+          "Log every trade with entry thesis, conditions, sizing rationale, and outcome",
+          "Log causal chain for cascade/logic-arb trades for hypothesis quality tracking",
+          "Calculate per-vertical performance metrics: win rate, edge captured, Sortino, drawdown",
+          "Track NO-bet portfolio performance and premium collection rate separately",
+          "Detect edge decay per strategy with rolling window analysis",
+          "Export journal in structured format for analysis",
+          "Provide calibration feedback to edge engines for threshold adjustment"
+        ],
+        "inputs": ["TradeRecord", "Portfolio"],
+        "outputs": ["PerformanceMetrics", "EdgeDecayReport", "CalibrationReport"]
+      },
+      {
+        "name": "SystemMonitor",
+        "description": "Health monitoring with per-component heartbeat tracking, API connectivity checks (Kalshi REST, Kalshi WebSocket, NOAA, Visual Crossing, BLS, FRED, sports data APIs, Telegram), disk/memory alerts, and dead-man's-switch alert if scan loop stops. Validates KALSHI_PRIVATE_KEY_PATH and KALSHI_API_KEY_ID on startup. Exposes /health Telegram command.",
+        "responsibilities": [
+          "Track heartbeats from all components",
+          "Check API connectivity for all external services",
+          "Validate RSA authentication config on startup",
+          "Trigger dead-man's-switch alert if scan loop stalls",
+          "Log component status to TradeJournal for post-incident analysis"
+        ],
+        "inputs": ["component heartbeats", "API status checks"],
+        "outputs": ["HealthReport"]
+      }
+    ],
+    "data_flow": "MarketScanner polls Kalshi events API on configurable intervals per category and feeds raw market data to six parallel edge detection engines: WeatherEdgeEngine (default 15 minutes, escalating to 2 minutes for positions within 4 hours of resolution), EconomicsEdgeEngine (aligned to BLS/Fed release schedules, 5-minute intervals in final 48 hours), SportsEdgeEngine (every 5 minutes during active events with live data endpoint integration), EarningsEdgeEngine (every 30 minutes during earnings season), ThinMarketScanner (every 10 minutes across all categories via batch orderbook scanning), and CascadeArbitrageEngine (triggered on any high-magnitude edge signal from other engines to check causally linked markets).\n\nEach engine enriches market data with external sources: WeatherEdgeEngine pulls station-specific forecasts from NOAA Weather.gov with full probability distribution modeling across adjacent buckets and bucket boundary analysis; EconomicsEdgeEngine pulls from Cleveland Fed Nowcast, BLS, FRED, ADP, and CME FedWatch; SportsEdgeEngine pulls historical win rates from football-data.org and nba_api plus Kalshi live game data via milestones endpoint; EarningsEdgeEngine pulls analyst consensus and historical beat rates from financial data APIs; ThinMarketScanner analyzes Kalshi orderbook depth via batch endpoint (up to 100 tickers per call); CascadeArbitrageEngine maintains a causal dependency graph and monitors cross-vertical repricing lag.\n\nWhen any engine detects an edge exceeding the 12pp minimum threshold, it emits an EdgeSignal (or CascadeEdgeSignal / NOBetSignal for the cascade engine) to the KellyPositionSizer. The sizer calculates optimal position size based on bankroll (GET /portfolio/balance), portfolio exposure, Kalshi per-market limits, fee structure (GET /series/fee_changes), and risk limits, selecting concentrated, barbell, or NO-bet underwriting mode. The sized order passes to the ExecutionEngine which signs each request via RSA-PSS and places orders via POST /portfolio/orders (or batched). Every state change flows through AlertManager to Telegram. All trades are recorded in TradeJournal with edge type classification and causal chain logging for cascade trades. A calibration feedback loop from TradeJournal to edge engines enables dynamic threshold adjustment based on realized vs estimated performance per vertical.",
+    "integration_points": [
+      "Kalshi REST API (https://api.elections.kalshi.com/trade-api/v2 production, https://demo-api.kalshi.co/trade-api/v2 paper trading) -- market discovery, pricing, orderbook batch scanning (100 tickers/call), order placement/amendment/cancellation, portfolio management, historical data, live sports data, fee structure. RSA-PSS per-request signing auth.",
+      "Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2) -- real-time orderbook streaming, fill notifications, rapid price change detection for cascade events",
+      "NOAA Weather.gov API (api.weather.gov) -- station-specific temperature forecasts for ICAO stations mapped to Kalshi weather contracts. Free, no auth, requires User-Agent header.",
+      "Visual Crossing Weather API -- historical temperature data for forecast calibration and backtesting at specific ICAO stations. Free tier: 1000 req/day; Basic plan (~$35/month) needed for continuous scanning.",
+      "BLS API (api.bls.gov/publicAPI/v2) -- official economic data release schedule, historical CPI/employment/PPI data for economics edge engine calibration",
+      "FRED API (api.stlouisfed.org/fred) -- Fed funds rate, GDP, CPI, PCE, and leading indicators for economics edge detection",
+      "Cleveland Fed Inflation Nowcasting (clevelandfed.org) -- real-time CPI nowcast as leading indicator for Kalshi CPI contracts",
+      "CME FedWatch Tool -- market-implied Fed rate decision probabilities from futures pricing, baseline for Kalshi rate decision contracts",
+      "Football-Data.org / API-Football -- historical football/soccer match outcomes for favorite bias detection (conditional on Kalshi soccer coverage)",
+      "balldontlie / nba_api -- NBA game outcomes and team stats for basketball probability calculations",
+      "Financial Data API (Alpha Vantage, Financial Modeling Prep, or Yahoo Finance) -- earnings calendar, analyst consensus, historical EPS, options chains for earnings edge detection",
+      "Telegram Bot API -- real-time alerting, remote control, trade notifications, portfolio monitoring via BotFather bot token"
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 0,
+        "name": "Pre-Implementation Kalshi Market Survey & Platform Validation",
+        "tasks": [
+          "Manually audit every active Kalshi contract category: count active contracts per category, document contract types and formats",
+          "Map Kalshi weather contract bucket formats: document threshold vs bucket structures, bucket widths (2-degree, 3-degree, 5-degree?), direction (above/below/between), resolution times, and resolution station assignments per city",
+          "Verify ICAO station assignments: confirm which weather stations Kalshi uses for each active weather market city (KLGA for NYC, KDAL for Dallas, etc.) by cross-referencing contract resolution rules with historical resolution data",
+          "Survey Kalshi sports coverage by league: document which leagues and competition types have active contracts, measure typical orderbook depth and open interest per sport/league, assess La Liga/UCL/international soccer availability",
+          "Document Kalshi economics contract calendar: list all active CPI, Fed rate, GDP, jobs contracts with resolution dates and current implied probabilities",
+          "Measure Kalshi fee impact at extreme prices: using taker fee formula round_up(0.07 * contracts * P * (1-P)) and maker fee formula round_up(0.0175 * contracts * P * (1-P)), calculate round-trip fee impact for NO bets at 95c, 97c, 99c YES and for tail bets at 1c-5c YES. Determine viable price floor for systematic NO bets",
+          "Distinguish thin-but-tradeable markets from dead markets: scan batch orderbooks (GET /markets/orderbooks, 100 tickers) across categories, categorize markets as active (bids and asks present), thin (some liquidity, wide spread), or dead (empty orderbook). Document prevalence of each category",
+          "Document Kalshi API rate limits at current tier and assess sufficiency for planned scanning frequencies"
+        ],
+        "deliverables": [
+          "Kalshi Market Survey Report documenting: active categories, contract formats, weather bucket structures with ICAO station assignments, sports coverage assessment, economics contract calendar, fee impact analysis at extreme prices, thin-vs-dead market prevalence",
+          "Go/no-go decisions per vertical: weather (conditional on bucket format and station verification), economics (always go -- unique to Kalshi), sports (conditional on coverage depth), thin markets (conditional on dead-market prevalence)",
+          "Fee viability assessment for systematic NO bets: minimum NO bet price floor where fees do not exceed 30% of collected premium",
+          "Updated spec assumptions: any assumptions invalidated by the market survey are documented with corrected values"
+        ]
+      },
+      {
+        "phase": 1,
+        "name": "Core Infrastructure, Weather Edge Engine & ICAO Station Mapping",
+        "tasks": [
+          "Build Kalshi API client module with RSA-PSS per-request signing authentication (KALSHI_API_KEY_ID + KALSHI_PRIVATE_KEY_PATH, cryptography package, stateless)",
+          "Implement MarketScanner with category filtering (GET /search/tags_by_categories) and batch orderbook scanning (GET /markets/orderbooks, up to 100 tickers per call)",
+          "Research and verify ICAO station resolution mapping for every active Kalshi weather market city -- this is the single highest-priority data validation task",
+          "Build WeatherEdgeEngine with NOAA station-specific forecast fetching and full probability distribution modeling across adjacent temperature buckets",
+          "Implement bucket boundary analysis: model forecast uncertainty distributions relative to Kalshi threshold boundaries to detect boundary-adjacent mispricing",
+          "Implement the three mispricing pattern detectors: wrong data source anchoring, stale forecast overreaction, and time decay near resolution",
+          "Build KellyPositionSizer with half-Kelly default, concentrated and barbell modes, Kalshi per-market position limit checking, and fee-aware edge thresholds (GET /series/fee_changes)",
+          "Build TradeJournal with SQLite persistence and per-vertical performance metrics",
+          "Build Weather API caching layer (30-60 minute TTL for Visual Crossing, 15 minutes for NOAA)",
+          "Deploy against Kalshi demo API (demo-api.kalshi.co) in paper-trade mode",
+          "Write unit tests for threshold probability calculation, bucket boundary analysis, and Kelly sizing math"
+        ],
+        "deliverables": [
+          "Kalshi API client module with RSA-PSS signing and rate limiting",
+          "MarketScanner module with batch orderbook scanning and category discovery",
+          "Verified ICAO station mapping configuration for all active Kalshi weather market cities",
+          "WeatherEdgeEngine with probability distribution modeling, bucket boundary analysis, and three mispricing pattern detectors",
+          "KellyPositionSizer with concentrated, barbell, and NO-bet underwriting modes",
+          "TradeJournal with SQLite persistence",
+          "Paper trading simulation using Kalshi demo API",
+          "Weather API caching layer",
+          "Unit test suite for probability calculations and Kelly sizing"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Economics Edge Engine & Cascade Arbitrage Foundation",
+        "tasks": [
+          "Build EconomicsEdgeEngine with BLS/Fed/BEA release calendar and automated schedule tracking",
+          "Integrate Cleveland Fed Nowcast for CPI edge detection",
+          "Integrate FRED API for historical economic data and current indicator values",
+          "Build CME FedWatch probability scraper for rate decision contract comparison",
+          "Integrate ADP Employment Report for jobs contract edge detection",
+          "Build model probability calculator combining multiple leading indicators per release type",
+          "Implement release-day scanning mode with 5-minute intervals in final 48 hours",
+          "Implement systematic NO bet scanning as a sizing mode in KellyPositionSizer: any edge engine can flag a NO bet opportunity, and the sizer applies 2% per-position and 25% aggregate caps. NO bet identification does not require a dedicated engine",
+          "Build simplified cross-vertical correlation monitor with sector exposure caps: no more than 15% of bankroll in positions sharing a common macro risk factor (e.g., all Fed-rate-dependent contracts count as one sector). This must be in place before multi-vertical trading begins",
+          "Backtest economics edge engine using GET /historical/markets against settled contracts",
+          "Paper trade log all economics and NO-bet signals"
+        ],
+        "deliverables": [
+          "EconomicsEdgeEngine with leading indicator integration and release-day scanning",
+          "Systematic NO bet scanning integrated into KellyPositionSizer with per-position 2% and aggregate 25% caps",
+          "Cross-vertical correlation monitor with sector exposure caps (max 15% per macro risk factor)",
+          "Cleveland Fed Nowcast, FRED, CME FedWatch, and ADP integrations",
+          "Economics backtesting framework using historical Kalshi data",
+          "Paper trade logs for economics and NO-bet signals"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Thin Market Scanner, Earnings Engine & OpenClaw Evaluation",
+        "tasks": [
+          "Build ThinMarketScanner with inefficiency scoring (spread_width x time_to_resolution / open_interest) across all Kalshi categories",
+          "Implement batch orderbook analysis for cross-category dead room detection",
+          "Build EarningsEdgeEngine with earnings calendar, consensus estimates, whisper numbers, and beat probability calculation",
+          "Integrate financial data API for analyst estimates and historical EPS",
+          "Build historical beat rate database by company",
+          "Evaluate OpenClaw/Simmer SDK Kalshi integration: verify API support depth, rate limits, weather skill compatibility, and whether to adopt or build custom",
+          "Document OpenClaw evaluation findings with go/no-go recommendation for each skill (weather, fast-loop, copytrading)",
+          "Paper trade log all thin-market, earnings, and any OpenClaw-routed signals"
+        ],
+        "deliverables": [
+          "ThinMarketScanner with cross-category inefficiency scoring and dead room detection",
+          "EarningsEdgeEngine with multi-signal beat probability calculation",
+          "Financial data API integration for analyst consensus and historical data",
+          "OpenClaw/Simmer SDK evaluation report with go/no-go per skill",
+          "Paper trade logs for thin-market and earnings signals"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Sports Edge Engine, Live Execution & Deployment",
+        "tasks": [
+          "Build SportsEdgeEngine with NFL/NBA as primary data sources (reoriented from La Liga/UCL per debate findings -- Kalshi's soccer coverage is limited to major international tournaments and MLS, not European league play). Historical win rate comparison conditioned on opponent tier, home/away, and form",
+          "Integrate Kalshi live data endpoints: GET /milestones, GET /live_data/milestone/{id}, GET /live_data/milestone/{id}/game_stats",
+          "Implement in-game Bayesian probability updating for real-time mispricing detection",
+          "Integrate nba_api and NFL data sources as primary; football-data.org as optional conditional module activated only when Kalshi soccer coverage meets defined minimum (at least 20 active soccer contracts with non-zero open interest per week)",
+          "Map Kalshi sports coverage: verify which leagues, competitions, and sports categories have sufficient liquidity for Kelly-optimal sizing. Focus on NFL, NBA, MLB, NHL where Kalshi coverage is strongest",
+          "Build experimental CascadeArbitrageEngine (demoted from Phase 2 per debate -- evidentiary basis from different platform insufficient for core component): causal dependency graph for economics -> politics -> crypto, 2-source confirmation requirement, rate-limited execution. Validate against live cross-vertical repricing observations before any cascade-specific capital allocation",
+          "Build ExecutionEngine with RSA-PSS signing, batch orders, amendments, and full portfolio management",
+          "Build WebSocket integration for real-time orderbook and fill streaming",
+          "Build AlertManager with Telegram bot interface, signal alerts, cascade event alerts, and command handlers",
+          "Implement exit strategy engine: take-profit, stop-loss, time-based exits",
+          "Build kill switch with automatic position unwinding at -40% session drawdown",
+          "Build state persistence layer (open positions, P&L, consecutive-loss counter, kill switch status) with SQLite, validated against live Kalshi positions on restart",
+          "Configure VPS deployment with systemd service files, firewall, fail2ban, SSH key-only auth",
+          "Implement secrets management for RSA private key and API key (chmod 600, encrypted config or OS-level secret store)",
+          "Transition from paper trading (demo API) to live trading (production API) with initial small position sizes"
+        ],
+        "deliverables": [
+          "SportsEdgeEngine with NFL/NBA-primary live game data integration and in-game Bayesian updates (soccer as conditional optional module)",
+          "Kalshi sports coverage map with per-sport liquidity assessment focused on US-centric sports",
+          "Experimental CascadeArbitrageEngine with causal dependency graph validated against live observation (no cascade-specific capital until hypothesis quality reaches 20+ validated trades)",
+          "ExecutionEngine with RSA-PSS signing, batch operations, and portfolio management",
+          "WebSocket integration for real-time monitoring",
+          "AlertManager with full Telegram bot interface",
+          "Exit strategy engine and kill switch implementation",
+          "State persistence layer with crash recovery",
+          "VPS deployment configuration with security hardening",
+          "Live trading mode with configurable position size caps per strategy"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Tail Risk Strategy, Calibration, Edge Decay Detection & Optimization",
+        "tasks": [
+          "Implement Taleb barbell strategy mode: systematic scanning for contracts priced at 100-800 cents where model probability is 15%+ (2x-8x expected value)",
+          "Use forecast percentile history (GET /series/{series_ticker}/events/{ticker}/forecast_percentile_history) to detect probability shifts toward tail positions",
+          "Apply barbell mode across all verticals: weather tail events, economic surprises, earnings shocks, political events",
+          "Build calibration feedback loop from TradeJournal to edge engines using historical data for out-of-sample validation",
+          "Implement dynamic edge threshold adjustment based on realized vs estimated edge per strategy, accounting for fee changes",
+          "Build edge decay detector that alerts when average captured edge drops below 8pp per strategy",
+          "Upgrade cross-vertical correlation monitor from Phase 2 simplified version (sector exposure caps) to full correlation matrix computation for ongoing correlated position detection",
+          "Build multi-strategy performance dashboard with per-vertical win rates, Sortino ratios, edge decay curves, NO-bet portfolio metrics (including aggregate exposure tracking), and cascade hypothesis quality tracking",
+          "Create pre-deployment validation gate: each strategy must show positive edge on 3+ months out-of-sample historical data before live capital allocation",
+          "Optimize scan frequencies and edge thresholds based on live trading data"
+        ],
+        "deliverables": [
+          "Tail risk scanner (barbell mode) across all verticals leveraging forecast percentile history",
+          "Calibration feedback loop with dynamic threshold adjustment",
+          "Edge decay detector with per-strategy alerting",
+          "Upgraded cross-vertical correlation monitor with full correlation matrix (replacing Phase 2 simplified sector exposure caps)",
+          "Multi-strategy performance dashboard including NO-bet aggregate exposure tracking and cascade quality metrics",
+          "Pre-deployment validation gate (3+ months out-of-sample requirement)",
+          "Optimized scan frequencies and edge thresholds"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.10+ (primary language for all engines, scanning, and execution logic)",
+      "Kalshi REST API (https://api.elections.kalshi.com/trade-api/v2 production, https://demo-api.kalshi.co/trade-api/v2 paper trading)",
+      "Kalshi WebSocket (wss://api.elections.kalshi.com/trade-api/ws/v2 for real-time orderbook, fill streaming, and cascade event detection)",
+      "kalshi_python_sync / kalshi_python_async SDK or direct httpx/aiohttp REST calls. Requires cryptography package for RSA-PSS signing.",
+      "NOAA Weather.gov API (station-specific US temperature forecasts, free, no auth) -- primary weather data source",
+      "Visual Crossing API (historical weather data for calibration, ~$35/month Basic plan for continuous scanning)",
+      "BLS API (api.bls.gov -- official economic data and release schedule)",
+      "FRED API (api.stlouisfed.org -- Federal Reserve economic data, leading indicators)",
+      "Cleveland Fed Inflation Nowcasting (CPI leading indicator)",
+      "CME FedWatch Tool (Fed rate decision probabilities from futures markets)",
+      "Financial Data API -- Alpha Vantage, Financial Modeling Prep, or Yahoo Finance (analyst consensus, earnings calendar, historical EPS)",
+      "nba_api (NBA game outcomes and team stats -- primary sports data source, Kalshi NBA coverage is strong)",
+      "NFL data sources (Pro Football Reference, nflverse -- primary for football, Kalshi NFL coverage is strongest sports vertical)",
+      "Football-Data.org or API-Football (historical football/soccer match outcomes -- optional conditional module, activated only when Kalshi soccer coverage meets minimum threshold of 20+ active contracts with non-zero open interest per week)",
+      "OpenClaw / Simmer SDK (evaluate Kalshi support for weather and fast-loop skills as acceleration path; build custom if SDK coverage insufficient)",
+      "python-telegram-bot (alerting, remote control, cascade event notifications)",
+      "SQLite / PostgreSQL (trade journal, state persistence, causal dependency graph storage)",
+      "scipy.stats (forecast probability distribution modeling for bucket boundary analysis)",
+      "pandas + numpy (probability calculations, threshold analysis, statistical modeling, edge decay analysis)",
+      "APScheduler (configurable scan interval scheduling per strategy vertical)",
+      "aiohttp / httpx (async HTTP for parallel API calls across data sources and cascade scanning)",
+      "VPS (Ubuntu 22.04 recommended, systemd for 24/7 operation)",
+      "USD cash settlement (Kalshi settles in USD, no cryptocurrency, no blockchain, no gas fees). All prices in cents (0-10000), balance in cents."
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "description": "ICAO station mapping errors causing systematic mispricing in the wrong direction. The 3-8F gap between airport microclimate and urban heat island means a wrong station mapping completely inverts the weather edge.",
+      "severity": "high",
+      "mitigation": "Manually verify each ICAO station mapping against Kalshi contract resolution rules before going live. Cross-reference with historical resolution data (GET /historical/markets). Build a verification test comparing recent contract resolutions to station data. This is the Phase 1 blocking validation gate -- no weather trading until station mapping is confirmed."
+    },
+    {
+      "description": "Edge decay as more automated traders enter niche Kalshi markets. The $50/month infrastructure barrier collapse (Claude + VPS) means more competitors will deploy similar scanners.",
+      "severity": "high",
+      "mitigation": "Implement edge decay detection in TradeJournal monitoring realized vs estimated edge per strategy over rolling windows. Alert when average captured edge drops below 8pp. The thin-market scanner inherently adapts by seeking lowest-participation markets. Kalshi regularly adds new event categories creating fresh dead rooms. Cascade arbitrage and systematic NO bets provide edge types less susceptible to scanner competition."
+    },
+    {
+      "description": "Kelly criterion oversizing on correlated positions -- multiple weather contracts on the same weather system, or multiple economic indicators driven by the same macro trend. Cascade engine amplifies this risk by deliberately trading correlated events.",
+      "severity": "high",
+      "mitigation": "Implement correlation-aware position limits. Group weather markets by geographic region and weather system. For economics, limit total exposure per data release day. CascadeArbitrageEngine must cap aggregate cascade exposure across all causally linked positions. Never exceed half-Kelly on individual positions. Cross-vertical correlation monitor (Phase 5) provides ongoing detection."
+    },
+    {
+      "description": "Logic arbitrage false positives: cascade engine identifies a causal link that does not hold, leading to losses on the dependent market trade.",
+      "severity": "high",
+      "mitigation": "Require confirmation from at least 2 independent data sources before executing any cascade trade. Rate-limit cascade execution speed. Log complete causal chains for post-hoc quality tracking. Start with well-documented causal links (Fed rate -> rate-dependent contracts) before attempting speculative cascades. Size cascade positions at quarter-Kelly until hypothesis track record reaches 20+ trades."
+    },
+    {
+      "description": "Systematic NO bet black swan: a 'near-impossible' outcome occurs, causing large loss on a single NO position. Portfolio-wide correlated NO bets could compound this.",
+      "severity": "high",
+      "mitigation": "Strict per-position cap of 2% of bankroll on any single NO bet regardless of Kelly recommendation. Diversify NO positions across uncorrelated events and verticals. Monitor aggregate NO exposure as percentage of total portfolio. Kill switch applies to NO portfolio independently. The $5-to-$5.5M track record succeeded through extreme diversification, not concentrated NO bets."
+    },
+    {
+      "description": "Kalshi weather contract format uncertainty: bucket widths, threshold definitions, and resolution mechanics may differ from assumptions. Bucket boundary analysis accuracy depends on correct bucket width mapping.",
+      "severity": "high",
+      "mitigation": "Before deploying bucket boundary analysis, map every active Kalshi weather contract's exact format (threshold vs bucket, width, direction, resolution station, resolution time). Use historical resolved contracts to validate bucket definitions. Build contract format parser that adapts probability distribution modeling to the specific contract type."
+    },
+    {
+      "description": "Kalshi order book liquidity insufficient for Kelly-optimal position sizing across niche verticals",
+      "severity": "medium",
+      "mitigation": "Query orderbook depth before sizing. When liquidity constrains below Kelly-optimal, deploy maximum available and log the constraint. Spread large orders across time using limit orders rather than market orders. Track per-vertical liquidity profiles over time. Accept that some niche verticals will support only micro-Kelly positions."
+    },
+    {
+      "description": "Kalshi API changes, rate limiting, or category restructuring breaking the scanner",
+      "severity": "medium",
+      "mitigation": "Abstract all Kalshi API calls behind a client interface that can be updated independently. Implement rate limiting with exponential backoff. Monitor for 4xx/5xx responses and alert via Telegram. Use Kalshi SDK as primary client with direct REST as fallback."
+    },
+    {
+      "description": "Kalshi sports market coverage insufficient for dedicated sports edge engine -- La Liga, UCL, and international soccer coverage may be limited",
+      "severity": "medium",
+      "mitigation": "Design SportsEdgeEngine as conditional component activating only when Kalshi offers sports in supported categories with sufficient liquidity. The system's value is not dependent on sports -- weather, economics, thin-market, and cascade strategies are primary. If soccer coverage is limited, focus sports engine on US-centric sports (NFL, NBA, MLB) where Kalshi coverage is stronger."
+    },
+    {
+      "description": "Economic leading indicator model error causing false edge signals on economics contracts",
+      "severity": "medium",
+      "mitigation": "Backtest economics edge engine against historical releases before live deployment. Track model calibration over multiple release cycles. Start with small position sizes on economics contracts. Only trade when historical indicator accuracy at the same horizon supports the model probability estimate."
+    },
+    {
+      "description": "RSA private key compromise or misconfiguration causing authentication failures or unauthorized trading",
+      "severity": "medium",
+      "mitigation": "Restrict PEM file permissions (chmod 600, owned by service user only). Validate key on startup via SystemMonitor. Handle 401 responses by halting trading and alerting (do not retry -- key is valid or not). Rotate API keys periodically. Use up to 32 subaccounts to limit blast radius of any single key compromise."
+    }
+  ],
+  "success_criteria": [
+    "Weather edge engine achieves >55% win rate on Kalshi weather contracts with average edge captured >10pp over first 500 trades, leveraging ICAO station-specific forecasts and bucket boundary analysis",
+    "ICAO station mapping verified for 100% of active Kalshi weather market cities before any live weather trading -- verified by comparing model predictions against at least 10 historical resolved contracts per station",
+    "Bucket boundary analysis correctly identifies mispricing near threshold edges at a rate producing >60% win rate on boundary-adjacent trades specifically",
+    "Economics edge engine identifies >5 tradeable signals per month on Kalshi CPI, Fed rate, GDP, and jobs contracts with realized edge >12pp",
+    "CascadeArbitrageEngine correctly predicts cross-vertical repricing direction on >60% of cascade trades, tracked via causal chain logging. Cascade hypothesis quality improves over time as dependency graph is refined.",
+    "Systematic NO bet portfolio collects premium on >80% of positions (i.e., >80% of near-impossible outcomes do not occur) with per-position sizing capped at 2% of bankroll producing positive risk-adjusted returns over rolling 90-day windows",
+    "Thin-market scanner surfaces >20 contracts per week with inefficiency score above threshold across all Kalshi categories, with average spread >15pp",
+    "Sports edge engine (when Kalshi coverage permits) achieves >55% win rate on favorite bias trades with live data Bayesian updating improving in-game prediction accuracy by >5pp vs pre-game baseline",
+    "Earnings edge engine achieves >55% win rate on company earnings contracts during active earnings seasons",
+    "Kelly position sizing correctly accounts for Kalshi per-market limits, fee structure, and correlation across correlated positions. All prices in cents (0-10000).",
+    "System maintains positive expectation with combined Sortino ratio >2.0 over any rolling 30-day period across all active strategy verticals",
+    "Paper trading phase (minimum 2 weeks per strategy using Kalshi demo API) demonstrates consistent edge before any live capital deployment",
+    "Tail risk (barbell) strategy achieves >5x average return on winning trades when entering at 100-800 cents",
+    "Total system drawdown never exceeds 15% of starting bankroll in any rolling 30-day period",
+    "Telegram alerts delivered within 10 seconds of signal detection; remote commands respond within 5 seconds",
+    "Edge decay detection identifies strategy degradation within 2 weeks of onset, triggering threshold adjustment or strategy pause before cumulative losses exceed 5% of bankroll",
+    "OpenClaw/Simmer SDK evaluation completed with documented go/no-go recommendation per skill before Phase 4 execution begins"
+  ],
+  "notes": "v3.1 DEBATE-ACCEPTED CHANGES (from v3.0):\n\n1. Added Phase 0 Pre-Implementation Market Survey: 1-2 day manual Kalshi platform audit to validate contract coverage, weather bucket formats, ICAO station assignments, sports coverage, fee impact at extreme prices, and thin-vs-dead market prevalence before any code is written.\n\n2. Added 25% Aggregate NO Bet Exposure Cap: No more than 25% of total bankroll deployed in concurrent NO positions across all verticals, in addition to existing 2% per-position cap. Prevents catastrophic loss from correlated 'near-impossible' events.\n\n3. Replaced Flat 12pp Edge Threshold with Per-Vertical Fee-Adjusted Thresholds: Each vertical gets minimum edge = 12pp base + estimated round-trip fees (Kalshi taker formula) + estimated slippage. Accounts for Kalshi's actual taker/maker fee formula (no settlement fees).\n\n4. Moved Cross-Vertical Correlation Monitor from Phase 5 to Phase 2: Simplified sector exposure caps (max 15% per macro risk factor) must be in place before multi-vertical trading begins. Full correlation matrix computation deferred to Phase 5 upgrade.\n\n5. Demoted CascadeArbitrageEngine from Phase 2 Core to Phase 4 Experimental: Three of four debate agents raised concerns about evidentiary basis (different platform), speed-vs-confirmation tradeoff, and insufficient Kalshi cross-vertical liquidity. NO bet scanning extracted into KellyPositionSizer from Phase 1.\n\n6. Reoriented SportsEdgeEngine from La Liga/UCL to NFL/NBA Primary: Kalshi soccer coverage is limited to major international tournaments and MLS. NFL and NBA are strongest Kalshi sports verticals. Soccer remains as optional conditional module.\n\n7. Added Minimum Bankroll Thresholds Per Vertical: A vertical activates only when bankroll supports 10+ simultaneous half-Kelly positions. Prevents capital fragmentation across too many verticals.\n\nAdditionally: All settlement fee references updated to reflect Kalshi's actual taker/maker formula (no settlement fees). Fee impact at extreme prices (NO bets, tail bets) is significantly more favorable than originally assumed.\n\nPrior version notes -- v3.0 UPGRADE NOTES\n\nThis version integrates seven new knowledge concepts from the niche-markets overview (83e24346) into the existing v2.0 Kalshi-native spec. The key structural additions are:\n\n1. ICAO Station Resolution Mechanics (elevated to Phase 1 blocking gate): The knowledge overview confirms that weather contracts resolve on specific ICAO airport stations, not city averages. NYC uses LaGuardia (KLGA), Dallas uses Love Field (KDAL). The 3-8F gap between airport microclimate and urban heat island readings constitutes the entire trade on narrow temperature buckets. This was implicit in v2.0 but is now a first-class verification requirement -- no weather trading until station mapping is confirmed against resolved contracts.\n\n2. Bucket Boundary Analysis (new technique): v2.0 modeled threshold probabilities; v3.0 adds explicit bucket boundary analysis -- modeling full forecast probability distributions across adjacent buckets to detect systematic mispricing near boundaries where retail traders treat point forecasts as certainties.\n\n3. CascadeArbitrageEngine (new component): The logic arbitrage / event cascade concept ($5 to $5.5M track record) maps naturally to Kalshi's multi-vertical structure. Economics events (Fed decisions, CPI surprises) cascade into politics and crypto verticals. This engine is the only entirely new architectural component in v3.0.\n\n4. Systematic NO Bet Underwriting (new sizing mode): Added as a third mode alongside concentrated and barbell in KellyPositionSizer. Strict 2% bankroll cap per NO position. The knowledge overview's finding that risk management determines survival applies doubly to NO bet portfolios where a single black swan can be catastrophic.\n\n5. Football Favorite Bias at Scale ($5.63M): Confirms the universal psychology of retail underdog preference. Applied to all Kalshi sports verticals, not just soccer. The 15-25pp edge magnitude makes sports a viable vertical IF Kalshi offers sufficient coverage and liquidity.\n\n6. OpenClaw/Simmer SDK with Kalshi Support: Added as an evaluation item (Phase 3) rather than a dependency. The SDK supports Kalshi but its API coverage depth is unverified. The system is designed to work with or without OpenClaw.\n\n7. Dead Room Scanning: v2.0 had ThinMarketScanner; v3.0 adds the 'emptiest rooms' framing and inefficiency scoring formula from the knowledge overview.\n\nKALSHI VERTICAL TRANSFERABILITY RANKING (from knowledge overview analysis):\n1. Weather (HIGHEST): Direct transfer. Kalshi hosts weather contracts, same ICAO station insight applies, NOAA data is free and public, no insider advantage, proven micro-capital trajectory ($300 to $20K). Smallest knowledge gaps.\n2. Economics (UNIQUE TO KALSHI): No equivalent on other platforms. BLS/Fed data releases on known schedules with public leading indicators create systematic edge. Cross-vertical cascade opportunities are Kalshi-specific.\n3. Thin Markets (CROSS-CATEGORY): Universal principle. Kalshi's expanding catalog continuously creates new dead rooms. Open interest and orderbook depth replace wallet counts as thickness proxies.\n4. Sports (VARIABLE): Favorite bias psychology is universal but Kalshi-specific coverage depth and liquidity are unverified. US-centric sports (NFL, NBA) likely have better Kalshi coverage than international soccer.\n5. Earnings (SEASONAL): Viable but limited to quarterly earnings windows. Dependent on Kalshi maintaining earnings contract offerings.\n6. Crypto (LOWEST): Crowded with sophisticated latency arbitrageurs. Only viable if thin-market scanner identifies specific low-participation crypto contracts.\n\nKNOWLEDGE GAPS REQUIRING RESOLUTION:\n- Which ICAO stations does Kalshi use for each weather market city? Must verify station assignments match KLGA/KDAL conventions or recalibrate.\n- What are Kalshi's weather contract bucket widths and threshold definitions? Bucket boundary analysis accuracy depends on correct format mapping.\n- Does Kalshi expose sufficient open interest and orderbook data to identify dead rooms programmatically?\n- What are Kalshi sports coverage boundaries? La Liga, UCL, international soccer? Golf, esports, goalscorer props?\n- What are Kalshi API rate limits for batch scanning (100 tickers/call for orderbooks) under sustained load?\n- What is Kalshi's fee structure for weather micro-bets (100-800 cent positions)? Fees may erode edge on smallest positions.\n- Does Kalshi provide historical resolved contract data with enough granularity for backtesting?\n- How quickly have weather and sports edges compressed on other platforms? No longitudinal data to project edge half-life on Kalshi.\n\nPLATFORM NOTES: All references are Kalshi-native. Simmer SDK and py-clob-client are not used (those are for other platforms). Authentication is RSA-PSS per-request signing (not wallet keys, not JWT, not email/password). Env vars: KALSHI_API_KEY_ID and KALSHI_PRIVATE_KEY_PATH. All prices in cents (0-10000 range), balance in cents. Settlement is USD cash. CFTC-regulated, fully legal for US residents."
+}

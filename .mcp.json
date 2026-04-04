@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "x-api": {
+      "command": "node",
+      "args": ["x-api-mcp/server.ts"],
+      "env": {}
+    },
+    "synth": {
+      "command": "node",
+      "args": ["synth-mcp/server.ts"],
+      "env": {}
+    },
+    "concepts": {
+      "command": "node",
+      "args": ["concepts-collector/server.ts"],
+      "env": {}
+    },
+    "pipeline": {
+      "command": "node",
+      "args": ["pipeline-mcp/server.ts"],
+      "env": {}
+    }
+  }
+}

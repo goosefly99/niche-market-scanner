@@ -1,0 +1,923 @@
+{
+  "overview_id": "de15d646",
+  "title": "Data Sources & Edge Discovery",
+  "created_date": "2026-04-03T08:21:53.951Z",
+  "status": "complete",
+  "sources": [
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039323712713810150",
+      "title": "Wallet analysis: parsed 17,000 Polymarket wallets with Claude, mapped 11 strategies, flagged 2 quiet high-performers. $150 to $9,800 with four scripts over two nights."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039373347696328738",
+      "title": "Claude agent analyzed 10K top wallets over 90 days, cross-referenced win rates/sizing. Built autonomous agent: reads live news, maps to markets, runs probabilistic inference on mispricing, detects cross-market arb, sizes with Kelly. $25 to $4,237 overnight."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039308895290581254",
+      "title": "5 free GitHub scripts: (1) trading terminal with hotkeys/orders/PnL/Telegram, (2) data recorder for Polymarket+Binance order books/trades, (3-5) additional tools. Author: $100 to $13,200 in 6 days."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2038622884642398503",
+      "title": "Analysis of 14,000 Polymarket wallets revealing that 87% lose money while the top 0.1% extracted $3.7B. Provides 3 core formulas (Expected Value, Kelly Criterion, Bayesian Updating), a 12-tool open-source toolkit, a 20-line Claude-based trading brain, and security warnings about malicious GitHub repos."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2038608348958834926",
+      "title": "Maps 3 top Polymarket wallets to Wall Street trading legends: Hans323 runs Taleb's barbell strategy ($92K on 8% weather odds to $1.11M), 0x8dxd mirrors Simons' statistical arbitrage ($313 to $2.38M via latency arb), and Magamyman follows Soros-style geopolitical information edge ($800K on military strike predictions, 93% win rate investigated by CNN). Includes Python code snippets for each strategy."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039054376908546475",
+      "title": "Deep dive into Polymarket weather temperature markets as a low-competition, high-edge niche. Weather markets resolve on specific ICAO airport stations (not city averages), creating systematic mispricing from retail traders using wrong data sources."
+    },
+    {
+      "collection": "trading_strategies",
+      "item_id": "2039282251159011513",
+      "title": "Novel approach using NASA FIRMS satellite thermal anomaly data to trade geopolitical prediction markets. Built a 10-source free data stack to detect anomalies. Backtested on 270 days across Gaza, Kursk, and Syria. $500 became $7,778 on 16 trades."
+    }
+  ],
+  "summary": "This overview synthesizes 7 research items covering novel data sources and edge discovery techniques for prediction market trading, primarily on Polymarket. The material spans four major edge categories: (1) on-chain wallet analysis using LLMs to parse thousands of wallets and extract copyable strategies, (2) satellite and geophysical data (NASA FIRMS, OpenSky, USGS) for geopolitical event detection before news breaks, (3) weather market exploitation using ICAO station-specific forecasts to capitalize on systematic retail mispricing, and (4) latency arbitrage between centralized exchanges (Binance) and prediction markets. All strategies share a common mathematical foundation of Expected Value filtering, Kelly Criterion position sizing, and Bayesian updating. The ecosystem is supported by 12+ open-source tools and leverages Claude/LLMs as the analytical brain connecting raw data to trade execution via py-clob-client.",
+  "concepts": [
+    {
+      "name": "NASA FIRMS Satellite Thermal Anomaly Detection",
+      "category": "data source",
+      "description": "Using NASA's Fire Information for Resource Management System (FIRMS) to detect geopolitical events via thermal anomalies visible from space. The VIIRS satellite scans the entire planet every 6 hours, logging fires, explosions, and thermal events with coordinates, intensity (megawatts), and timestamps. Originally designed for wildfire monitoring but repurposed as a geopolitical signal source.",
+      "key_details": [
+        "Free API, single MAP_KEY registration at firms.modaps.eosdis.nasa.gov",
+        "Updates every 6 hours (4-6 hour delay from event to data availability)",
+        "Anomaly detection uses 14-day rolling average; flags at 3x baseline",
+        "Gaza Oct 7: baseline 6.4 fires/day, detected 69 fires (11.1x anomaly) with 34 MW max",
+        "Kursk: detected offensive 4 days before official start (0 baseline to 16 fires)",
+        "Syria: 3 weeks of lead time before Assad's fall",
+        "Fire Radiative Power (FRP) in megawatts distinguishes severity",
+        "Continuation bias problem: once a region is permanently on fire, anomaly detection fails; fix by skipping when baseline itself triples in 7 days"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Dynamic Kelly Criterion Position Sizing",
+        "Claude as Analytical Brain",
+        "Anomaly Detection Logic"
+      ]
+    },
+    {
+      "name": "OpenSky Network Aircraft Tracking",
+      "category": "data source",
+      "description": "Free live aircraft position data used as a confirmation signal for geopolitical events. Military traffic spikes (C-17 cargo planes, altitude drops indicating active engagement) precede conflict escalation and can confirm thermal anomalies.",
+      "key_details": [
+        "No API key required",
+        "Real-time data",
+        "C-17 cargo planes flooding a region at 2am indicates mobilization",
+        "Altitude drops suggest active engagement",
+        "Used as confirming signal alongside FIRMS, not primary"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection",
+        "Multi-Source Geopolitical Data Stack"
+      ]
+    },
+    {
+      "name": "USGS Earthquake Data as Event Detector",
+      "category": "data source",
+      "description": "Using the USGS earthquake feed to detect non-natural seismic events including underground nuclear tests, massive explosions, and industrial catastrophes. M4+ events globally in real-time, free and keyless.",
+      "key_details": [
+        "No API key required",
+        "Real-time M4+ global events",
+        "Underground nuclear tests register as seismic events",
+        "Massive explosions and industrial catastrophes also detectable"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "NASA FIRMS Satellite Thermal Anomaly Detection"
+      ]
+    },
+    {
+      "name": "Multi-Source Geopolitical Data Stack",
+      "category": "architecture",
+      "description": "A 10-source free data pipeline combining satellite, seismic, financial, and sentiment data to generate a composite tension score (0-100) for geopolitical trading. The architecture fuses heterogeneous signals into a single actionable output.",
+      "key_details": [
+        "10 sources: NASA FIRMS, OpenSky Network, USGS Earthquakes, Open-Meteo weather, Exchange Rate API (RUB/IRR/TRY/CNY vs USD), Alternative.me crypto fear/greed, CoinGecko (BTC/ETH risk proxy), Gold API, Yahoo Finance VIX, Polymarket Gamma",
+        "Total cost: $0/month (all free APIs)",
+        "9 of 10 sources require no API key",
+        "Runs every 15 minutes via Task Scheduler/cron, 40-second cycle",
+        "Tension score computed from all inputs simultaneously",
+        "VIX above 25 = elevated, above 30 = panic; used as confirmation",
+        "Currency crashes (5%+ overnight) in RUB/IRR/TRY signal events before news",
+        "Compared favorably to Bloomberg Terminal ($24K/year) which lacks satellite fire data"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection",
+        "Anomaly Detection Logic",
+        "Claude as Analytical Brain",
+        "Dynamic Kelly Criterion Position Sizing"
+      ]
+    },
+    {
+      "name": "ICAO Station-Specific Weather Data",
+      "category": "data source",
+      "description": "Polymarket weather markets resolve on specific ICAO airport weather stations, not city averages or consumer weather app readings. The difference between city center and airport readings can be 3-8 degrees F, which on 1-2 degree F bucket markets is the entire trade. This data source mismatch creates systematic and repeatable mispricing.",
+      "key_details": [
+        "NYC resolves on LaGuardia (KLGA), Dallas on Love Field (KDAL) not DFW",
+        "3-8 degrees F difference between city center and airport readings",
+        "415+ active weather markets on Polymarket with $4.6M volume",
+        "Forecast sources: Weather.gov (US), Windy.com/Meteoblue (international), Visual Crossing API (historical calibration)",
+        "NOAA forecasts 85-90% accurate at 1-2 days out; Polymarket often prices same outcome at 15-40%",
+        "Consumer weather apps pull city sensors, not airport stations, creating the edge",
+        "Weather has no insiders: no one can front-run a cold front"
+      ],
+      "source_items": [
+        "2039054376908546475",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Weather Market Mispricing Exploitation",
+        "Bucket Boundary Analysis",
+        "Expected Value Filtering"
+      ]
+    },
+    {
+      "name": "On-Chain Wallet Analysis at Scale",
+      "category": "technique",
+      "description": "Parsing thousands of Polymarket wallets using LLMs (Claude) to identify winning patterns, map strategies, and flag high-performers for copytrading. The on-chain transparency of Polymarket (~1.1M wallets, all trades public) creates an unprecedented dataset for strategy reverse-engineering.",
+      "key_details": [
+        "17,000 wallets parsed with Claude in one night for $8 in API costs ($0.015/query)",
+        "11 strategies mapped from wallet behavior patterns",
+        "75% of wallets lose consistently; top 9% leave identifiable patterns",
+        "87% of wallets in the red; top 20 wallets captured more profit than bottom 13,000 combined",
+        "10,000 wallets analyzed over 90 days, cross-referenced win rates and sizing",
+        "4 morning prompts, 2 minutes, 17K wallets scanned before coffee",
+        "Key signal: fresh wallet drops large amount into dead/low-volume market before announcement",
+        "Filter by category: wallet with 91% win rate on crypto but 15% on politics should only be copied on crypto"
+      ],
+      "source_items": [
+        "2039323712713810150",
+        "2039373347696328738",
+        "2038622884642398503",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Claude as Analytical Brain",
+        "Copytrade Strategy",
+        "Insider Detection",
+        "poly_data Tool"
+      ]
+    },
+    {
+      "name": "Latency Arbitrage (CEX-to-Prediction-Market)",
+      "category": "strategy",
+      "description": "Exploiting the time lag between price movements on centralized exchanges (Binance) and corresponding prediction market contract updates on Polymarket. The bot detects a price move on Binance and buys the correct side on Polymarket before the market adjusts.",
+      "key_details": [
+        "0x8dxd: $313 to $2.38M in 4 months with 26,738 trades at 98% win rate",
+        "Trades only 15-minute Up/Down on BTC, ETH, SOL",
+        "$4-5K per trade, thousands of identical entries",
+        "Lag compressed from 12 seconds (2024) to 2.7 seconds (2026); edge is shrinking",
+        "BTC lag compressed from 9.4 to 3.1 seconds as detected by Claude",
+        "73% of arb profits go to bots with sub-100ms latency",
+        "Requires py-clob-client for execution, Kelly sizing, and kill switch at -40%",
+        "Claude bot vs OpenClaw test: Claude +1,322% ($14,216), OpenClaw liquidated to zero; difference was risk management"
+      ],
+      "source_items": [
+        "2038608348958834926",
+        "2039323712713810150"
+      ],
+      "relationships": [
+        "Dynamic Kelly Criterion Position Sizing",
+        "Data Recorder Tool",
+        "Risk Management Kill Switch"
+      ]
+    },
+    {
+      "name": "Taleb Barbell Strategy (Tail Risk Betting)",
+      "category": "strategy",
+      "description": "Buying prediction market contracts at very low implied probabilities (2-8 cents) on events the market considers nearly impossible, yielding 10x-100x returns when the improbable occurs. Named after Nassim Taleb's Black Swan strategy.",
+      "key_details": [
+        "Hans323: $92K at 8% odds on London temperature -> $1.11M single trade",
+        "Pattern: buy markets at 2-8 cents across weather, politics, sports",
+        "Trump executive orders at 7 cents, PGA at 2 cents, all wins",
+        "gopfan2: $2M+ on weather with rule: buy YES below $0.15, buy NO above $0.45, $1 limit per position, thousands of small trades",
+        "Most trades lose (pennies), but winners are 10x-100x",
+        "Requires accurate probability assessment to identify markets where true probability exceeds market price"
+      ],
+      "source_items": [
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Weather Market Mispricing Exploitation",
+        "Expected Value Filtering",
+        "ICAO Station-Specific Weather Data"
+      ]
+    },
+    {
+      "name": "Soros-Style Geopolitical Information Edge",
+      "category": "strategy",
+      "description": "Trading geopolitical prediction markets by arriving in the right market before the crowd, potentially using non-public or early information. The strategy focuses exclusively on geopolitical/military events with concentrated high-conviction bets.",
+      "key_details": [
+        "Magamyman: $800K on US military strikes against Iran, 93% win rate on bets over $10K",
+        "CNN and Columbia Law School investigated the trades",
+        "Placed hours before unannounced military operations (Oct 2024, June 2025, Feb 2026)",
+        "Bubblemaps found 6 wallets, $1.2M on Feb 28 strike, funded within 24 hours, betting on exact date",
+        "$529M flowed through Iran-related markets in one week (4th largest cluster ever)",
+        "Columbia Law School and Univ. of Haifa estimate $143M total profit by 'informed' traders 2024-2026",
+        "Key distinction: specific date markets vs broad 'will X happen' markets indicate precision of information"
+      ],
+      "source_items": [
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection",
+        "Insider Detection",
+        "Multi-Source Geopolitical Data Stack"
+      ]
+    },
+    {
+      "name": "Weather Market Mispricing Exploitation",
+      "category": "strategy",
+      "description": "Systematically trading Polymarket weather temperature bracket markets where retail traders consistently misprice outcomes due to using wrong data sources, anchoring to long-range forecasts, and ignoring time decay. A structurally fair market with no insiders.",
+      "key_details": [
+        "BeefSlayer: $49K profit, returns of 1,796-49,744% on individual bets (Atlanta at 0.2c -> $2,984, NYC at 2c -> $1,831, Chicago at 5.3c -> $1,767)",
+        "Handsanitizer23: $66K profit from 38 predictions (Atlanta $45,866 at 244%, Sao Paulo $15,906 at 2,677%)",
+        "Three consistent mispricing patterns: (1) anchoring to wrong data source, (2) overreacting to 5-7 day forecasts, (3) ignoring time decay near resolution",
+        "Focus on resolution windows under 24 hours for tightest forecasts",
+        "Bucket boundary analysis: 62-63F market with forecast at 64F is clear NO; forecast at 62.4F with weather uncertainty requires deeper analysis",
+        "Market says 35% and data says 8% -> trade; market says 70% and data says 65% -> skip",
+        "Weather has no insiders: capital size does not translate to information advantage"
+      ],
+      "source_items": [
+        "2039054376908546475",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "ICAO Station-Specific Weather Data",
+        "Taleb Barbell Strategy",
+        "Expected Value Filtering",
+        "Weather Bot Infrastructure"
+      ]
+    },
+    {
+      "name": "Expected Value Filtering",
+      "category": "technique",
+      "description": "The primary filter for trade selection: EV = P_true * (1 - P_market) - (1 - P_true) * P_market. Only take trades with EV above 5%, which eliminates 90% of losing trades. The foundational mathematical concept separating winners from losers on prediction markets.",
+      "key_details": [
+        "Formula: EV = P_true * (1 - P_market) - (1 - P_true) * P_market",
+        "Example: market at 40%, you believe 60% -> 20 cents edge per dollar",
+        "Rule: EV < 5% = SKIP, no exceptions",
+        "This single filter eliminates 90% of losing trades",
+        "In traditional finance, careers built on 2% edges; on Polymarket, 20% edges exist daily",
+        "Requires independent probability estimation (weather models, satellite data, wallet patterns)"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2039054376908546475"
+      ],
+      "relationships": [
+        "Dynamic Kelly Criterion Position Sizing",
+        "Bayesian Updating",
+        "Weather Market Mispricing Exploitation"
+      ]
+    },
+    {
+      "name": "Dynamic Kelly Criterion Position Sizing",
+      "category": "technique",
+      "description": "Using the Kelly Criterion (f* = (p*b - q) / b) to determine optimal bet size, with critical modifications: always use Quarter Kelly (25% of full Kelly) to survive emotional and variance stress. Dynamic Kelly adjusts size based on signal strength and number of confirming sources.",
+      "key_details": [
+        "Formula: f* = (p * b - q) / b where b = (1 - P_market) / P_market",
+        "Full Kelly says bet 33% of bankroll; never do this",
+        "Quarter Kelly always: with $1,000 bankroll, bet $83",
+        "50 years of real trading proves Full Kelly destroys emotionally before math pays off",
+        "Dynamic version: 11x anomaly with 6 confirming sources -> Kelly 50%; random 3x blip with 1 source -> Kelly 3%",
+        "Autonomous agent derived Kelly parameters from studied wallet patterns",
+        "False alarm cost $41; real signal made $470; the math protects from confidence"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2039282251159011513",
+        "2039373347696328738",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Expected Value Filtering",
+        "Bayesian Updating",
+        "Multi-Source Geopolitical Data Stack",
+        "Risk Management Kill Switch"
+      ]
+    },
+    {
+      "name": "Bayesian Updating",
+      "category": "technique",
+      "description": "Systematically updating probability estimates as new evidence arrives using Bayes' theorem: P(H|E) = P(E|H) * P(H) / P(E). Prevents the common trader error of forming an opinion and defending it despite new information.",
+      "key_details": [
+        "Example: prior 55% on Fed rate cut, after inflation data -> 88%",
+        "Certainty is a bug, not a feature",
+        "Most traders form an opinion and defend it to death",
+        "Applied continuously as new data sources update (FIRMS every 6hrs, weather forecasts, exchange rates)",
+        "Complementary to EV filtering: Bayesian updates feed revised probability into EV formula"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Expected Value Filtering",
+        "Dynamic Kelly Criterion Position Sizing"
+      ]
+    },
+    {
+      "name": "Anomaly Detection Logic",
+      "category": "technique",
+      "description": "A simple but effective statistical method for detecting unusual activity: compute a 14-day rolling average for a metric and flag when the current value exceeds 3x the baseline. Applied to fire counts, but generalizable to any time-series signal.",
+      "key_details": [
+        "14-day rolling average as baseline",
+        "3x baseline threshold triggers anomaly flag",
+        "Embarrassingly simple but caught every major geopolitical event in 270-day backtest",
+        "Critical failure mode: continuation bias - region permanently on fire is no longer anomalous",
+        "Fix: skip signals where baseline itself has tripled in last 7 days",
+        "Fire Radiative Power (FRP in MW) adds severity dimension beyond count",
+        "Works for first spike, not continuation; swing trading not HFT"
+      ],
+      "source_items": [
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection",
+        "Multi-Source Geopolitical Data Stack"
+      ]
+    },
+    {
+      "name": "Bucket Boundary Analysis",
+      "category": "technique",
+      "description": "Analyzing weather forecast uncertainty relative to temperature bracket boundaries in prediction markets. The edge comes from understanding where forecast confidence intersects with market pricing at the boundaries of resolution buckets.",
+      "key_details": [
+        "Markets use 1-2 degree F buckets",
+        "Forecast at 64F for 62-63F market = clear NO",
+        "Forecast at 62.4F with humidity/stalled front for 62-63F market = requires deeper analysis",
+        "Short-range forecasts (under 24 hours) have tightest confidence intervals",
+        "Long-range forecast overreaction creates entry opportunities to fade the move as resolution approaches",
+        "Time decay: market at $0.35 with 3 hours to resolution and forecast outside bucket = overpriced"
+      ],
+      "source_items": [
+        "2039054376908546475"
+      ],
+      "relationships": [
+        "ICAO Station-Specific Weather Data",
+        "Weather Market Mispricing Exploitation",
+        "Expected Value Filtering"
+      ]
+    },
+    {
+      "name": "Claude as Analytical Brain",
+      "category": "architecture",
+      "description": "Using Claude (Anthropic's LLM) as the central decision-making engine that ingests multiple data feeds, cross-references signals, estimates probabilities, and outputs structured trade decisions. Replaces thousands of lines of rule-based code with a 20-50 line integration.",
+      "key_details": [
+        "20-line Claude brain replaces 4,000 lines of rules",
+        "Pipeline: poly_data -> Claude scores wallets; insider-tracker -> Claude cross-references news; polyterm whale data -> Claude decides; py-clob-client executes",
+        "Geopolitical: receives all 10 data sources, outputs JSON with contract, direction, estimated probability, edge, and signal strength",
+        "~70% directional accuracy on geopolitical signals (sufficient with Kelly sizing)",
+        "Cost: $20/month subscription or API at $0.015/query for wallet parsing",
+        "Claude bot vs OpenClaw: +1,322% vs liquidation; difference was risk management in the code",
+        "Autonomous agent: reads live news, maps to open markets, runs probabilistic inference, detects cross-market arb, sizes positions",
+        "94 trades in one night with no human intervention"
+      ],
+      "source_items": [
+        "2039323712713810150",
+        "2039373347696328738",
+        "2038622884642398503",
+        "2039282251159011513"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "On-Chain Wallet Analysis at Scale",
+        "Dynamic Kelly Criterion Position Sizing",
+        "Autonomous Trading Agent"
+      ]
+    },
+    {
+      "name": "Autonomous Trading Agent",
+      "category": "architecture",
+      "description": "A fully autonomous AI agent (not a script or if-then bot) that reads live news feeds, maps them to open prediction markets, runs probabilistic inference on crowd mispricing, detects cross-market arbitrage, and sizes positions using Kelly Criterion -- all without human intervention.",
+      "key_details": [
+        "$25 to $4,237 overnight with 94 trades",
+        "Built by analyzing 10,000 top wallets over 90 days to derive strategy parameters",
+        "Capabilities: news reading, market mapping, probabilistic inference, cross-market arb detection, Kelly sizing",
+        "Never asked for input, never paused, never second-guessed",
+        "Key differentiator from scripts: adaptive reasoning vs fixed rules",
+        "Risk management (Kelly + kill switch) was the difference between +1,322% and liquidation"
+      ],
+      "source_items": [
+        "2039373347696328738"
+      ],
+      "relationships": [
+        "Claude as Analytical Brain",
+        "Dynamic Kelly Criterion Position Sizing",
+        "Cross-Market Arbitrage Detection",
+        "On-Chain Wallet Analysis at Scale"
+      ]
+    },
+    {
+      "name": "Cross-Market Arbitrage Detection",
+      "category": "strategy",
+      "description": "Detecting price discrepancies between correlated outcomes across different prediction markets (Polymarket vs Kalshi) or between correlated contracts within the same platform. When one market moves and correlated markets have not yet adjusted, the lag creates a trading window.",
+      "key_details": [
+        "Autonomous agent detects cross-market arb between correlated outcomes",
+        "polyterm includes cross-platform arb scanning (Polymarket vs Kalshi)",
+        "Cascade script: one geopolitical market moves, correlated markets haven't yet -> trading window",
+        "pmxt library provides unified API across Polymarket + Kalshi + Limitless for cross-platform execution"
+      ],
+      "source_items": [
+        "2039373347696328738",
+        "2038622884642398503",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Autonomous Trading Agent",
+        "Latency Arbitrage (CEX-to-Prediction-Market)",
+        "polyterm Tool"
+      ]
+    },
+    {
+      "name": "Copytrade Strategy",
+      "category": "strategy",
+      "description": "Mirroring the trades of identified high-performing wallets with configurable position sizing. Requires filtering by category (only copy a wallet's dominant strategy) and using Quarter Kelly for size.",
+      "key_details": [
+        "Filter by category: wallet with 91% crypto win rate and 15% politics should only be copied on crypto",
+        "polymarket-copy-trading-bot (RaphaelKrutLandau): low-latency copy trading with configurable sizing",
+        "Key signal for finding copy targets: fresh address, no history, drops large sum into dead market before announcement",
+        "Weather lag pattern: 83% win rate, entries 6-10 minutes before price moves",
+        "Critical: audit repos for malware (Dec 2025 incident with malicious copy-trading bot)"
+      ],
+      "source_items": [
+        "2039323712713810150",
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "On-Chain Wallet Analysis at Scale",
+        "Insider Detection",
+        "Security and Malware Awareness"
+      ]
+    },
+    {
+      "name": "Insider Detection",
+      "category": "technique",
+      "description": "Using ML and heuristics to identify wallets that trade with apparent foreknowledge, characterized by fresh wallets, unusual position sizes, and entries into low-liquidity markets before announcements.",
+      "key_details": [
+        "insider-tracker (pselamy, 63 stars): ML + heuristics for Polymarket insider detection",
+        "Monitors fresh wallets, unusual position sizes, entries into low-liquidity markets",
+        "Jan 2026: flagged 5 alerts on wallet that turned $35K into $442K before event",
+        "Bubblemaps analysis: 6 wallets, $1.2M on Feb 28 Iran strike, funded within 24 hours",
+        "Columbia/Haifa estimate: $143M total profit by informed traders 2024-2026",
+        "Polysights/Insider Finder: 24,000 users, $2M funding, $25K Polymarket grant"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2038608348958834926",
+        "2039323712713810150"
+      ],
+      "relationships": [
+        "On-Chain Wallet Analysis at Scale",
+        "Copytrade Strategy",
+        "Soros-Style Geopolitical Information Edge"
+      ]
+    },
+    {
+      "name": "Risk Management Kill Switch",
+      "category": "risk management",
+      "description": "Automated exit rules that prevent catastrophic losses: take profit at +50%, stop loss at -30%, time stop at 14 days. The presence or absence of these rules was the difference between +1,322% and total liquidation in head-to-head AI bot testing.",
+      "key_details": [
+        "Take profit: +50% (don't get greedy)",
+        "Stop loss: -30% (don't hold losers hoping)",
+        "Time stop: 14 days max (if thesis hasn't played out, it's dead)",
+        "Claude bot vs OpenClaw: risk management was the sole differentiator",
+        "Kill switch at -40% drawdown for latency arb bot",
+        "Position size cap at 2% of market volume for liquidity protection",
+        "Geopolitical markets: $10K-$100K total volume; $2K order can move price 3-5%"
+      ],
+      "source_items": [
+        "2039282251159011513",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Dynamic Kelly Criterion Position Sizing",
+        "Autonomous Trading Agent",
+        "Latency Arbitrage (CEX-to-Prediction-Market)"
+      ]
+    },
+    {
+      "name": "poly_data Tool",
+      "category": "tool",
+      "description": "Open-source dataset by warproxxx (646 stars) containing every trade ever made on Polymarket -- 86M+ trades, every wallet, every entry price. The foundational data layer for wallet analysis.",
+      "key_details": [
+        "86M+ trades, complete Polymarket history",
+        "Download snapshot first to save 2+ days of API scraping",
+        "Feed to Claude to find wallets with Sharpe > 2.0 in 4 minutes",
+        "github.com/warproxxx/poly_data"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "On-Chain Wallet Analysis at Scale",
+        "Claude as Analytical Brain"
+      ]
+    },
+    {
+      "name": "py-clob-client",
+      "category": "tool",
+      "description": "Polymarket's official Python SDK (947 stars) for reading prices, placing orders, and WebSocket streams. The foundation execution layer for all automated Polymarket trading.",
+      "key_details": [
+        "Official SDK by Polymarket",
+        "Read prices, place orders, WebSocket streams",
+        "Required for any live execution on Polymarket",
+        "github.com/Polymarket/py-clob-client"
+      ],
+      "source_items": [
+        "2038622884642398503",
+        "2039282251159011513",
+        "2038608348958834926"
+      ],
+      "relationships": [
+        "Autonomous Trading Agent",
+        "Latency Arbitrage (CEX-to-Prediction-Market)",
+        "Claude as Analytical Brain"
+      ]
+    },
+    {
+      "name": "pmxt (Unified Prediction Market SDK)",
+      "category": "tool",
+      "description": "The 'CCXT for prediction markets' -- a unified Python library providing a single API across Polymarket, Kalshi, and Limitless. Enables cross-platform arbitrage and data collection.",
+      "key_details": [
+        "pip install pmxt",
+        "Unified API for Polymarket + Kalshi + Limitless",
+        "Free hourly Parquet snapshots at archive.pmxt.dev for backtesting",
+        "github.com/pmxt-dev/pmxt"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Cross-Market Arbitrage Detection",
+        "py-clob-client"
+      ]
+    },
+    {
+      "name": "polyterm Tool",
+      "category": "tool",
+      "description": "Terminal-based intelligence tool (32 stars, described as 'criminally underrated') providing 73 terminal screens for whale tracking, insider detection, cross-platform arb scanning vs Kalshi, and wash trade detection. Never touches private keys.",
+      "key_details": [
+        "73 terminal screens",
+        "Whale tracking, insider detection, wash trade detection",
+        "Cross-platform arb scanning (Polymarket vs Kalshi)",
+        "Security: never touches private keys",
+        "github.com/NYTEMODEONLY/polyterm"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Insider Detection",
+        "Cross-Market Arbitrage Detection",
+        "On-Chain Wallet Analysis at Scale"
+      ]
+    },
+    {
+      "name": "insider-tracker Tool",
+      "category": "tool",
+      "description": "ML + heuristics-based insider detection tool (63 stars) that monitors fresh wallets, unusual position sizes, and entries into low-liquidity markets on Polymarket.",
+      "key_details": [
+        "ML + heuristics approach",
+        "Monitors fresh wallets, unusual position sizes, low-liquidity market entries",
+        "Jan 2026: flagged wallet that turned $35K into $442K",
+        "github.com/pselamy/polymarket-insider-tracker"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Insider Detection",
+        "On-Chain Wallet Analysis at Scale",
+        "Claude as Analytical Brain"
+      ]
+    },
+    {
+      "name": "poly-maker (Market Making Bot)",
+      "category": "tool",
+      "description": "Market making bot by warproxxx (963 stars) that trades both sides of the order book to collect the spread. Configured through Google Sheets with gas optimization.",
+      "key_details": [
+        "Trade both sides, collect $0.02-0.05 per fill",
+        "Thousands of fills per day",
+        "Config through Google Sheets",
+        "Includes gas optimization",
+        "No directional prediction required",
+        "github.com/warproxxx/poly-maker"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "py-clob-client",
+        "Latency Arbitrage (CEX-to-Prediction-Market)"
+      ]
+    },
+    {
+      "name": "MiroShark Multi-Agent Simulation",
+      "category": "tool",
+      "description": "Multi-agent simulation engine (fork of MiroFish, 33K stars) that simulates thousands of AI personas to model market outcomes. Hit 285 stars in first week.",
+      "key_details": [
+        "Simulates thousands of AI personas",
+        "Models market outcomes via agent behavior",
+        "Fork of MiroFish (33K stars)",
+        "github.com/aaronjmars/MiroShark"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Claude as Analytical Brain",
+        "Expected Value Filtering"
+      ]
+    },
+    {
+      "name": "Weather Bot Infrastructure",
+      "category": "tool",
+      "description": "Dedicated automated trading bots for weather markets, indicating the niche is being taken seriously by developers. Available in Python and TypeScript.",
+      "key_details": [
+        "alteregoeth-ai/weatherbot (Python): scans markets hourly, Kelly sizing, Visual Crossing API, EV threshold + liquidity depth filtering",
+        "seabra98/weatherbot-ts (TypeScript): paper + live modes, configurable thresholds, supports NYC/Chicago/Miami/Dallas/Seattle/Atlanta",
+        "Both use Kelly Criterion for position sizing"
+      ],
+      "source_items": [
+        "2039054376908546475"
+      ],
+      "relationships": [
+        "Weather Market Mispricing Exploitation",
+        "ICAO Station-Specific Weather Data",
+        "Dynamic Kelly Criterion Position Sizing"
+      ]
+    },
+    {
+      "name": "Data Recorder Tool",
+      "category": "tool",
+      "description": "Open-source script that logs Polymarket and Binance data simultaneously -- order book, trades, indicators -- saved to files with a live dashboard. Essential infrastructure for backtesting and latency arbitrage.",
+      "key_details": [
+        "Logs Polymarket and Binance simultaneously",
+        "Captures order book, trades, indicators",
+        "Saved to files with live dashboard",
+        "GitHub repo available (from 5-script toolkit)"
+      ],
+      "source_items": [
+        "2039308895290581254"
+      ],
+      "relationships": [
+        "Latency Arbitrage (CEX-to-Prediction-Market)",
+        "Trading Terminal Tool"
+      ]
+    },
+    {
+      "name": "Trading Terminal Tool",
+      "category": "tool",
+      "description": "Open-source Polymarket trading terminal with hotkeys, instant orders, PnL tracking, and Telegram alerts. Eliminates wallet confirmation friction.",
+      "key_details": [
+        "Hotkeys for instant order placement",
+        "PnL tracking built in",
+        "Telegram alert integration",
+        "No more wallet confirmations every 5 seconds",
+        "GitHub repo available (from 5-script toolkit)"
+      ],
+      "source_items": [
+        "2039308895290581254"
+      ],
+      "relationships": [
+        "py-clob-client",
+        "Telegram Alert System"
+      ]
+    },
+    {
+      "name": "ML Prediction Model (208 Indicators)",
+      "category": "tool",
+      "description": "Machine learning model using 208 technical indicators via TAAPI to predict market direction and calculate fair value for prediction market contracts.",
+      "key_details": [
+        "208 indicators via TAAPI API",
+        "Predicts market direction",
+        "Calculates fair value",
+        "GitHub repo available (from 5-script toolkit)"
+      ],
+      "source_items": [
+        "2039308895290581254"
+      ],
+      "relationships": [
+        "Expected Value Filtering",
+        "Latency Arbitrage (CEX-to-Prediction-Market)"
+      ]
+    },
+    {
+      "name": "Wallet Analyzer Tool",
+      "category": "tool",
+      "description": "Open-source tool that collects full trade history of any Polymarket wallet, splits by market, and builds position accumulation charts for visual pattern identification.",
+      "key_details": [
+        "Full trade history collection per wallet",
+        "Split by market category",
+        "Position accumulation charts",
+        "GitHub repo available (from 5-script toolkit)"
+      ],
+      "source_items": [
+        "2039308895290581254"
+      ],
+      "relationships": [
+        "On-Chain Wallet Analysis at Scale",
+        "Copytrade Strategy"
+      ]
+    },
+    {
+      "name": "Telegram Alert System",
+      "category": "architecture",
+      "description": "Using Telegram bots for real-time trade notifications, signal alerts, and portfolio monitoring. Integrated across multiple tools as the primary human-in-the-loop notification channel.",
+      "key_details": [
+        "Geopolitical signals sent to Telegram at 3am when anomalies detected",
+        "Trading terminal integrates Telegram for PnL alerts",
+        "Copytrade bots can be monitored via Telegram channels",
+        "Enables mobile monitoring without running full dashboards"
+      ],
+      "source_items": [
+        "2039282251159011513",
+        "2039308895290581254"
+      ],
+      "relationships": [
+        "Multi-Source Geopolitical Data Stack",
+        "Trading Terminal Tool",
+        "Autonomous Trading Agent"
+      ]
+    },
+    {
+      "name": "Security and Malware Awareness",
+      "category": "risk management",
+      "description": "Critical security considerations when using open-source trading tools from GitHub. In December 2025, a malicious Polymarket copy-trading bot with professional README and working code contained hidden dependency that stole private keys.",
+      "key_details": [
+        "Dec 2025: polymarket-copy-trading-bot contained malware that extracted private keys from .env",
+        "664 malicious repos on GitHub at any time; 14,285 downloads before detection",
+        "Rules: dedicated wallet with minimal funds, audit every dependency, Google suspicious packages",
+        "Repos created after Feb 2026 with 500+ stars likely star-farmed",
+        "Use Revoke.cash to limit USDC approvals; never unlimited",
+        "Start with $100-300, test 2 weeks before scaling",
+        "Bot worked correctly while simultaneously stealing funds"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Copytrade Strategy",
+        "py-clob-client"
+      ]
+    },
+    {
+      "name": "Mental Model Bugs (Cognitive Biases)",
+      "category": "risk management",
+      "description": "Five cognitive biases that cost traders more than bad code: base rate neglect, sunk cost fallacy, survivorship bias, copying without filtering, and overfitting.",
+      "key_details": [
+        "Base Rate Neglect: 99% accurate test on 0.1% event = only 9% true positive",
+        "Sunk Cost: bought at 70c, dropped to 40c, new info says NO -- only question is would you buy at 40c now",
+        "Survivorship Bias: 87% of wallets in the red; you never see their screenshots",
+        "Copying Without Filtering: wallet with 91% crypto / 15% politics win rates; copying everything = net negative",
+        "Overfitting: 'every time X happens, market goes up' based on 3 examples is noise, not signal"
+      ],
+      "source_items": [
+        "2038622884642398503"
+      ],
+      "relationships": [
+        "Expected Value Filtering",
+        "Bayesian Updating",
+        "Copytrade Strategy"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "name": "Alternative Data Sources for Information Asymmetry",
+      "description": "Novel, non-traditional data sources that provide trading edge by delivering information faster or more accurately than mainstream news and market consensus. These sources are free, publicly available, but underutilized by the trading crowd.",
+      "concept_names": [
+        "NASA FIRMS Satellite Thermal Anomaly Detection",
+        "OpenSky Network Aircraft Tracking",
+        "USGS Earthquake Data as Event Detector",
+        "ICAO Station-Specific Weather Data",
+        "Multi-Source Geopolitical Data Stack"
+      ]
+    },
+    {
+      "name": "On-Chain Intelligence and Wallet Analysis",
+      "description": "Leveraging the full transparency of on-chain prediction market data to reverse-engineer winning strategies, detect insider activity, and build copytrading systems. The unique property of blockchain-based markets is that every trade is public and parseable at scale.",
+      "concept_names": [
+        "On-Chain Wallet Analysis at Scale",
+        "Insider Detection",
+        "Copytrade Strategy",
+        "Wallet Analyzer Tool",
+        "poly_data Tool"
+      ]
+    },
+    {
+      "name": "Mathematical Edge Framework",
+      "description": "The three-formula mathematical foundation that separates profitable prediction market traders from the 87% who lose: Expected Value for trade selection, Kelly Criterion for position sizing, and Bayesian Updating for probability revision. All strategies in this overview ultimately feed into this framework.",
+      "concept_names": [
+        "Expected Value Filtering",
+        "Dynamic Kelly Criterion Position Sizing",
+        "Bayesian Updating",
+        "Anomaly Detection Logic",
+        "Bucket Boundary Analysis"
+      ]
+    },
+    {
+      "name": "Prediction Market Trading Strategies",
+      "description": "Distinct strategic archetypes mapped to Wall Street legends, each exploiting a different market inefficiency: tail risk (Taleb), latency (Simons), information (Soros), weather mispricing, and cross-market arbitrage.",
+      "concept_names": [
+        "Taleb Barbell Strategy (Tail Risk Betting)",
+        "Latency Arbitrage (CEX-to-Prediction-Market)",
+        "Soros-Style Geopolitical Information Edge",
+        "Weather Market Mispricing Exploitation",
+        "Cross-Market Arbitrage Detection"
+      ]
+    },
+    {
+      "name": "LLM-Powered Trading Architecture",
+      "description": "Using large language models (primarily Claude) as the analytical core that replaces rule-based trading systems. The LLM ingests heterogeneous data feeds, performs cross-referencing, estimates probabilities, and outputs structured trade decisions -- reducing thousands of lines of code to 20-50 lines of integration.",
+      "concept_names": [
+        "Claude as Analytical Brain",
+        "Autonomous Trading Agent",
+        "Telegram Alert System"
+      ]
+    },
+    {
+      "name": "Open-Source Trading Infrastructure",
+      "description": "A 12+ tool open-source ecosystem spanning data collection, intelligence/analysis, execution, and infrastructure layers. All tools are free, community-maintained, and can be composed into full trading pipelines.",
+      "concept_names": [
+        "poly_data Tool",
+        "py-clob-client",
+        "pmxt (Unified Prediction Market SDK)",
+        "polyterm Tool",
+        "insider-tracker Tool",
+        "poly-maker (Market Making Bot)",
+        "MiroShark Multi-Agent Simulation",
+        "Weather Bot Infrastructure",
+        "Data Recorder Tool",
+        "Trading Terminal Tool",
+        "ML Prediction Model (208 Indicators)",
+        "Wallet Analyzer Tool"
+      ]
+    },
+    {
+      "name": "Risk Management and Operational Security",
+      "description": "Protective measures spanning position sizing, automated exit rules, cognitive bias awareness, and GitHub repository security. The recurring lesson across all sources is that risk management -- not strategy -- is the primary differentiator between success and ruin.",
+      "concept_names": [
+        "Risk Management Kill Switch",
+        "Security and Malware Awareness",
+        "Mental Model Bugs (Cognitive Biases)",
+        "Dynamic Kelly Criterion Position Sizing"
+      ]
+    }
+  ],
+  "key_findings": [
+    "NASA FIRMS satellite data detected the Oct 7 attack (11x thermal anomaly), Kursk offensive 4 days early, and Assad's fall 3 weeks early -- all from free, publicly available data that no one on prediction markets was using.",
+    "Weather markets on Polymarket are structurally the fairest market on the platform: no insiders exist, capital size does not equal information advantage, and systematic mispricing persists because retail traders use city weather apps instead of the actual ICAO airport station data that resolves the contracts.",
+    "87% of Polymarket wallets lose money, yet the top 20 wallets captured more profit than the bottom 13,000 combined. The difference is mathematical edge (EV filtering, Kelly sizing) plus automation, not prediction ability.",
+    "Latency arbitrage between Binance and Polymarket generated $2.38M from $313 over 4 months (26,738 trades, 98% win rate), but the lag has compressed from 12 seconds in 2024 to 2.7 seconds in 2026 and 73% of arb profits now go to sub-100ms bots.",
+    "A 20-50 line Claude integration replaces 4,000+ lines of rule-based trading logic by acting as the analytical brain that cross-references heterogeneous data sources and outputs structured trade decisions.",
+    "The entire 10-source geopolitical data stack costs $0/month and outperforms a $24K/year Bloomberg Terminal for satellite-based conflict detection.",
+    "Quarter Kelly (25% of mathematical Kelly) is universally recommended across all sources; 50 years of trading history shows Full Kelly destroys traders emotionally before the math pays off.",
+    "In a head-to-head AI bot test, Claude returned +1,322% while OpenClaw was liquidated to zero. The sole difference was risk management (Kelly sizing + kill switch), not strategy.",
+    "Columbia Law School and University of Haifa estimated $143M in total profit by 'informed' traders on Polymarket from 2024-2026, with specific wallets showing 93% win rates on geopolitical events hours before unannounced military operations.",
+    "Security is a critical operational risk: a December 2025 GitHub repo had professional documentation and working code while secretly exfiltrating private keys from .env files. 664 malicious repos exist on GitHub at any time."
+  ],
+  "knowledge_gaps": [
+    "No rigorous statistical validation of any strategy due to small sample sizes (16-94 trades). The satellite geopolitical approach had only 7 major events across 16 months.",
+    "Polymarket does not expose historical price data, making P&L claims unverifiable. The $7,778 satellite result is described as 'modeled' not audited.",
+    "No analysis of market impact and slippage at scale: geopolitical markets have $10K-$100K volume and a $2K order moves price 3-5%.",
+    "The FIRMS data has a 4-6 hour delay from event to publication; no assessment of how much edge remains after this delay as the market matures.",
+    "No comparison with traditional prediction market research (academic forecasting literature, prediction market theory) to contextualize these approaches.",
+    "Missing analysis of regulatory risk: CNN investigation and CFTC advisor commentary on Magamyman suggest potential regulatory action against informed trading.",
+    "No discussion of correlation between strategies: if satellite data, wallet analysis, and weather mispricing are all discovered simultaneously, edge compression may be rapid.",
+    "Weather bot performance metrics (actual win rates, drawdowns, Sharpe ratios) are not provided despite multiple tools being listed.",
+    "No analysis of Polymarket's fee structure, withdrawal costs, and USDC settlement mechanics and how they affect edge calculations.",
+    "The autonomous agent ($25 to $4,237) provides no verifiable architecture details, reproducible code, or methodology beyond a high-level description."
+  ],
+  "open_questions": [
+    "How quickly does edge decay after a novel data source (like FIRMS) becomes widely known through viral social media posts? Is there a measurable half-life of alternative data edge?",
+    "Can FIRMS anomaly detection be combined with weather market trading to create a unified natural-disaster-to-prediction-market pipeline (hurricanes, floods, droughts)?",
+    "What is the optimal number of confirming sources before triggering a geopolitical trade? Is there diminishing returns beyond 3-4 sources?",
+    "How do Polymarket market makers (like CemeterySun with $36.6M volume) affect the exploitability of the mispricing patterns identified here?",
+    "Could wallet analysis itself become a traded signal -- i.e., are there wallets that strategically produce misleading on-chain patterns to manipulate copytrade followers?",
+    "What happens to weather market edge when dedicated weather bots reach critical mass? Is there a natural equilibrium where bot-vs-bot competition eliminates retail mispricing?",
+    "Is there a systematic way to detect when a latency arbitrage window has closed (as happened with BTC lag compressing from 9.4 to 3.1 seconds) before losing capital?",
+    "How would a portfolio that combines all five strategy archetypes (tail risk, latency arb, information edge, weather mispricing, cross-market arb) perform with proper correlation-adjusted position sizing?",
+    "Can the multi-source tension score (0-100) be calibrated against historical Polymarket geopolitical contract resolutions to create a systematic trading rule?",
+    "What legal and regulatory frameworks apply to using satellite data for trading prediction markets, given the CFTC's increasing scrutiny of Polymarket?"
+  ]
+}

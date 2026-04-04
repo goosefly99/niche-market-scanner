@@ -1,0 +1,418 @@
+{
+  "spec_id": "19c9c94d-de2b-46d9-a126-ca5dd3b1d57e",
+  "title": "Niche Market Edge Scanner & Trading System",
+  "created_date": "2026-04-03",
+  "updated_date": "2026-04-03",
+  "version": "1.0",
+  "status": "draft",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "collection": "x_posts",
+      "item_id": "2039493566750224477",
+      "title": "Claude script for ultra-low-liquidity markets. Scans for markets with 6-11 participants. Found 14 golf, 23 esports, 9 goalscorer props. Flagged top wallet gatorr ($2.2M profit, 684 predictions) in dead rooms. $200 start.",
+      "relevance": "Ultra-low-liquidity scanner: found 14 golf, 23 esports, 9 goalscorer props with 6-11 participants, $200 start"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039281101269504026",
+      "title": "Weather market farming. $300 to $20,171, 1,782 predictions, biggest win $1,896. Claude system exploits mispriced weather contracts, a niche most traders ignore. Pure data, no narratives.",
+      "relevance": "Weather market farming: $300 to $20K, 1,782 predictions, exploiting mispriced weather contracts"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039054376908546475",
+      "title": "Deep dive into Polymarket weather temperature markets as a low-competition, high-edge niche. Weather markets resolve on specific ICAO airport stations (not city averages), creating systematic mispricing from retail traders using wrong data sources. Profiles top weather traders: BeefSlayer ($49K profit from low-cost bets with 1,796-49,744% returns) and Handsanitizer23 ($66K profit from larger positions). Lists open-source weather bots and provides manual trading guide focusing on station-specific forecasts and bucket boundary analysis.",
+      "relevance": "Deep dive on weather temperature markets: ICAO stations, bucket boundaries, top trader profiles (BeefSlayer, Handsanitizer23)"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038636119558939004",
+      "title": "Analysis of swisstony's $5.63M profit on Polymarket by exploiting football (soccer) market inefficiencies. Strategy: bet on La Liga/UCL favorites priced at 36-46 cents when true probability is 60%+, exploiting retail traders' psychological bias toward underdogs. Uses Kelly Criterion for massive position sizing ($400K+ single bets). Claude-built edge scanner runs every 5 minutes comparing Polymarket odds to historical win rates. Largest single verified football win: $1.12M on Real Madrid.",
+      "relevance": "Football favorite bias: swisstony's $5.63M exploiting underdog bias, edge scanner comparing Polymarket odds to historical win rates"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2039371497370800167",
+      "title": "Polymarket bot predicting NBA outcomes with ~70% accuracy. $435,517 profit in 24h. Built using exposed Claude Code logic. Telegram copytrade bot.",
+      "relevance": "NBA prediction bot: $435K in 24h, sports prediction as a niche market"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2038608348958834926",
+      "title": "Maps 3 top Polymarket wallets to Wall Street trading legends: Hans323 runs Taleb's barbell strategy ($92K on 8% weather odds to $1.11M), 0x8dxd mirrors Simons' statistical arbitrage ($313 to $2.38M via latency arb), and Magamyman follows Soros-style geopolitical information edge ($800K on military strike predictions, 93% win rate investigated by CNN). Includes Python code snippets for each strategy.",
+      "relevance": "Taleb barbell on weather: $92K at 8% odds to $1.11M — asymmetric payoff structure in niche markets"
+    },
+    {
+      "collection": "x_posts",
+      "item_id": "2025933391003066796",
+      "title": "Complete A-Z guide to building an automated Polymarket Clawdbot (OpenClaw). Covers VPS hosting setup, OpenClaw installation, Telegram integration, Simmer SDK connection, and trading skill selection (weather trader, copytrading, signal sniper, fast loop, AI divergence). Includes detailed configuration for both weather strategy and 5-minute BTC fast loop strategy, the 15-minute BTC Trading Assistant alternative, and a $1,000/day structured approach requiring $15K-$25K capital.",
+      "relevance": "OpenClaw A-Z guide: weather strategy setup, fast loop BTC, practical configuration for niche strategies"
+    }
+  ],
+  "overview": {
+    "description": "An automated multi-strategy system for discovering and exploiting systematically mispriced prediction markets on Polymarket in low-competition niches. The system targets four distinct market verticals where retail participants use wrong data sources, creating persistent structural edges: (1) weather temperature markets where contracts resolve on specific ICAO airport stations but the crowd prices based on city-average weather apps, (2) football/soccer match outcomes where retail traders psychologically overprice underdogs in La Liga and UCL, (3) ultra-low-liquidity rooms in golf, esports, and goalscorer props with 6-11 participants where wide spreads persist unchallenged, and (4) asymmetric tail-risk positions on bucket boundaries where small bets at 2-8 cents yield 1,796-49,744% returns. The system combines data-source-aware mispricing detection with Kelly Criterion position sizing to systematically harvest edges that exist because the crowd anchors to the wrong information.",
+    "objectives": [
+      "Build a unified market scanner that continuously monitors Polymarket for mispriced contracts across weather, sports, esports, and golf verticals, filtering by participant count, liquidity depth, and edge magnitude",
+      "Implement ICAO-station-aware weather forecasting that compares station-specific NOAA/Weather.gov data to Polymarket implied probabilities, with special focus on bucket boundary analysis for temperature brackets",
+      "Develop a football favorite bias detector that compares Polymarket odds to historical win rates for La Liga and UCL matches, flagging favorites priced below 50 cents when true probability exceeds 58%",
+      "Create an ultra-low-liquidity scanner that identifies markets with 6-11 participants in golf, esports, and goalscorer prop categories where wide bid-ask spreads indicate exploitable inefficiency",
+      "Implement Kelly Criterion position sizing across all strategies with configurable fractional Kelly (half-Kelly default) and per-market risk limits",
+      "Support both Taleb barbell (many small tail bets at 2-8 cents) and swisstony concentrated (large positions on high-confidence favorites) position sizing modes",
+      "Provide real-time alerting via Telegram with trade signals, execution confirmations, and portfolio status updates",
+      "Track all positions with entry thesis, market conditions, edge estimates, and resolution outcomes in a structured trade journal for ongoing strategy calibration"
+    ],
+    "constraints": [
+      "All weather markets resolve on specific ICAO airport station data, NOT city averages -- the system must map every market to its correct resolution station before any pricing analysis",
+      "Kelly sizing must never exceed half-Kelly on any single position to protect against model error and single-event variance",
+      "Maximum daily drawdown limit of 3-5% of total bankroll (complementary to the -40% kill switch: daily limit is percentage of current bankroll measured per calendar day; kill switch is percentage of session-start bankroll where 'session' resets on manual restart or daily reset). Automatic halt after 3 consecutive significant losses per strategy vertical, where a 'significant loss' is any single position losing >1% of bankroll using dollar-weighted measurement. Tail-bet losses expected in barbell strategy (small positions at 2-8 cents) should not trigger this halt.",
+      "System must run 24/7 on VPS infrastructure. Weather scan default interval is 15 minutes aligned to NOAA update cadence, escalating to 2-minute intervals only for positions within 4 hours of resolution. Sports scan cycles sub-5-minutes.",
+      "Must distinguish between short-range weather forecasts (under 24h, high confidence, tradeable) and long-range forecasts (5-7 days, high uncertainty, avoid or fade crowd overreaction)",
+      "Sports edge scanner must use historical win rate data, not subjective analysis -- the edge comes from mathematical comparison of implied vs actual probability",
+      "Minimum edge threshold of 12 percentage points before entering any position (Polymarket price vs true probability)",
+      "Must support paper trading mode for all strategies before live capital deployment",
+      "All trades must be logged on-chain and verifiable through Polymarket wallet analytics"
+    ],
+    "assumptions": [
+      "Polymarket API provides real-time access to market prices, participant counts, liquidity depth, and order book data",
+      "NOAA Weather.gov and Visual Crossing API provide station-specific ICAO temperature forecasts with sufficient accuracy (85-90% at 1-2 day horizons)",
+      "Historical football/soccer match outcome data is available for La Liga and UCL with sufficient depth to calculate true win rates by team, home/away, and competition context",
+      "Low-liquidity markets (6-11 participants) will continue to exist as Polymarket expands into niche verticals like golf and esports",
+      "Retail trader biases (underdog preference in sports, weather app anchoring, narrative-driven betting) are structural and persistent, not quickly arbitraged away",
+      "The Simmer SDK or py-clob-client provides programmatic trade execution on Polymarket with acceptable latency for non-HFT strategies",
+      "Polygon network gas costs remain low enough that small position sizes ($2-$10 for weather, $5-$50 for props) remain economically viable after fees"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "MarketScanner",
+        "description": "Core scanning engine that polls Polymarket API on configurable intervals (default 15min weather aligned to NOAA update cadence, escalating to 2min for positions within 4 hours of resolution; 5min sports; 10min props). Retrieves all open markets, filters by category (weather/sports/esports/golf), extracts participant count, total volume, bid-ask spread, and time to resolution. Maintains an in-memory market registry with deduplication and state tracking.",
+        "interfaces": [
+          "scan_markets(categories: list[str]) -> list[Market]",
+          "get_market_details(market_id: str) -> MarketDetails",
+          "get_participant_count(market_id: str) -> int",
+          "get_order_book(market_id: str) -> OrderBook",
+          "filter_by_liquidity(markets: list[Market], min_participants: int, max_participants: int) -> list[Market]"
+        ]
+      },
+      {
+        "name": "WeatherEdgeEngine",
+        "description": "ICAO-station-aware weather mispricing detector. Maintains a mapping of Polymarket city markets to their resolution ICAO station codes (e.g., NYC->KLGA, Dallas->KDAL not DFW, Chicago->KORD). Pulls station-specific forecasts from NOAA Weather.gov (US) and Meteoblue/Windy (international). Compares forecast probability distributions against Polymarket bucket prices to identify mispriced brackets. Implements bucket boundary analysis -- when the forecast sits near a bucket edge (e.g., forecast 62.4F for a 62-63F bracket), calculates the probability mass within the bucket using forecast uncertainty bounds rather than point estimates. Supports both BeefSlayer-style tail bets (buying at 2-8 cents when true probability is 15-25%) and Handsanitizer23-style concentrated bets on higher-probability brackets.",
+        "interfaces": [
+          "get_station_for_market(market_id: str) -> ICAOStation",
+          "fetch_forecast(station: ICAOStation, horizon_hours: int) -> TemperatureForecast",
+          "calculate_bucket_probability(forecast: TemperatureForecast, bucket_low: float, bucket_high: float) -> float",
+          "detect_mispricing(market: Market, forecast: TemperatureForecast) -> EdgeSignal | None",
+          "get_boundary_analysis(forecast: TemperatureForecast, buckets: list[Bucket]) -> list[BoundaryAnalysis]",
+          "classify_trade_type(edge: EdgeSignal) -> TradeType  # TAIL_BET | CONCENTRATED | FADE_OVERREACTION"
+        ]
+      },
+      {
+        "name": "SportsEdgeEngine",
+        "description": "Football/soccer favorite bias detector targeting La Liga and UCL. Maintains historical win rate database by team, home/away, and competition. Runs every 5 minutes comparing Polymarket implied probability to true historical probability. Flags favorites priced under 50 cents when historical win rate exceeds 58%. Calculates edge magnitude and Kelly-optimal position size. Also supports NBA outcome prediction using probability weighting and rapid market inefficiency detection. The core insight is that retail Polymarket traders systematically overprice underdogs because upsets are exciting, creating persistent 15-25 percentage point edges on favorites. IMPORTANT: True probability estimates must be match-context-specific, conditioning on opponent strength tier, home/away, and trailing form (last 5-10 matches). Simple historical win rate without conditioning is insufficient for Kelly sizing and will produce dangerously oversized positions against strong opponents.",
+        "interfaces": [
+          "get_historical_win_rate(team: str, context: MatchContext) -> float",
+          "compare_implied_vs_actual(market: Market) -> EdgeSignal | None",
+          "scan_favorite_bias(league: str) -> list[EdgeSignal]",
+          "get_match_context(market: Market) -> MatchContext  # home/away, league, recent form",
+          "calculate_no_bet_edge(market: Market) -> EdgeSignal | None  # overpriced favorites to bet NO on"
+        ]
+      },
+      {
+        "name": "NichePropScanner",
+        "description": "Ultra-low-liquidity market scanner for golf, esports, and goalscorer proposition markets. Identifies markets with 6-11 participants where bid-ask spreads are widest relative to true probability. Flags profitable wallets operating in these 'dead rooms' (like gatorr with $2.2M profit from 684 predictions) and optionally copy-trades their positions. Scans for markets where a single informed participant has already entered, indicating the market has a known edge but insufficient competition to close it. CAVEAT: Copy-trade signals are post-execution -- in markets with only 6-11 participants, the informed wallet's fill may consume most available liquidity. Treat copy-trade signals as a monitoring/confirmation signal for independent analysis, not as an immediate execution trigger.",
+        "interfaces": [
+          "scan_low_liquidity(max_participants: int, categories: list[str]) -> list[Market]",
+          "analyze_room_wallets(market_id: str) -> list[WalletProfile]",
+          "detect_informed_participant(market: Market) -> WalletProfile | None",
+          "get_spread_analysis(market: Market) -> SpreadAnalysis",
+          "generate_copytrade_signals(wallet: WalletProfile) -> list[CopyTradeSignal]"
+        ]
+      },
+      {
+        "name": "KellyPositionSizer",
+        "description": "Unified position sizing engine implementing Kelly Criterion across all strategies. Calculates optimal bet size using the prediction market form: kelly_fraction = (true_prob - market_price) / (1 - market_price), then applies fractional Kelly (default 0.5x) for risk reduction. Supports two modes: (1) swisstony-mode for concentrated bets on high-confidence edges (33%+ Kelly fraction, $400K+ positions for large bankrolls), and (2) BeefSlayer-mode for many small tail bets at 2-8 cents with $1-$50 position limits. Enforces maximum position as percentage of bankroll, per-market limits, and daily loss limits. Includes kill switch at configurable drawdown threshold (default -40% of session bankroll).",
+        "interfaces": [
+          "calculate_kelly(edge: float, true_prob: float, odds: float) -> float",
+          "size_position(signal: EdgeSignal, bankroll: float, mode: SizingMode) -> PositionSize",
+          "check_risk_limits(proposed: PositionSize, portfolio: Portfolio) -> RiskCheck",
+          "get_portfolio_exposure() -> PortfolioExposure",
+          "apply_kill_switch(portfolio: Portfolio) -> bool"
+        ]
+      },
+      {
+        "name": "ExecutionEngine",
+        "description": "Handles order placement, monitoring, and exit on Polymarket via an abstract broker interface so Simmer SDK and py-clob-client are interchangeable. py-clob-client should be the default for production stability since Simmer SDK has no SLA. Supports limit orders for entering at target prices and market orders for urgency. Monitors open positions for exit conditions: take-profit when implied probability reprices toward true probability, stop-loss at configurable threshold, and time-based exit before resolution for probability-expansion trades (weather brackets where you capture repricing rather than waiting for settlement). Tracks slippage and fill rates for strategy calibration.",
+        "interfaces": [
+          "place_order(market_id: str, side: str, size: float, price: float, order_type: str) -> OrderResult",
+          "monitor_position(position_id: str) -> PositionStatus",
+          "exit_position(position_id: str, reason: str) -> ExitResult",
+          "get_fill_rate(strategy: str) -> float",
+          "calculate_slippage(order: OrderResult) -> float"
+        ]
+      },
+      {
+        "name": "AlertManager",
+        "description": "Telegram-based alerting and control interface. Sends real-time notifications for: new edge signals detected, orders placed, positions filled, exits triggered, daily P&L summary, risk limit warnings, and kill switch activation. Supports command interface for remote control: start/stop scanning, adjust parameters, query portfolio status, and force-exit positions. Implements the same bot-to-Telegram pattern used by OpenClaw/KreoPolyBot.",
+        "interfaces": [
+          "send_signal_alert(signal: EdgeSignal) -> None",
+          "send_execution_alert(result: OrderResult) -> None",
+          "send_daily_summary(portfolio: Portfolio) -> None",
+          "handle_command(command: str) -> str",
+          "send_risk_warning(warning: RiskWarning) -> None"
+        ]
+      },
+      {
+        "name": "ConfigManager",
+        "description": "Centralized configuration owner that loads all tunable system parameters from a YAML or TOML config file. Manages Kelly fraction, drawdown thresholds, edge minimums, scan intervals, position size caps, ICAO station mappings, and per-strategy toggles. Provides a validated, typed config object to all components at startup and supports hot-reload via Telegram /reload_config command. Single source of truth prevents parameter drift across components.",
+        "interfaces": [
+          "load_config(path: str) -> SystemConfig",
+          "get(section: str, key: str) -> Any",
+          "reload() -> SystemConfig",
+          "validate_config(config: SystemConfig) -> list[ConfigError]"
+        ]
+      },
+      {
+        "name": "TradeJournal",
+        "description": "Persistent trade logging and strategy performance analytics. Records every trade with: entry thesis (which edge type, data source comparison, edge magnitude), market conditions at entry (participant count, volume, time to resolution), position sizing rationale (Kelly fraction, bankroll at entry), and resolution outcome. Calculates rolling performance metrics per strategy vertical (weather, football, props, tail bets) including win rate, average edge captured, Sharpe ratio, and maximum drawdown. Used for ongoing strategy calibration and dead strategy detection.",
+        "interfaces": [
+          "log_trade(trade: TradeRecord) -> None",
+          "get_strategy_performance(strategy: str, period: str) -> PerformanceMetrics",
+          "get_edge_decay_analysis(strategy: str) -> EdgeDecayReport",
+          "export_journal(format: str) -> bytes",
+          "get_calibration_report() -> CalibrationReport"
+        ]
+      },
+      {
+        "name": "SystemMonitor",
+        "description": "Health monitoring component providing per-component heartbeat tracking, API connectivity checks (Polymarket, NOAA, Visual Crossing, Football-Data.org, Telegram), disk/memory alerts, and a dead-man's-switch alert that fires if the main scan loop stops producing heartbeats for a configurable interval (default 10 minutes). Exposes a /health Telegram command and logs component status to TradeJournal for post-incident analysis.",
+        "interfaces": [
+          "register_heartbeat(component: str) -> None",
+          "check_api_connectivity() -> dict[str, bool]",
+          "get_system_health() -> HealthReport",
+          "configure_deadman_switch(timeout_seconds: int) -> None"
+        ]
+      }
+    ],
+    "data_flow": "MarketScanner polls Polymarket API on configurable intervals and feeds raw market data to three parallel edge detection engines: WeatherEdgeEngine (default every 15 minutes, escalating to 2 minutes for positions within 4 hours of resolution), SportsEdgeEngine (every 5 minutes), and NichePropScanner (every 10 minutes). Each engine enriches market data with external sources -- WeatherEdgeEngine pulls ICAO station forecasts from NOAA/Weather.gov and Visual Crossing API, SportsEdgeEngine pulls historical win rates from football-data.org or equivalent, NichePropScanner analyzes on-chain wallet activity via Polymarket API. When an engine detects an edge exceeding the 12pp minimum threshold, it emits an EdgeSignal to the KellyPositionSizer. The sizer calculates optimal position size based on current bankroll, existing portfolio exposure, and risk limits, then passes a sized order to the ExecutionEngine. The ExecutionEngine places orders via Simmer SDK, monitors fills, and manages exit conditions (take-profit, stop-loss, time-based). Every state change flows through AlertManager to Telegram for real-time visibility. All trades are recorded in TradeJournal for performance tracking and strategy calibration. A feedback loop from TradeJournal to the edge engines allows dynamic adjustment of edge thresholds and confidence weights based on realized vs estimated performance.",
+    "integration_points": [
+      {
+        "name": "Polymarket API",
+        "purpose": "Market discovery, pricing data, order book depth, participant counts, order placement and position management",
+        "protocol": "REST API + WebSocket for real-time prices",
+        "auth": "L2 API key derived from L1 wallet signature (see py-clob-client ClobClient auth derivation). Requires wallet private key."
+      },
+      {
+        "name": "NOAA Weather.gov API",
+        "purpose": "Station-specific temperature forecasts for US ICAO stations (KLGA, KDAL, KORD, KATL, KSEA, KMIA). Primary data source for weather edge detection. Free, no API key required.",
+        "protocol": "REST API (api.weather.gov)",
+        "auth": "None (public API, requires User-Agent header)"
+      },
+      {
+        "name": "Visual Crossing Weather API",
+        "purpose": "Historical temperature data for forecast calibration and backtesting. Provides station-level historical observations for comparing forecast accuracy against actuals.",
+        "protocol": "REST API",
+        "auth": "API key (free tier: 1000 requests/day). NOTE: Free tier is insufficient for continuous 2-minute scans across 6+ cities. Needs Basic plan (~$35/month, 50K req/day) or aggressive local caching with 30-60 minute TTL."
+      },
+      {
+        "name": "Meteoblue / Windy API",
+        "purpose": "International weather station forecasts for non-US Polymarket weather markets (e.g., Sao Paulo, London). Supplements NOAA for global coverage.",
+        "protocol": "REST API",
+        "auth": "API key"
+      },
+      {
+        "name": "Football-Data.org / API-Football",
+        "purpose": "Historical football/soccer match outcomes, win rates by team/competition/home-away for La Liga, UCL, and other leagues. Source of truth for calculating true probabilities to compare against Polymarket implied odds. NOTE: Does NOT cover NBA or other US sports.",
+        "protocol": "REST API",
+        "auth": "API key (free tier available)"
+      },
+      {
+        "name": "balldontlie / nba_api",
+        "purpose": "NBA game outcomes, team stats, and historical records for calculating basketball true probabilities. Separate data source from Football-Data.org which covers only soccer/football leagues.",
+        "protocol": "REST API / Python SDK",
+        "auth": "API key (balldontlie) or none (nba_api scrapes NBA.com)"
+      },
+      {
+        "name": "Simmer SDK",
+        "purpose": "Prediction market trading interface supporting Polymarket execution with self-custody wallets, safety rails, and integrated skills (weather trader, copytrading, signal sniper). Primary execution layer.",
+        "protocol": "SDK (Python/Node.js)",
+        "auth": "Simmer account + agent wallet"
+      },
+      {
+        "name": "py-clob-client",
+        "purpose": "Alternative direct Polymarket execution client for CLOB (Central Limit Order Book) orders. Used when Simmer SDK is unavailable or for lower-level control.",
+        "protocol": "Python SDK",
+        "auth": "Polymarket API key + wallet private key"
+      },
+      {
+        "name": "Telegram Bot API",
+        "purpose": "Real-time alerting, remote control, trade notifications, and portfolio monitoring. Bot created via BotFather with token-based auth.",
+        "protocol": "HTTP Bot API",
+        "auth": "Bot token from BotFather"
+      },
+      {
+        "name": "Polygon Network (USDC.e / POL)",
+        "purpose": "On-chain settlement layer for all Polymarket trades. Agent wallet must be funded with USDC.e for trading and POL for gas.",
+        "protocol": "EVM JSON-RPC",
+        "auth": "Wallet private key"
+      }
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Core Infrastructure & Weather Edge Engine",
+        "description": "Build the MarketScanner, WeatherEdgeEngine, KellyPositionSizer, and TradeJournal. Implement the ICAO station mapping for all active Polymarket weather cities (NYC/KLGA, Chicago/KORD, Dallas/KDAL, Atlanta/KATL, Seattle/KSEA, Miami/KMIA). Integrate NOAA Weather.gov API for station-specific forecasts. Implement bucket boundary analysis that calculates probability mass within temperature brackets using forecast uncertainty distributions rather than point estimates. Build Kelly position sizing with half-Kelly default and configurable risk limits. Deploy in paper-trade mode only.",
+        "deliverables": [
+          "MarketScanner module with Polymarket API integration and category filtering",
+          "ICAO station mapping configuration (city -> station code -> resolution source)",
+          "WeatherEdgeEngine with NOAA forecast fetching, bucket probability calculation, and boundary analysis",
+          "KellyPositionSizer with fractional Kelly, portfolio limits, and kill switch",
+          "TradeJournal with SQLite persistence and basic performance metrics",
+          "Paper trading simulation engine that records hypothetical trades without execution",
+          "Weather API caching layer with configurable TTL (30-60 minutes for Visual Crossing, 15 minutes for NOAA) to stay within rate limits and reduce redundant fetches",
+          "Unit tests for bucket probability calculation and Kelly sizing math"
+        ],
+        "estimated_effort": "2-3 weeks"
+      },
+      {
+        "phase": 2,
+        "name": "Sports Edge Engine & Favorite Bias Detection",
+        "description": "Build the SportsEdgeEngine with historical football data integration. Implement the core favorite bias detection algorithm: for each upcoming La Liga/UCL match on Polymarket, retrieve the Polymarket implied probability, calculate the true historical win rate for that team in that context (home/away, league, recent form), and flag markets where edge > 12pp. Support both YES bets on underpriced favorites and NO bets on overpriced favorites (the swisstony pattern). Extend to NBA with probability weighting for game outcomes. All in paper-trade mode.",
+        "deliverables": [
+          "SportsEdgeEngine with Football-Data.org / API-Football integration",
+          "Historical win rate calculator by team, home/away, competition, and form",
+          "Favorite bias scanner running every 5 minutes on La Liga and UCL markets",
+          "NO-bet edge detection for overpriced favorites (Atletico/PSG NO pattern)",
+          "NBA outcome prediction module with probability weighting",
+          "Backtesting framework to validate edge estimates against historical Polymarket resolution data",
+          "Paper trade logging for all sports signals"
+        ],
+        "estimated_effort": "2 weeks"
+      },
+      {
+        "phase": 3,
+        "name": "Niche Prop Scanner & Low-Liquidity Detection",
+        "description": "Build the NichePropScanner targeting ultra-low-liquidity markets. Implement participant count filtering (6-11 participants), spread analysis, and informed-participant detection. Scan golf props, esports match outcomes, and goalscorer propositions. Build wallet profiling to identify profitable participants in dead rooms (gatorr pattern: $2.2M from 684 predictions in markets nobody watches). Implement optional copytrade signal generation based on detected informed wallets.",
+        "deliverables": [
+          "NichePropScanner with participant count filtering and category classification",
+          "Spread analysis module calculating bid-ask width relative to true probability estimates",
+          "Wallet profiler that retrieves historical P&L, prediction count, and win rate for wallets active in scanned markets",
+          "Informed participant detector (high P&L wallet enters a dead room = signal)",
+          "Copytrade signal generator with configurable follow delay and size scaling",
+          "Category-specific scanning for golf (PGA), esports (CS2, LoL, Dota2, Valorant), and goalscorer props"
+        ],
+        "estimated_effort": "2 weeks"
+      },
+      {
+        "phase": 4,
+        "name": "Execution Engine, Alerting & Live Trading",
+        "description": "Build the ExecutionEngine with Simmer SDK integration for live order placement. Implement the AlertManager with full Telegram bot interface. Connect all edge engines to the execution pipeline. Implement exit strategies: take-profit on probability repricing, stop-loss at configurable threshold, and time-based exit for weather bracket repricing trades. Transition from paper trading to live trading with initial small position sizes ($2-$10 weather, $5-$50 props, configurable for sports). Implement the kill switch at -40% session drawdown.",
+        "deliverables": [
+          "ExecutionEngine with Simmer SDK order placement, monitoring, and exit management",
+          "Telegram AlertManager with signal alerts, execution confirmations, daily summaries, and command interface",
+          "Exit strategy engine: take-profit, stop-loss, and time-based exits",
+          "Live trading mode with configurable position size caps per strategy",
+          "Kill switch implementation with automatic position unwinding at drawdown threshold",
+          "Remote control commands: /start, /stop, /status, /positions, /exit_all, /set_params",
+          "VPS deployment configuration with systemd service files for 24/7 operation",
+          "State persistence layer saving open positions, session P&L, consecutive-loss counter, and kill switch status to SQLite. On restart, reload and validate against live Polymarket positions.",
+          "Secrets management for wallet private key: encrypted keystore or OS-level secret store (e.g., systemd credentials, HashiCorp Vault). VPS hardening steps: firewall rules, fail2ban, SSH key-only auth, unattended-upgrades."
+        ],
+        "estimated_effort": "2-3 weeks"
+      },
+      {
+        "phase": 5,
+        "name": "Tail Risk Strategy, Calibration & Optimization",
+        "description": "Implement the Hans323/Taleb barbell strategy mode: systematic scanning for markets priced at 2-8 cents where model probability is 15%+ (yielding 2x-8x expected value). Build the calibration feedback loop from TradeJournal to edge engines. Implement dynamic edge threshold adjustment based on realized vs estimated edge per strategy. Add international weather market support via Meteoblue/Windy. Build comprehensive dashboard for multi-strategy performance monitoring. Optimize scan frequencies and edge thresholds based on live trading data.",
+        "deliverables": [
+          "Tail risk scanner (Taleb barbell mode) for weather and sports markets priced at 2-8 cents",
+          "Calibration feedback loop: realized edge analysis feeding back to threshold adjustment",
+          "International weather support via Meteoblue/Windy API for non-US markets (London, Sao Paulo)",
+          "Multi-strategy performance dashboard with per-vertical win rates, edge decay tracking, and Sortino ratios (preferred over Sharpe for binary-payoff distributions)",
+          "Dynamic threshold optimization engine",
+          "Edge decay detector that flags strategies where the market is becoming more efficient",
+          "Forward-looking validation report: backtesting should validate strategy viability before live deployment (not after). This deliverable is a pre-deployment gate confirming each strategy's edge on out-of-sample historical data (3+ months) before capital is allocated, not a retrospective analysis."
+        ],
+        "estimated_effort": "2-3 weeks"
+      }
+    ],
+    "tech_stack": [
+      "Python 3.10+ (primary language for all engines, scanning, and execution logic)",
+      "NOAA Weather.gov API (station-specific US temperature forecasts, free, no auth)",
+      "Visual Crossing API (historical weather data for calibration and backtesting)",
+      "Meteoblue / Windy API (international weather forecasts for non-US markets)",
+      "Football-Data.org or API-Football (historical football/soccer match outcomes for La Liga, UCL)",
+      "balldontlie or nba_api (NBA game outcomes and team stats -- separate source, Football-Data.org does not cover NBA)",
+      "Polymarket API (market data, order book, participant counts)",
+      "Simmer SDK (primary execution layer with self-custody and safety rails)",
+      "py-clob-client (alternative direct CLOB execution on Polymarket)",
+      "python-telegram-bot (Telegram alerting and remote control)",
+      "SQLite / PostgreSQL (trade journal persistence and performance analytics)",
+      "pandas + numpy (probability calculations, bucket analysis, statistical modeling)",
+      "APScheduler (configurable scan interval scheduling: 15min weather default / 2min near-resolution, 5min sports, 10min props)",
+      "aiohttp / httpx (async HTTP for parallel API calls across data sources)",
+      "VPS (Ubuntu 22.04 recommended, systemd for 24/7 operation)",
+      "USDC.e on Polygon (settlement currency for all Polymarket trades)"
+    ],
+    "complexity": "high"
+  },
+  "risks": [
+    {
+      "risk": "Edge decay as more automated traders enter niche markets",
+      "severity": "high",
+      "mitigation": "Implement edge decay detection in TradeJournal that monitors realized vs estimated edge per strategy over rolling windows. Alert when average captured edge drops below 8pp. The system must continuously scan for NEW niche verticals as existing ones get crowded. The low-liquidity scanner inherently adapts by seeking markets with fewest participants."
+    },
+    {
+      "risk": "ICAO station mapping errors causing systematic mispricing in the wrong direction",
+      "severity": "high",
+      "mitigation": "Manually verify each ICAO station mapping against Polymarket resolution rules before going live. Cross-reference with historical resolution data. The difference between airport and city-center readings (3-8F) means a wrong mapping completely inverts the edge. Build a verification test that compares recent market resolutions to station data."
+    },
+    {
+      "risk": "Polymarket API changes, rate limiting, or category restructuring breaking the scanner",
+      "severity": "medium",
+      "mitigation": "Abstract all Polymarket API calls behind a client interface that can be updated independently. Implement rate limiting with exponential backoff. Monitor for 4xx/5xx responses and alert via Telegram. Have Simmer SDK as fallback execution path."
+    },
+    {
+      "risk": "Kelly criterion oversizing on correlated positions (multiple weather markets on same weather system, multiple football matches on same matchday)",
+      "severity": "high",
+      "mitigation": "Implement correlation-aware position limits. Group weather markets by geographic region and weather system -- if a cold front affects Chicago, NYC, and Atlanta simultaneously, treat all three as partially correlated and reduce aggregate Kelly. For football, limit total exposure to any single matchday. Never exceed half-Kelly on individual positions."
+    },
+    {
+      "risk": "Single large loss on a concentrated sports bet (swisstony mode) wiping out months of weather profits",
+      "severity": "high",
+      "mitigation": "Default to half-Kelly maximum for all strategies. The swisstony approach ($400K single bets at 33% Kelly) requires a large bankroll ($1.2M+) and is NOT the default mode. For bankrolls under $50K, cap any single sports position at 5% of bankroll regardless of Kelly recommendation. Enforce the 3-consecutive-loss halt rule."
+    },
+    {
+      "risk": "Weather forecast model uncertainty at bucket boundaries leading to false edge signals",
+      "severity": "medium",
+      "mitigation": "Use probability distributions from ensemble forecasts, not point estimates. When the forecast mean sits within 1F of a bucket boundary, widen the uncertainty band by 50% to account for model overconfidence. Only trade boundary markets when the probability mass calculation still shows >12pp edge after the uncertainty adjustment."
+    },
+    {
+      "risk": "Gas costs on Polygon eating into small position profits for weather bracket trades",
+      "severity": "low",
+      "mitigation": "Batch multiple weather market entries into fewer transactions where possible. Set minimum expected profit threshold that accounts for gas ($0.50 minimum expected profit after gas). Monitor gas costs as percentage of P&L and alert if it exceeds 5%."
+    },
+    {
+      "risk": "Regulatory changes to prediction markets (CFTC enforcement, Polymarket jurisdiction restrictions)",
+      "severity": "medium",
+      "mitigation": "Monitor regulatory developments. Design the system to be platform-agnostic at the execution layer so it can migrate to Kalshi or other regulated venues. Keep the edge detection logic independent of the execution platform."
+    }
+  ],
+  "success_criteria": [
+    "Weather edge engine achieves >55% win rate on temperature bracket trades with average edge captured >10pp over first 500 trades, consistent with BeefSlayer ($49K from low-cost bets) and weather farmer ($300 to $20K) profiles",
+    "Football favorite bias scanner identifies >3 tradeable signals per week in La Liga/UCL with realized edge >12pp, validated against swisstony's historical pattern of favorites priced 36-46 cents resolving at 60%+",
+    "Low-liquidity prop scanner surfaces >20 markets per week with 6-11 participants across golf, esports, and goalscorer categories, with average spread >15pp indicating exploitable inefficiency",
+    "Kelly position sizing correctly calculates optimal bet sizes that match theoretical expectations: 33% fraction for 40c price / 60% true probability scenarios, with half-Kelly cap producing 16.5% actual allocation",
+    "System maintains positive expectation across all strategies with combined Sortino ratio >2.0 over any rolling 30-day period (Sortino is more appropriate than Sharpe for binary-payoff distributions where downside volatility matters more than total volatility)",
+    "Paper trading phase (minimum 2 weeks per strategy) demonstrates consistent edge before live capital deployment",
+    "Tail risk (barbell) strategy achieves >5x average return on winning trades when entering at 2-8 cents, consistent with BeefSlayer's 1,796-49,744% return profile",
+    "Total system drawdown never exceeds 15% of starting bankroll in any rolling 30-day period",
+    "Telegram alerts delivered within 10 seconds of signal detection, with remote command response within 5 seconds",
+    "Edge decay detection identifies strategy degradation within 2 weeks of onset, triggering threshold adjustment or strategy pause before cumulative losses exceed 5% of bankroll"
+  ],
+  "notes": "Key insight from source material: the edge in niche prediction markets is NOT about being smarter at forecasting -- it is about the crowd systematically using the wrong data sources. Weather traders check city weather apps instead of the ICAO airport station that resolves the contract (3-8F difference). Football bettors overweight underdogs because upsets are psychologically exciting. Low-liquidity rooms persist because 50,000 wallets chase the loudest markets, leaving dead rooms with 6-11 participants where edges are widest. The system exploits information asymmetry (correct data source vs crowd's wrong data source) rather than attempting superior prediction. This is structurally similar to how Hans323 ran Taleb's barbell ($92K at 8% odds to $1.11M) and swisstony ran concentrated favorite bets ($5.63M total) -- different sizing approaches to the same fundamental insight that the crowd misprices because of data source errors and psychological biases. The system should start with weather markets (lowest competition, clearest data edge, smallest position sizes) and expand to sports and props as the operator gains experience with the platform and execution infrastructure. Reference implementations exist in open source: alteregoeth-ai/weatherbot (Python, Kelly sizing, Visual Crossing) and seabra98/weatherbot-ts (TypeScript, multi-city, paper mode). The OpenClaw/Simmer SDK ecosystem provides the fastest path to deployment but the system should maintain independence from any single execution framework."
+}
