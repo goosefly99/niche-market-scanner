@@ -14,6 +14,7 @@ from niche_scanner.config import (
     ScannerSettings,
     TelegramConfig,
 )
+from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
 from niche_scanner.engines.economics import EconomicsEdgeEngine
 from niche_scanner.engines.weather import WeatherEdgeEngine
@@ -42,6 +43,18 @@ async def main() -> None:
     kalshi_cfg = KalshiConfig()
     telegram_cfg = TelegramConfig()
     icao = ICAOStations()
+
+    # 1b. Health monitor — validate startup before proceeding
+    monitor = HealthMonitor(dead_man_timeout_sec=settings.scanner.get(
+        "weather_interval_min", 15,
+    ) * 60 * 3)  # 3x scan interval as dead-man timeout
+    startup_errors = monitor.validate_startup()
+    if startup_errors:
+        logger.error(
+            "Startup validation failed with %d error(s) — exiting",
+            len(startup_errors),
+        )
+        return
 
     # 2. Create auth + client
     auth = KalshiAuth(
@@ -147,12 +160,16 @@ async def main() -> None:
     interval_sec = float(scan_interval) * 60
 
     logger.info("Starting scan loop (interval=%.0fs)", interval_sec)
+    monitor.heartbeat("main")
     try:
         while not shutdown_event.is_set():
             try:
                 await scanner.scan_cycle(bankroll_cents)
+                monitor.scan_loop_heartbeat()
+                monitor.heartbeat("scanner")
             except Exception:
                 logger.exception("Scan cycle failed")
+                monitor.report_error("scanner", "Scan cycle exception")
 
             try:
                 await asyncio.wait_for(
@@ -165,6 +182,7 @@ async def main() -> None:
     finally:
         # 11. Cleanup
         logger.info("Shutting down...")
+        logger.info("Final health:\n%s", monitor.format_status())
         await client.close()
         await journal.close()
         logger.info("Shutdown complete")
