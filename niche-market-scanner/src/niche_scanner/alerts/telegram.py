@@ -20,7 +20,6 @@ When credentials are missing, all operations are no-ops (no crash).
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
 from niche_scanner.engines.base import EdgeSignal
 from niche_scanner.sizing.kelly import PositionSize
