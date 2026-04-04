@@ -8,9 +8,9 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 12 |
+| Complete | 13 |
 | In Progress | 0 |
-| Not Started | 8 |
+| Not Started | 7 |
 | Blocked | 0 |
 | **Total** | **20** |
 
@@ -33,9 +33,18 @@ All core components implemented and tested. 41 tests passing, Docker build worki
 
 ---
 
-## Phase 2: Weather Engine Hardening (Not Started)
+## Phase 2: Weather Engine Hardening (Complete)
 
-Weather engine exists but needs refinement based on live Kalshi market structure (2F buckets, floor_strike/cap_strike fields). Scan cycle runs but needs daytime testing with live orderbooks.
+Weather engine refined for live Kalshi market structure (2F buckets, floor_strike/cap_strike fields).
+
+### Item 2.5 Live Scan Findings (2026-04-04)
+
+- **400 markets fetched** across 52 weather series (20 cities, high + low temp)
+- **Zero liquidity in all weather temperature markets** — no bids, asks, or volume at 9 AM ET
+- Markets exist with correct structure (floor_strike, cap_strike, 2F buckets) but no participants
+- API returns `yes_bid_dollars`, `volume_fp` etc. as dollar-denominated fields (not integer cents)
+- **Implication:** Weather edge strategy requires either (a) waiting for liquidity to develop as Kalshi grows, or (b) acting as a market maker (posting limit orders at NOAA-derived fair prices)
+- **Pivot recommendation:** Focus on economics markets (3.x) which may have more activity, and investigate providing liquidity rather than taking it
 
 | # | Item | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
@@ -43,7 +52,7 @@ Weather engine exists but needs refinement based on live Kalshi market structure
 | 2.2 | Update weather engine ticker parser for actual Kalshi format (KXHIGHNY-26APR04-T75, B74.5) | Complete | 2.1 | `src/niche_scanner/engines/weather.py`, `tests/engines/test_weather.py` |
 | 2.3 | Use floor_strike/cap_strike for bucket boundaries instead of subtitle parsing | Complete | 2.1 | `src/niche_scanner/engines/weather.py` |
 | 2.4 | Add city-to-series-ticker mapping (new_york -> KXHIGHNY, chicago -> KXHIGHCHI, etc.) | Complete | 2.2 | `src/niche_scanner/engines/weather.py`, `config/icao_stations.yaml` |
-| 2.5 | Run daytime scan with live orderbooks and log edge signals | Not Started | 2.1-2.4 | `data/test_scan.db` |
+| 2.5 | Run daytime scan with live orderbooks and log edge signals | Complete | 2.1-2.4 | `data/test_scan.db` |
 
 ---
 
