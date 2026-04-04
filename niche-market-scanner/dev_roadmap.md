@@ -8,9 +8,9 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 8 |
+| Complete | 9 |
 | In Progress | 0 |
-| Not Started | 12 |
+| Not Started | 11 |
 | Blocked | 0 |
 | **Total** | **20** |
 
@@ -39,7 +39,7 @@ Weather engine exists but needs refinement based on live Kalshi market structure
 
 | # | Item | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
-| 2.1 | Parse floor_strike/cap_strike from Kalshi Market response | Not Started | 1.2 | `src/niche_scanner/kalshi/models.py`, `tests/kalshi/test_models.py` |
+| 2.1 | Parse floor_strike/cap_strike from Kalshi Market response | Complete | 1.2 | `src/niche_scanner/kalshi/models.py`, `tests/kalshi/test_models.py` |
 | 2.2 | Update weather engine ticker parser for actual Kalshi format (KXHIGHNY-26APR04-T75, B74.5) | Not Started | 2.1 | `src/niche_scanner/engines/weather.py`, `tests/engines/test_weather.py` |
 | 2.3 | Use floor_strike/cap_strike for bucket boundaries instead of subtitle parsing | Not Started | 2.1 | `src/niche_scanner/engines/weather.py` |
 | 2.4 | Add city-to-series-ticker mapping (new_york -> KXHIGHNY, chicago -> KXHIGHCHI, etc.) | Not Started | 2.2 | `src/niche_scanner/engines/weather.py`, `config/icao_stations.yaml` |

@@ -12,7 +12,16 @@ from pydantic import BaseModel, Field, computed_field, model_validator
 
 
 class Market(BaseModel):
-    """A single Kalshi market (contract)."""
+    """A single Kalshi market (contract).
+
+    Kalshi weather/ranged markets include ``floor_strike`` and ``cap_strike``
+    to define bucket boundaries in the underlying unit (e.g. degrees F):
+
+    - Range bucket ("74F to 76F"): ``floor_strike=74.0, cap_strike=76.0``
+    - Above threshold ("80 or above"): ``floor_strike=80.0, cap_strike=None``
+    - Below threshold ("Below 50"): ``floor_strike=None, cap_strike=50.0``
+    - Non-ranged markets: both ``None``
+    """
 
     ticker: str
     event_ticker: str
@@ -27,6 +36,36 @@ class Market(BaseModel):
     status: str = "active"
     close_time: datetime
     result: str = ""
+    floor_strike: float | None = None
+    cap_strike: float | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def strike_type(self) -> Literal["range", "above", "below"] | None:
+        """Classify the market based on its strike fields.
+
+        Returns ``"range"`` when both strikes are set, ``"above"`` for floor
+        only, ``"below"`` for cap only, or ``None`` when neither is set.
+        """
+        if self.floor_strike is not None and self.cap_strike is not None:
+            return "range"
+        if self.floor_strike is not None:
+            return "above"
+        if self.cap_strike is not None:
+            return "below"
+        return None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def strike_low(self) -> float | None:
+        """Lower boundary of the strike range, or ``None``."""
+        return self.floor_strike
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def strike_high(self) -> float | None:
+        """Upper boundary of the strike range, or ``None``."""
+        return self.cap_strike
 
     @computed_field  # type: ignore[prop-decorator]
     @property
