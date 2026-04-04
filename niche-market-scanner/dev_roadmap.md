@@ -8,9 +8,9 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 18 |
+| Complete | 19 |
 | In Progress | 0 |
-| Not Started | 2 |
+| Not Started | 1 |
 | Blocked | 0 |
 | **Total** | **20** |
 
@@ -74,7 +74,7 @@ Economics engine integrated with FRED API (CPI YoY, Fed rate, historical data) a
 
 | # | Item | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
-| 4.1 | Telegram bot integration (alerts for edge signals, daily P&L) | Not Started | — | `src/niche_scanner/alerts/telegram.py`, `tests/alerts/test_telegram.py` |
+| 4.1 | Telegram bot integration (alerts for edge signals, daily P&L) | Complete | — | `src/niche_scanner/alerts/telegram.py`, `tests/alerts/test_telegram.py` |
 | 4.2 | Health monitor (API connectivity, heartbeats, dead-man's-switch) | Not Started | — | `src/niche_scanner/monitor/health.py` |
 
 ---
