@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from niche_scanner.engines.base import EdgeSignal
-from niche_scanner.sizing.kelly import KellySizer, SizingConfig
+from niche_scanner.sizing.kelly import KellySizer
 
 
 def _make_signal(

@@ -91,11 +91,15 @@ class ICAOStations:
     Only returns stations that have been explicitly verified against Kalshi
     resolution rules.  An empty ``stations`` dict means no cities are verified
     and all lookups will return ``None``.
+
+    Station entries may be plain ICAO strings (``new_york: "KJFK"``) or rich
+    dicts containing ``icao``, ``verified``, ``office``, ``grid_x``, and
+    ``grid_y`` keys.  Both formats are supported transparently.
     """
 
     def __init__(self, path: Path | None = None) -> None:
         self._path = path or (_CONFIG_DIR / "icao_stations.yaml")
-        self._stations: dict[str, str] = {}
+        self._stations: dict[str, Any] = {}
         self._load()
 
     def _load(self) -> None:
@@ -104,9 +108,45 @@ class ICAOStations:
         self._stations = data.get("stations", {}) or {}
 
     def get_icao(self, city: str) -> str | None:
-        """Return the verified ICAO code for *city*, or ``None``."""
-        return self._stations.get(city)
+        """Return the verified ICAO code for *city*, or ``None``.
+
+        Works with both plain-string and rich-dict station entries.
+        For rich-dict entries, returns the ICAO code only when the
+        station is marked as verified.
+        """
+        entry = self._stations.get(city)
+        if entry is None:
+            return None
+        if isinstance(entry, str):
+            return entry
+        # Rich dict entry
+        if not entry.get("verified", False):
+            return None
+        return entry.get("icao")
+
+    def get_station(self, city: str) -> dict[str, Any] | None:
+        """Return the full station config dict for *city*, or ``None``.
+
+        For plain-string entries, wraps the ICAO code in a dict.
+        Returns ``None`` if the city is not configured or not verified.
+        """
+        entry = self._stations.get(city)
+        if entry is None:
+            return None
+        if isinstance(entry, str):
+            return {"icao": entry, "verified": True}
+        if not entry.get("verified", False):
+            return None
+        return dict(entry)
 
     def all_verified(self) -> dict[str, str]:
         """Return a copy of all verified city -> ICAO mappings."""
-        return dict(self._stations)
+        result: dict[str, str] = {}
+        for city, entry in self._stations.items():
+            if isinstance(entry, str):
+                result[city] = entry
+            elif isinstance(entry, dict) and entry.get("verified", False):
+                icao = entry.get("icao")
+                if icao:
+                    result[city] = icao
+        return result
