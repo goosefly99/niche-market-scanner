@@ -76,34 +76,73 @@ class KalshiClient:
 
     async def get_markets(
         self,
-        status: str | None = None,
+        series_ticker: str | None = None,
+        event_ticker: str | None = None,
+        limit: int = 100,
+        cursor: str | None = None,
+    ) -> list[Market]:
+        """Fetch a list of markets, optionally filtered by series or event."""
+        params: dict[str, str | int] = {"limit": limit}
+        if series_ticker is not None:
+            params["series_ticker"] = series_ticker
+        if event_ticker is not None:
+            params["event_ticker"] = event_ticker
+        if cursor is not None:
+            params["cursor"] = cursor
+        data = await self._request("GET", "/markets", params=params)
+        return [Market(**m) for m in data.get("markets", [])]
+
+    async def get_events(
+        self,
+        status: str | None = "open",
         series_ticker: str | None = None,
         limit: int = 100,
-    ) -> list[Market]:
-        """Fetch a list of markets, optionally filtered."""
+        cursor: str | None = None,
+    ) -> tuple[list[dict], str]:
+        """Fetch events, optionally filtered. Returns (events, cursor)."""
         params: dict[str, str | int] = {"limit": limit}
         if status is not None:
             params["status"] = status
         if series_ticker is not None:
             params["series_ticker"] = series_ticker
-        data = await self._request("GET", "/markets", params=params)
-        return [Market(**m) for m in data.get("markets", [])]
+        if cursor is not None:
+            params["cursor"] = cursor
+        data = await self._request("GET", "/events", params=params)
+        return data.get("events", []), data.get("cursor", "")
+
+    async def get_orderbook(self, ticker: str) -> OrderBook | None:
+        """Fetch orderbook for a single ticker."""
+        try:
+            data = await self._request("GET", f"/markets/{ticker}/orderbook")
+            ob_data = data.get("orderbook", data)
+            ob_data["ticker"] = ticker
+            return OrderBook(**ob_data)
+        except Exception:
+            return None
 
     async def get_batch_orderbooks(
         self, tickers: list[str],
     ) -> dict[str, OrderBook]:
-        """Fetch order books for up to 100 tickers in a single call."""
-        if len(tickers) > 100:
-            msg = "Kalshi allows at most 100 tickers per batch orderbook call"
-            raise ValueError(msg)
-        params: dict[str, str] = {"tickers": ",".join(tickers)}
-        data = await self._request(
-            "GET", "/markets/orderbooks", params=params,
-        )
+        """Fetch order books for tickers. Falls back to individual fetches."""
         result: dict[str, OrderBook] = {}
-        for ob in data.get("orderbooks", []):
-            book = OrderBook(**ob)
-            result[book.ticker] = book
+        batch_size = 20
+        for i in range(0, len(tickers), batch_size):
+            chunk = tickers[i : i + batch_size]
+            try:
+                params: dict[str, str] = {"tickers": ",".join(chunk)}
+                data = await self._request(
+                    "GET", "/markets/orderbooks", params=params,
+                )
+                for ob_data in data.get("orderbooks", []):
+                    if isinstance(ob_data, dict):
+                        book = OrderBook(**ob_data)
+                        result[book.ticker] = book
+            except Exception:
+                # Fall back to individual fetches for this chunk
+                for ticker in chunk:
+                    ob = await self.get_orderbook(ticker)
+                    if ob:
+                        result[ob.ticker] = ob
         return result
 
     async def create_order(

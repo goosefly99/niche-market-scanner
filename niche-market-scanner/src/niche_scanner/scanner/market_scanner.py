@@ -12,7 +12,7 @@ from niche_scanner.sizing.kelly import KellySizer, PositionSize
 
 logger = logging.getLogger(__name__)
 
-_BATCH_SIZE = 100
+_BATCH_SIZE = 20
 
 
 class MarketScanner:
@@ -54,10 +54,29 @@ class MarketScanner:
         5. Track aggregate NO-side exposure across the cycle.
         6. Log a summary of the cycle.
         """
-        # 1. Fetch active markets
-        markets = await self._client.get_markets(status="active")
+        # 1. Fetch markets from target weather series
+        from niche_scanner.kalshi.models import Market
+        markets: list[Market] = []
+        weather_series = [
+            "KXHIGHNY", "KXHIGHCHI", "KXHIGHTBOS", "KXHIGHTHOU",
+            "KXHIGHTDAL", "KXHIGHDEN", "KXHIGHLAX", "KXHIGHMIA",
+            "KXHIGHTSEA", "KXHIGHTATL", "KXHIGHTPHX", "KXHIGHPHIL",
+            "KXHIGHTSFO", "KXHIGHTDC", "KXHIGHAUS", "KXHIGHTSATX",
+            "KXHIGHTLV", "KXHIGHTMIN", "KXHIGHTNOLA", "KXHIGHTOKC",
+            "KXLOWTNYC", "KXLOWTCHI", "KXLOWTBOS", "KXLOWTHOU",
+            "KXLOWTDAL", "KXLOWTDEN", "KXLOWTLAX", "KXLOWTMIA",
+            "KXLOWTSEA", "KXLOWTATL", "KXLOWTPHX", "KXLOWTPHIL",
+            "KXLOWTSFO", "KXLOWTDC",
+        ]
+        for series in weather_series:
+            try:
+                batch = await self._client.get_markets(series_ticker=series, limit=10)
+                markets.extend(batch)
+            except Exception:
+                logger.debug("Series %s not found or empty", series)
+        logger.info("Fetched %d markets from %d weather series", len(markets), len(weather_series))
         if not markets:
-            logger.info("No active markets found")
+            logger.info("No weather markets found")
             return []
 
         # 2. Batch-fetch order books in chunks of 100

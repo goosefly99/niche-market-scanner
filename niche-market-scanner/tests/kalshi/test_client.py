@@ -56,7 +56,7 @@ async def test_get_markets(mock_auth: MagicMock) -> None:
 
     client = KalshiClient(base_url=BASE_URL, auth=mock_auth)
     try:
-        markets = await client.get_markets(status="active")
+        markets = await client.get_markets()
         assert len(markets) == 1
         assert isinstance(markets[0], Market)
         assert markets[0].ticker == "RAIN-NYC-24"
