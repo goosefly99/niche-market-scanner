@@ -204,3 +204,39 @@ class TestCPIIndicatorFetcher:
         readings = engine.fetch_indicators("cpi")
         # Without FRED_API_KEY env var, should return empty (not crash)
         assert isinstance(readings, list)
+
+
+# ---------------------------------------------------------------------------
+# Item 3.2: CME FedWatch integration
+# ---------------------------------------------------------------------------
+
+
+class TestFedWatchFetcher:
+    """Tests for the Fed rate indicator fetching."""
+
+    def test_fred_fed_funds_series_defined(self) -> None:
+        """Verify FRED series IDs for Fed Funds indicators are defined."""
+        from niche_scanner.engines.economics import FRED_FED_SERIES
+        assert "DFF" in FRED_FED_SERIES  # Effective Fed Funds Rate
+        assert len(FRED_FED_SERIES) >= 2
+
+    def test_parse_fed_target_rate(self) -> None:
+        """Verify parsing of Fed Funds target rate range."""
+        from niche_scanner.engines.economics import parse_fed_target_range
+        # Current range: 4.25% - 4.50%
+        lower, upper = parse_fed_target_range(4.33)  # effective rate within range
+        assert lower == 4.25
+        assert upper == 4.50
+
+    def test_parse_fed_target_edge(self) -> None:
+        """Edge case: rate exactly at boundary."""
+        from niche_scanner.engines.economics import parse_fed_target_range
+        lower, upper = parse_fed_target_range(4.50)
+        assert lower == 4.50
+        assert upper == 4.75
+
+    def test_fetch_fed_rate_indicators_graceful(self) -> None:
+        """fetch_indicators('fed_rate') returns empty without FRED key."""
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        readings = engine.fetch_indicators("fed_rate")
+        assert isinstance(readings, list)

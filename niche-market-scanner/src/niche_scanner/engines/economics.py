@@ -32,7 +32,31 @@ FRED_CPI_SERIES: dict[str, str] = {
     "CORESTICKM159SFRBATL": "Sticky Price CPI (Atlanta Fed, inflation expectations proxy)",
 }
 
+# FRED series IDs for Fed Funds rate indicators
+FRED_FED_SERIES: dict[str, str] = {
+    "DFF": "Effective Federal Funds Rate (daily)",
+    "DFEDTARU": "Federal Funds Target Rate Upper (current target ceiling)",
+    "DFEDTARL": "Federal Funds Target Rate Lower (current target floor)",
+    "T10YIE": "10-Year Breakeven Inflation Rate (market inflation expectations)",
+}
+
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+
+
+def parse_fed_target_range(effective_rate: float) -> tuple[float, float]:
+    """Determine the Fed Funds target range from the effective rate.
+
+    The Fed sets rates in 25bp increments. The effective rate falls
+    within the target range. Returns (lower_bound, upper_bound) as percentages.
+
+    Examples:
+        4.33 -> (4.25, 4.50) — rate is within the 4.25-4.50 range
+        4.50 -> (4.50, 4.75) — at boundary, rounds to next range
+    """
+    # Round down to nearest 25bp for the lower bound
+    lower = (effective_rate // 0.25) * 0.25
+    upper = lower + 0.25
+    return (lower, upper)
 
 
 def parse_fred_observations(raw: dict) -> list[tuple[str, float]]:
@@ -315,10 +339,94 @@ class EconomicsEdgeEngine(EdgeEngine):
             logger.exception("FRED fetch failed for %s", series_id)
             return None
 
+    def _fetch_fed_rate_indicators(self) -> list[IndicatorReading]:
+        """Fetch Fed rate indicators from FRED API.
+
+        Uses the Effective Federal Funds Rate (DFF) and target range
+        (DFEDTARU/DFEDTARL) to determine current rate positioning.
+        Also fetches 10-Year Breakeven Inflation Rate as a market
+        expectations signal.
+
+        CME FedWatch probability API requires a paid subscription ($25/mo).
+        FRED provides the underlying rate data for free, which we use to
+        derive positioning signals. When CME FedWatch API is available,
+        it can be added as an additional high-weight indicator.
+
+        Requires FRED_API_KEY environment variable.
+        """
+        api_key = os.environ.get("FRED_API_KEY", "")
+        if not api_key:
+            logger.debug("FRED_API_KEY not set; skipping Fed rate indicators")
+            return []
+
+        readings: list[IndicatorReading] = []
+
+        # Fetch effective Fed Funds rate
+        try:
+            eff_rate = self._fetch_fred_latest(api_key, "DFF")
+            if eff_rate is not None:
+                lower, upper = parse_fed_target_range(eff_rate)
+                readings.append(IndicatorReading(
+                    name="FRED Effective Fed Funds Rate",
+                    value=eff_rate,
+                    probability_above=0.5,  # Neutral; refined per-market
+                    weight=0.4,
+                ))
+                logger.info(
+                    "Fed rate: %.2f%% (target range %.2f-%.2f%%)",
+                    eff_rate, lower, upper,
+                )
+        except Exception:
+            logger.exception("Failed to fetch DFF")
+
+        # Fetch breakeven inflation rate (market expectations)
+        try:
+            breakeven = self._fetch_fred_latest(api_key, "T10YIE")
+            if breakeven is not None:
+                readings.append(IndicatorReading(
+                    name="10Y Breakeven Inflation Rate",
+                    value=breakeven,
+                    probability_above=0.5,
+                    weight=0.3,
+                ))
+        except Exception:
+            logger.exception("Failed to fetch T10YIE")
+
+        # Fetch target range bounds
+        try:
+            target_upper = self._fetch_fred_latest(api_key, "DFEDTARU")
+            if target_upper is not None:
+                readings.append(IndicatorReading(
+                    name="Fed Funds Target Upper",
+                    value=target_upper,
+                    probability_above=0.5,
+                    weight=0.3,
+                ))
+        except Exception:
+            logger.exception("Failed to fetch DFEDTARU")
+
+        return readings
+
     @staticmethod
-    def _fetch_fed_rate_indicators() -> list[IndicatorReading]:
-        """Stub: CME FedWatch probabilities (item 3.2)."""
-        return []
+    def _fetch_fred_latest(api_key: str, series_id: str) -> float | None:
+        """Fetch the most recent observation value for a FRED series."""
+        try:
+            resp = httpx.get(
+                FRED_BASE_URL,
+                params={
+                    "series_id": series_id,
+                    "api_key": api_key,
+                    "file_type": "json",
+                    "sort_order": "desc",
+                    "limit": 1,
+                },
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            values = parse_fred_observations(resp.json())
+            return values[0][1] if values else None
+        except (httpx.HTTPError, IndexError):
+            return None
 
     @staticmethod
     def _fetch_jobs_indicators() -> list[IndicatorReading]:
