@@ -397,3 +397,181 @@ class TestEvaluateMarketWithStrikes:
         # Market prices YES at 5c = 0.05, NO edge
         assert signal is not None
         assert signal.side == "no"
+
+
+# ---------------------------------------------------------------------------
+# Item 2.3: floor_strike/cap_strike preferred over subtitle parsing
+# ---------------------------------------------------------------------------
+
+
+class TestStrikePreferredOverSubtitle:
+    """Verify _evaluate_market uses floor_strike/cap_strike when available,
+    falling back to subtitle only when strikes are absent."""
+
+    def _make_engine(self) -> WeatherEdgeEngine:
+        stations = _make_icao_stations(
+            {
+                "new_york": {
+                    "icao": "KNYC",
+                    "station": "NYC",
+                    "office": "OKX",
+                    "grid_x": 34,
+                    "grid_y": 38,
+                    "verified": True,
+                },
+            },
+        )
+        return WeatherEdgeEngine(icao_stations=stations, min_edge_pp=0.1)
+
+    def test_strikes_used_when_subtitle_empty(self) -> None:
+        """Market with strikes but no subtitle should still produce a signal."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-B60.5",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="",  # Empty subtitle — must use strikes
+            yes_bid=30,
+            yes_ask=35,
+            no_bid=60,
+            no_ask=65,
+            last_price=32,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=60.0,
+            cap_strike=62.0,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        assert signal is not None
+        assert signal.ticker == "KXHIGHNY-26APR04-B60.5"
+
+    def test_strikes_override_misleading_subtitle(self) -> None:
+        """When strikes disagree with subtitle, strikes win."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        # Subtitle says "70F to 72F" but strikes say 60-62
+        market = Market(
+            ticker="KXHIGHNY-26APR04-B60.5",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="70F to 72F",  # Misleading!
+            yes_bid=30,
+            yes_ask=35,
+            no_bid=60,
+            no_ask=65,
+            last_price=32,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=60.0,
+            cap_strike=62.0,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        assert signal is not None
+        # If strikes are used: P(60-62) ~ 0.24, market=0.35
+        # If subtitle were used: P(70-72) ~ 0.003, market=0.35, huge NO edge
+        # The model_prob should reflect 60-62 (strikes), not 70-72 (subtitle)
+        assert signal.metadata["bucket"] == (60.0, 62.0, "range")
+
+    def test_subtitle_fallback_when_no_strikes(self) -> None:
+        """Market without strikes should fall back to subtitle parsing."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-B60.5",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="60F to 62F",
+            yes_bid=30,
+            yes_ask=35,
+            no_bid=60,
+            no_ask=65,
+            last_price=32,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=None,
+            cap_strike=None,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        assert signal is not None
+        assert signal.metadata["bucket"] == (60.0, 62.0, "range")
+
+    def test_above_threshold_from_strikes_no_subtitle(self) -> None:
+        """Above-threshold market using floor_strike only, no subtitle."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-T75",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="",
+            yes_bid=2,
+            yes_ask=5,
+            no_bid=90,
+            no_ask=95,
+            last_price=3,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=75.0,
+            cap_strike=None,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        assert signal is not None
+        assert signal.metadata["bucket"][2] == "above"
+
+    def test_no_signal_when_neither_strikes_nor_subtitle(self) -> None:
+        """Market with no strikes and empty subtitle returns None."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.kalshi.models import Market
+
+        engine = self._make_engine()
+        fc = NOAAForecast(temperature_f=62.0, uncertainty_f=3.0)
+
+        market = Market(
+            ticker="KXHIGHNY-26APR04-X99",
+            event_ticker="KXHIGHNY-26APR04",
+            subtitle="",
+            yes_bid=30,
+            yes_ask=35,
+            no_bid=60,
+            no_ask=65,
+            last_price=32,
+            volume=100,
+            open_interest=50,
+            status="active",
+            close_time=datetime(2026, 4, 5, tzinfo=timezone.utc),
+            floor_strike=None,
+            cap_strike=None,
+        )
+
+        signal = engine._evaluate_market(market, fc)
+        assert signal is None

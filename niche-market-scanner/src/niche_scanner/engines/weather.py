@@ -317,13 +317,40 @@ class WeatherEdgeEngine(EdgeEngine):
 
     # -- edge evaluation ----------------------------------------------------
 
+    @staticmethod
+    def _resolve_bucket(market: Market) -> tuple[float, float, str] | None:
+        """Determine bucket boundaries from strike fields, falling back to subtitle.
+
+        Prefers floor_strike/cap_strike (programmatic, reliable) over subtitle
+        parsing (regex-based, fragile). Returns (low, high, kind) or None.
+        """
+        if market.strike_type == "range":
+            return (market.floor_strike, market.cap_strike, "range")
+        if market.strike_type == "above":
+            return (market.floor_strike, math.inf, "above")
+        if market.strike_type == "below":
+            return (-math.inf, market.cap_strike, "below")
+
+        # Fallback: parse subtitle text
+        subtitle = market.subtitle
+        m = _RE_RANGE.search(subtitle)
+        if m:
+            return (float(m.group(1)), float(m.group(2)), "range")
+        m = _RE_ABOVE.search(subtitle)
+        if m:
+            return (float(m.group(1)), math.inf, "above")
+        m = _RE_BELOW.search(subtitle)
+        if m:
+            return (-math.inf, float(m.group(1)), "below")
+        return None
+
     def _evaluate_market(
         self,
         market: Market,
         forecast: NOAAForecast,
     ) -> EdgeSignal | None:
         """Score a single market against the forecast, return signal or None."""
-        bucket = self._parse_bucket(market.subtitle)
+        bucket = self._resolve_bucket(market)
         if bucket is None:
             return None
 
