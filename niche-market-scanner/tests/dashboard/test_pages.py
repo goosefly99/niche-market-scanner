@@ -333,6 +333,65 @@ class TestOverviewPage:
         # The overview nav link should have the active class
         assert "bg-surface-light text-white" in html
 
+    async def test_balance_chart_empty_state(self, client: AsyncClient) -> None:
+        """With no snapshots, the empty-state message is rendered."""
+        resp = await client.get("/")
+        html = resp.text
+        assert "Balance History" in html
+        assert "No balance snapshots recorded yet" in html
+        # Placeholder text from Phase 2 scaffolding should be gone.
+        assert "will be wired in Phase 3" not in html
+
+    async def test_balance_chart_loads_chartjs(self, client: AsyncClient) -> None:
+        """The Chart.js CDN script is injected via the head block."""
+        resp = await client.get("/")
+        html = resp.text
+        assert "cdn.jsdelivr.net/npm/chart.js" in html
+
+    async def test_balance_chart_renders_snapshots(
+        self, client: AsyncClient,
+    ) -> None:
+        """When snapshots exist, a canvas and JSON payload are rendered."""
+        tracker = client._transport.app.state.balance_tracker
+        await tracker.record_snapshot(
+            balance_cents=100_000,
+            peak_cents=100_000,
+            drawdown_pct=0.0,
+            cumulative_spend_cents=0,
+        )
+        await tracker.record_snapshot(
+            balance_cents=98_500,
+            peak_cents=100_000,
+            drawdown_pct=1.5,
+            cumulative_spend_cents=1_500,
+        )
+
+        resp = await client.get("/")
+        html = resp.text
+        assert 'id="balance-chart"' in html
+        assert 'id="balance-chart-data"' in html
+        # Values from the JSON payload should be present in the page
+        assert "98500" in html
+        assert "No balance snapshots recorded yet" not in html
+        # Snapshot count badge
+        assert "2 snapshots" in html
+
+    async def test_balance_chart_snapshot_count_singular(
+        self, client: AsyncClient,
+    ) -> None:
+        """The count badge uses the singular form for exactly one snapshot."""
+        tracker = client._transport.app.state.balance_tracker
+        await tracker.record_snapshot(
+            balance_cents=100_000,
+            peak_cents=100_000,
+            drawdown_pct=0.0,
+            cumulative_spend_cents=0,
+        )
+        resp = await client.get("/")
+        html = resp.text
+        assert "1 snapshot" in html
+        assert "1 snapshots" not in html
+
 
 class TestTradesPage:
     async def test_returns_html(self, client: AsyncClient) -> None:

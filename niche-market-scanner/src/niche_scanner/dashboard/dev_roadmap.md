@@ -42,7 +42,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 | 3.4 | Integrate ScanCycleLogger into main.py scan loop (with timer) | Complete | 3.2, 1.7 | `main.py` |
 | 3.5 | Integrate BalanceTracker into main.py scan loop | Not Started | 3.3, 1.7 | `main.py` |
 | 3.6 | Add /api/scan-cycles and /api/balance/history endpoints | Not Started | 3.2, 3.3 | `dashboard/routes.py` |
-| 3.7 | Wire balance chart on overview page to real data | Not Started | 3.3, 2.2 | `templates/overview.html` |
+| 3.7 | Wire balance chart on overview page to real data | Complete | 3.3, 2.2 | `templates/overview.html`, `dashboard/pages.py`, `dashboard/AGENTS.md`, `tests/dashboard/test_pages.py` |
 | 3.8 | Add scan cycle performance stats to overview page | Not Started | 3.2, 2.2 | `templates/overview.html` |
 
 ## Phase 4: HTMX Polling for Signals (deferred WebSocket to v2)

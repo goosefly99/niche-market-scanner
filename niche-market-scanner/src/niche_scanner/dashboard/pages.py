@@ -12,10 +12,13 @@ to the template environment when the router is included.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
+
+logger = logging.getLogger(__name__)
 
 pages_router = APIRouter(tags=["pages"])
 
@@ -160,10 +163,16 @@ async def overview_page(request: Request) -> HTMLResponse:
     On initial load, renders the full ``overview.html`` template with data
     fetched from TradeJournal, RiskGuard, and HealthMonitor. HTMX partial
     requests are handled by dedicated partial endpoints (Phase 2.7).
+
+    The balance chart is populated from ``BalanceTracker.get_history()``
+    — snapshots are returned oldest-first and rendered client-side by a
+    Chart.js line chart. The chart degrades gracefully to an empty state
+    when no snapshots have been recorded yet.
     """
     journal = request.app.state.journal
     risk_guard = request.app.state.risk_guard
     health_monitor = request.app.state.health_monitor
+    balance_tracker = getattr(request.app.state, "balance_tracker", None)
 
     # Fetch stats
     stats: dict = await journal.get_stats()
@@ -180,6 +189,16 @@ async def overview_page(request: Request) -> HTMLResponse:
     # Health report
     health_report = health_monitor.check_health()
 
+    # Balance history for the chart (oldest first).  Best-effort: if the
+    # tracker isn't configured or the query fails we still render the page
+    # with an empty series so the user sees the rest of the dashboard.
+    balance_history: list[dict] = []
+    if balance_tracker is not None:
+        try:
+            balance_history = await balance_tracker.get_history(limit=200)
+        except Exception:
+            logger.exception("Failed to load balance history for overview page")
+
     context = {
         "request": request,
         "active_page": "overview",
@@ -191,6 +210,7 @@ async def overview_page(request: Request) -> HTMLResponse:
         "drawdown_pct": drawdown_pct,
         "cumulative_spend_cents": risk_state.cumulative_spend_cents,
         "health_report": health_report,
+        "balance_history": balance_history,
         "killed": risk_state.killed,
         "kill_reason": risk_state.kill_reason,
     }
