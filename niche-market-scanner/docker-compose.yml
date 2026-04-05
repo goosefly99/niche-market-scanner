@@ -7,6 +7,8 @@ services:
       - ./data:/app/data          # SQLite journal persistence
       - ./config:/app/config      # Settings, ICAO stations (hot-reload)
       - ./secrets:/app/secrets:ro # RSA private key (read-only)
+    ports:
+      - "127.0.0.1:8050:8050"
     restart: unless-stopped
     logging:
       driver: json-file
