@@ -18,6 +18,7 @@ from niche_scanner.dashboard.server import create_app, start_dashboard
 from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
 from niche_scanner.engines.economics import EconomicsEdgeEngine, ReleaseCalendar
+from niche_scanner.engines.thin_market import ThinMarketEngine
 from niche_scanner.engines.weather import WeatherEdgeEngine
 from niche_scanner.execution.live_trader import LiveTrader
 from niche_scanner.execution.paper_trader import PaperTrader
@@ -157,6 +158,10 @@ async def main() -> None:
         logger.info(
             "Economics engine enabled (%d series tickers)", len(economics_series),
         )
+
+    if settings.is_vertical_enabled("thin_market"):
+        engines.append(ThinMarketEngine(min_edge_pp=sizing_config.min_edge_pp))
+        logger.info("Thin-market engine enabled (cross-category dead room detection)")
 
     if not engines:
         logger.warning("No engines enabled; scanner will produce no signals")
