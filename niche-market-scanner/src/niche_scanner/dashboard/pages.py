@@ -12,7 +12,6 @@ to the template environment when the router is included.
 
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from fastapi import APIRouter, Query, Request
@@ -197,7 +196,7 @@ async def overview_page(request: Request) -> HTMLResponse:
     }
 
     templates = request.app.state.templates
-    return templates.TemplateResponse("overview.html", context)
+    return templates.TemplateResponse(request, "overview.html", context)
 
 
 @pages_router.get("/trades", response_class=HTMLResponse)
@@ -269,8 +268,8 @@ async def trades_page(
 
     templates = request.app.state.templates
     if _is_htmx(request):
-        return templates.TemplateResponse("partials/_trade_rows.html", context)
-    return templates.TemplateResponse("trades.html", context)
+        return templates.TemplateResponse(request, "partials/_trade_rows.html", context)
+    return templates.TemplateResponse(request, "trades.html", context)
 
 
 @pages_router.get("/signals", response_class=HTMLResponse)
@@ -295,8 +294,8 @@ async def signals_page(request: Request) -> HTMLResponse:
 
     templates = request.app.state.templates
     if _is_htmx(request):
-        return templates.TemplateResponse("partials/_signals_table.html", context)
-    return templates.TemplateResponse("signals.html", context)
+        return templates.TemplateResponse(request, "partials/_signals_table.html", context)
+    return templates.TemplateResponse(request, "signals.html", context)
 
 
 @pages_router.get("/config", response_class=HTMLResponse)
@@ -314,4 +313,4 @@ async def config_page(request: Request) -> HTMLResponse:
     }
 
     templates = request.app.state.templates
-    return templates.TemplateResponse("config.html", context)
+    return templates.TemplateResponse(request, "config.html", context)

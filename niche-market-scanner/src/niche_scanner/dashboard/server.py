@@ -76,7 +76,11 @@ def create_app(
 
     app.include_router(api_router)
 
-    # Phase 2: pages_router (HTML page routes)
+    from niche_scanner.dashboard.pages import pages_router, register_filters
+
+    app.include_router(pages_router)
+    register_filters(app)
+
     # Phase 5: kill_switch_router (POST endpoints for kill/reset/reload)
 
     return app
