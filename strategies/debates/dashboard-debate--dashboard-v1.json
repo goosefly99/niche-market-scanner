@@ -1,0 +1,184 @@
+{
+  "transcript_id": "debate-dashboard-v1",
+  "input_type": "design-spec",
+  "input_id": "dashboard-v1",
+  "input_version": "1.0",
+  "output_version": "1.1",
+  "created_date": "2026-04-04",
+  "rounds": [
+    {
+      "round": 1,
+      "type": "divergent",
+      "agents": [
+        {
+          "role": "advocate",
+          "position": "The spec is a well-designed, pragmatic monitoring dashboard that makes the right architectural tradeoffs for a single-operator trading bot. The in-process FastAPI approach, HTMX+Tailwind frontend, and additive SQLite schema are the correct choices given the constraints.",
+          "evidence": [
+            "In-process FastAPI eliminates IPC complexity entirely. The scanner's RiskGuard, HealthMonitor, and TradeJournal are Python dataclasses and objects — sharing them via app.state is zero-cost attribute access. A separate process would require Redis, shared memory, or a message queue to expose RiskGuard.state in real-time, adding operational complexity disproportionate to a 1-3 user monitoring dashboard.",
+            "HTMX + Tailwind via CDN eliminates the entire JavaScript build toolchain (node_modules, webpack/vite, TypeScript compilation, npm audit). For a dashboard that renders 4 read-heavy pages with periodic polling, server-rendered HTML with HTMX partial swaps provides sufficient interactivity. The scanner's Python developers maintain only Jinja2 templates, not a separate React/Vue codebase. This reduces the maintenance surface by approximately 50% compared to an SPA approach.",
+            "The additive SQLite schema (scan_cycles and balance_history as new tables, no ALTER on trades) is the safest migration strategy. WAL mode enables concurrent reads during writes, which is the exact concurrency pattern this dashboard needs: many reads, infrequent writes. The scanner already uses aiosqlite, so no new database dependency is introduced.",
+            "The kill switch design with X-Confirm header + UI confirmation modal + audit logging is defense-in-depth. Three layers prevent accidental activation: (1) the header requirement blocks programmatic accidents, (2) the modal requires deliberate user action, (3) the audit log provides accountability. The kill switch is resettable, so an accidental activation is recoverable.",
+            "The 5-phase implementation plan is correctly sequenced — API skeleton first, then frontend, then persistence, then real-time, then hardening. Each phase has clear deliverables and can be tested independently. The spec avoids the common mistake of trying to build everything at once."
+          ],
+          "counterpoints": [
+            "The critic will argue HTMX limits future interactivity, but this is a monitoring dashboard, not a trading interface. The spec explicitly states it does not support placing orders. A monitoring dashboard's UI complexity ceiling is low — tables, gauges, charts, and a kill switch. HTMX handles all of these.",
+            "The risk of in-process crash propagation is real but mitigatable. The spec already specifies exception isolation (try/except around uvicorn task, FastAPI exception middleware). Python's asyncio tasks are naturally isolated — an unhandled exception in one task does not kill sibling tasks unless it propagates to the event loop itself.",
+            "SQLite's single-writer limitation is a non-issue at this scale. The dashboard adds 2 INSERTs per scan cycle (one scan_cycles row, one balance_history row). The scan cycle runs every 15 minutes. That is 8 extra writes per hour against a database that currently handles the same order of magnitude."
+          ],
+          "proposed_changes": [
+            "Add explicit graceful degradation: if the dashboard fails to start (port conflict, uvicorn error), the scanner should continue operating normally. The spec mentions this in risks but it should be a hard requirement in success criteria.",
+            "Add a lightweight /api/ping endpoint that returns 200 with no computation, for Docker HEALTHCHECK with minimal overhead — separate from /api/health which does computation."
+          ],
+          "confidence": 0.82
+        },
+        {
+          "role": "critic",
+          "position": "The spec makes several questionable assumptions and underestimates risks in three areas: HTMX's limitations for real-time trading data, the danger of in-process coupling, and SQLite's inadequacy for concurrent time-series writes. The scope is also too large for a v1 monitoring dashboard.",
+          "evidence": [
+            "HTMX is the wrong tool for the signals page. WebSocket-driven live signal streaming with auto-scroll, connection status indicators, and real-time card rendering is fundamentally a client-side concern. HTMX's WebSocket extension (hx-ws) is rudimentary — it can append HTML fragments but does not support connection state management, auto-reconnect with backoff, or the kind of client-side state needed for a live feed (signal count, scroll position, connection indicator). The spec acknowledges this by requiring custom JavaScript on signals.html anyway ('client-side WebSocket connection in signals.html with auto-reconnect, connection status indicator, and signal card rendering'). At that point, you are writing a JavaScript application inside an HTMX page — the worst of both worlds.",
+            "In-process FastAPI sharing the scanner's event loop is a single point of failure for a live trading system. The spec assumes 'scan_cycle() is I/O-bound and yields control frequently,' but this is not guaranteed. A slow Kalshi API response, a NOAA timeout, or a burst of market data could starve the event loop. If a dashboard request arrives during a CPU-bound edge calculation (model_prob computation), it blocks. The asyncio event loop is cooperative — a single non-yielding coroutine blocks everything, including the kill switch API. In the worst case, a trader cannot activate the kill switch because the scanner is hogging the event loop.",
+            "SQLite with WAL mode does NOT solve the write contention problem the spec claims it does. WAL mode allows concurrent readers while a writer holds the lock, but it still has a single writer. If TradeJournal.record_trade() is writing (which takes a commit), and ScanCycleLogger.record_cycle() attempts a write simultaneously, one will get SQLITE_BUSY. The spec's aiosqlite connection is a single connection — it serializes writes through Python's await, but the spec creates multiple components (TradeJournal, ScanCycleLogger, BalanceTracker) that each need write access. Are they sharing the same aiosqlite.Connection? The spec is ambiguous. If they use separate connections, SQLITE_BUSY errors are inevitable. If they share one connection, the spec needs to document that explicitly and ensure no concurrent awaits on the same connection.",
+            "The scope is too large for a v1. The spec defines 4 HTML pages, 14 API endpoints, 2 new SQLite tables, WebSocket streaming, HTMX partials, kill switch with confirmation modal, config reload, Chart.js integration, dark mode, and request logging middleware. This is not a 'monitoring dashboard' — it is a full web application. The 5-phase plan spans at least 2-3 weeks of development. A v1 should be: (1) a single overview page with risk state and health, (2) a kill switch endpoint, (3) a trade list API. Ship that in 3 days, iterate from there.",
+            "The P&L calculation for binary options is not addressed. The spec references 'net_pnl_cents' in stats but the trades table has payout_cents and cost_cents. For Kalshi binary options, P&L depends on whether the position is still open, whether it was a YES or NO bet, and the settlement outcome. The spec's daily P&L query (SUM(payout_cents - cost_cents)) only works for resolved trades — open positions have NULL payout_cents. The dashboard will show incorrect P&L if open positions are not accounted for, which is misleading for a risk monitoring tool."
+          ],
+          "counterpoints": [
+            "The advocate will argue HTMX is sufficient, but the signals page requirement contradicts this. The spec itself requires custom JavaScript for WebSocket handling. If you need JS for one page, the zero-JS-build argument weakens significantly.",
+            "The advocate will argue asyncio task isolation prevents crash propagation, but asyncio.Task exception handling is notoriously tricky. If a Task raises an exception and nobody awaits it, Python 3.11+ logs a warning but the task silently dies. The spec says 'do not restart automatically to avoid crash loops' — so if the dashboard task dies, you lose monitoring with no notification beyond a log line. That is not acceptable for a safety-critical monitoring tool.",
+            "The advocate will point to WAL mode, but WAL mode's benefit is concurrent reads, not concurrent writes. The write path is still serialized. The real question is whether TradeJournal, ScanCycleLogger, and BalanceTracker share the same aiosqlite.Connection or create separate ones. The spec does not specify this clearly."
+          ],
+          "proposed_changes": [
+            "Reduce v1 scope to 2 pages (overview + trades) and 8 API endpoints. Defer WebSocket signals page and config reload to v2. The signals page requires enough custom JavaScript that it should be designed properly rather than bolted onto HTMX.",
+            "Run the dashboard in a separate asyncio task with its own exception boundary AND add a watchdog that detects dashboard death and sends a Telegram alert. Do not silently lose the monitoring tool.",
+            "Explicitly specify that all SQLite writers share a single aiosqlite.Connection instance, passed from TradeJournal to ScanCycleLogger and BalanceTracker. Document the write serialization guarantee."
+          ],
+          "confidence": 0.75
+        },
+        {
+          "role": "risk_specialist",
+          "position": "The spec has significant operational risks around concurrent access during live trading, insufficient authentication, kill switch availability under load, and SQLite corruption scenarios that are inadequately mitigated.",
+          "evidence": [
+            "CRITICAL: Kill switch unavailability during event loop starvation. If the scanner is in the middle of a scan_cycle() that takes 30+ seconds (e.g., fetching 50 weather markets from NOAA), the FastAPI endpoint POST /api/risk/kill will not execute until the coroutine yields. In a crisis scenario — the scanner is executing a bad trade — the operator cannot kill it via the dashboard because the event loop is saturated. The spec assumes scan_cycle() 'yields control frequently,' but the actual market_scanner.py shows it processes markets in batches of 20 (_BATCH_SIZE = 20) with httpx calls. A batch of slow API responses could block for 10+ seconds. The kill switch's entire value proposition is instant emergency stop, which in-process architecture cannot guarantee.",
+            "CRITICAL: Port exposure risk. The spec defaults to host 0.0.0.0 in settings.yaml (phase 1 tasks: 'host: 0.0.0.0'). This binds to all interfaces, not just localhost. If the Docker container's port 8050 is mapped to the host's 0.0.0.0:8050 (which docker-compose does by default with 'ports: 8050:8050'), the kill switch and all trading data are accessible to anyone on the network. The spec's risk section says 'Docker port binding defaults to 127.0.0.1:8050' but the implementation tasks say 'host: 0.0.0.0'. This contradiction means the default will likely be insecure. An attacker on the LAN could reset the kill switch, view balance, or trigger config reloads.",
+            "HIGH: Race condition between kill switch activation and trade execution. The scan loop in main.py checks risk_guard.is_killed at the TOP of the loop, then runs scan_cycle(). If the kill switch is activated via POST /api/risk/kill DURING scan_cycle(), the scanner will not see it until the next loop iteration. The scan_cycle() method calls trader.execute() which calls risk_guard.check_order() — but check_order() checks is_killed synchronously. Since the kill switch POST and check_order() run on the same event loop, the kill is visible immediately to check_order() IF the POST coroutine completes before check_order() reads the state. But if scan_cycle() is between check_order() and the actual Kalshi API call, the kill arrives too late. There is a TOCTOU window between risk_guard.check_order() and the actual order placement.",
+            "MEDIUM: SQLite WAL corruption on unclean Docker shutdown. If the Docker container is killed with SIGKILL (docker stop --time=0, OOM kill, host crash), the WAL file may not be checkpointed. On restart, SQLite will attempt WAL recovery, but aiosqlite's async connection opening may race with the recovery. The spec does not address crash recovery or WAL checkpoint strategy. For a trading journal, data integrity is paramount — a corrupted trades.db could cause duplicate trades or lost trade records.",
+            "MEDIUM: Config reload as a security risk. POST /api/config/reload reads settings.yaml from disk. If an attacker gains filesystem access (or if settings.yaml is mounted from a writable volume), they could modify risk limits (raise max_bet_size, disable drawdown checks) and then trigger a reload. The reload should validate that critical risk parameters have not been weakened, or at minimum log the before/after diff at WARNING level."
+          ],
+          "counterpoints": [
+            "The advocate argues X-Confirm header is sufficient security, but headers are trivially spoofable. curl -H 'X-Confirm: true' is not authentication. It prevents accidental clicks, not malicious access. For a tool that controls real money, 'intended for local/VPN only' is not a security architecture — it is a prayer.",
+            "The spec mentions 'SSH tunneling or VPN' for remote access, but the Docker default will be 0.0.0.0:8050 because the settings.yaml tasks explicitly say host: 0.0.0.0 and docker-compose port mapping defaults to all interfaces. The secure default (127.0.0.1) is mentioned in the risk section but contradicted in the implementation.",
+            "The kill switch TOCTOU window is inherent to cooperative multitasking. The only way to guarantee instant kill is to have the kill switch operate at a layer below the event loop — e.g., a signal handler, a watchdog process, or an OS-level mechanism. The spec's kill switch is best-effort, not guaranteed, and should be documented as such."
+          ],
+          "proposed_changes": [
+            "Change the default host in settings.yaml to 127.0.0.1, NOT 0.0.0.0. Require explicit opt-in for network-wide binding. Update docker-compose.yml to use '127.0.0.1:8050:8050' as the port mapping.",
+            "Add HTTP Basic Auth (username/password from environment variables) as a mandatory v1 feature, not a future extension. The X-Confirm header is not authentication. A dashboard that exposes kill switch, balance, and trade data MUST have authentication even on localhost.",
+            "Add a config reload validator that logs a WARNING and requires double-confirmation (separate endpoint or elevated header) if any risk limit is being weakened (max_bet_size increased, drawdown limit raised, etc.)."
+          ],
+          "confidence": 0.85
+        },
+        {
+          "role": "domain_specialist",
+          "position": "The spec builds a reasonable v1 monitoring surface but has gaps in what traders actually need: unrealized P&L tracking, position-level detail, latency metrics, and the kill switch UX needs redesign for emergency use. The page structure under-serves the most critical workflow: 'is my bot doing something dangerous right now?'",
+          "evidence": [
+            "Missing unrealized P&L. The spec only tracks realized P&L (resolved trades with payout_cents). For Kalshi binary options, a trader's most urgent question is: 'what is my current exposure and what would I lose if all open positions went to zero?' The RiskGuard.state.positions dict maps ticker to cost_cents, but the dashboard does not surface per-position unrealized P&L (current market price vs entry price). Without this, the overview page's P&L summary is stale and potentially misleading — a trader could see +$50 realized P&L while sitting on -$200 of unrealized losses in open positions.",
+            "Kill switch is not accessible enough. The spec says 'accessible within 3 clicks' (header button -> modal -> confirm). In a trading emergency, 3 clicks is too many. Best practice for trading kill switches: always visible on screen (not behind a modal), single action to activate (one click or keyboard shortcut), and visually distinct (large red button, not a header icon). The confirmation modal is appropriate for RESETTING the kill switch, not for activating it. Activation should be a single prominent button with a 3-second undo window, not a modal with text input.",
+            "No latency or execution quality metrics. Traders need to know: how long does each scan cycle take? What is the Kalshi API latency? How long between signal detection and order execution? The spec tracks scan cycle counts (markets_scanned, signals_found) but not scan cycle duration, API response times, or execution latency. These are the metrics that tell a trader whether the system is degrading before it fails.",
+            "The overview page tries to do too much. It shows P&L summary, risk gauges, health traffic lights, recent signals, balance chart, AND scan cycle stats. This is 6 distinct information sections on one page. Trading dashboards work best when they answer one question per view. The overview should answer: 'is the system healthy and within risk limits?' P&L detail, trade history, and signal stream belong on their own pages (which they have), but the overview should not duplicate them.",
+            "No alerting integration on the dashboard. The scanner already has Telegram alerts (AlertManager). The dashboard should show recent alert history and alert status. If Telegram is down, the dashboard is the only monitoring surface — it should surface that Telegram delivery failed. The HealthMonitor tracks API status but the dashboard does not show Telegram connectivity specifically."
+          ],
+          "counterpoints": [
+            "The advocate will note that unrealized P&L requires current market prices, which means polling Kalshi for every open position's current price. This adds API calls and latency. However, the scanner already calls the Kalshi API during scan_cycle() — piggyback position price checks onto existing API calls rather than adding new ones.",
+            "The spec explicitly states this is not a 'trading interface,' which justifies some missing features. But the kill switch IS a trading action (it halts all trading) and therefore demands trading-interface-level UX urgency. The spec should treat the kill switch as a first-class trading control, not a dashboard widget.",
+            "Scan cycle duration and API latency could be added to the existing HealthMonitor rather than as dashboard-specific features. This keeps the instrumentation in the scanner where it belongs and makes it available to the dashboard via the existing check_health() API."
+          ],
+          "proposed_changes": [
+            "Redesign kill switch UX: persistent red button visible on ALL pages (not just in header nav), single click to activate with 3-second undo toast (not a confirmation modal), keyboard shortcut (Ctrl+K or similar). Keep the confirmation modal only for RESETTING the kill switch.",
+            "Add scan cycle duration and API latency tracking to HealthMonitor (timer around scan_cycle(), httpx response time tracking) and surface it on the overview page as a 'System Performance' section. This replaces the 'recent signals mini-table' on the overview — recent signals belong on the signals page.",
+            "Add a 'Positions' section to the overview page showing all open positions from RiskGuard.state.positions with per-position cost basis. Defer unrealized P&L to v2 (requires Kalshi price polling), but at minimum show position count, total exposure, and per-position cost."
+          ],
+          "confidence": 0.78
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "type": "convergent",
+      "agents": [
+        {
+          "role": "synthesizer",
+          "position": "The spec is fundamentally sound in its architectural choices (in-process FastAPI, HTMX, additive SQLite) but requires specific hardening around security defaults, kill switch UX, SQLite connection sharing, and scope reduction. The changes below preserve the core design while addressing the highest-severity risks.",
+          "evidence": [
+            "All four agents agree the in-process FastAPI architecture is the right call for this use case. The IPC alternative (separate process + Redis/message queue) adds 3-4 new dependencies and operational complexity for a 1-3 user dashboard. The risk of crash propagation is real but mitigatable with proper exception isolation, which the spec already specifies.",
+            "The critic and domain specialist both identify the signals page as an outlier that requires custom JavaScript regardless of HTMX. This validates deferring it to v2 rather than forcing it into an HTMX-first architecture.",
+            "The risk specialist identifies a genuine contradiction between the settings.yaml default (host: 0.0.0.0) and the risk section claim (defaults to 127.0.0.1). This must be resolved in favor of security — 127.0.0.1 default.",
+            "The domain specialist's kill switch UX critique is the strongest design improvement proposed. A monitoring dashboard's primary safety function is the kill switch — if it takes 3 clicks and a text input during a crisis, it has failed its core mission.",
+            "The critic's point about SQLite connection sharing is a genuine spec ambiguity. The spec says 'shared db file' but does not specify whether components share a single aiosqlite.Connection. Given aiosqlite's single-connection model and SQLite's single-writer constraint, this must be explicitly a single shared connection."
+          ],
+          "counterpoints": [
+            "The risk specialist's demand for HTTP Basic Auth in v1 is a reasonable security measure but conflicts with the spec's constraint of no new heavyweight dependencies and local/VPN-only access. A compromise is to add optional Basic Auth gated by an environment variable, with a clear startup warning if auth is disabled and host is not 127.0.0.1.",
+            "The critic's scope reduction proposal (2 pages, 8 endpoints) is too aggressive. The 4-page structure is well-designed and the API endpoints are simple GET queries. The real scope reduction should target the signals page WebSocket complexity, not the overall page count.",
+            "The domain specialist's request for unrealized P&L is valid but correctly deferred. It requires Kalshi price polling for open positions, which adds API rate limit pressure and scope. The v1 should show open position count and total exposure (already available from RiskGuard.state) without market-price-based unrealized P&L."
+          ],
+          "proposed_changes": [],
+          "confidence": 0.80
+        }
+      ]
+    }
+  ],
+  "synthesis": {
+    "changes_accepted": [
+      {
+        "proposed": "Change default host in settings.yaml from 0.0.0.0 to 127.0.0.1. Update docker-compose.yml port mapping to 127.0.0.1:8050:8050.",
+        "reason": "The risk specialist identified a direct contradiction between the implementation tasks (host: 0.0.0.0) and the risk mitigation section (127.0.0.1 default). Binding to all interfaces by default exposes the kill switch, balance data, and trade history to anyone on the network. A monitoring dashboard for a live trading bot must default to localhost-only. Users who need remote access can explicitly change to 0.0.0.0 or use SSH tunneling. This is a zero-cost security improvement."
+      },
+      {
+        "proposed": "Explicitly specify that TradeJournal, ScanCycleLogger, and BalanceTracker share a single aiosqlite.Connection instance. TradeJournal owns the connection; ScanCycleLogger and BalanceTracker receive it as a constructor parameter.",
+        "reason": "The critic correctly identified that the spec is ambiguous about whether multiple components create separate database connections. SQLite allows only one writer at a time. With WAL mode, separate connections would cause SQLITE_BUSY errors under concurrent writes. Sharing a single connection serializes writes through Python's await mechanism, which is both correct and efficient for the low write volume (2 extra INSERTs per 15-minute cycle). This architectural clarification prevents a class of runtime errors."
+      },
+      {
+        "proposed": "Redesign kill switch UX: persistent large red button visible on all pages (in the page header, not hidden in nav), single click to activate (no confirmation modal for activation), with a 5-second undo toast notification. Keep the confirmation modal with text input only for RESETTING the kill switch.",
+        "reason": "The domain specialist makes the strongest argument in the entire debate: the kill switch is the dashboard's primary safety function, and its UX must match emergency-stop ergonomics. In a crisis (bot executing bad trades), requiring 3 clicks plus typing 'CONFIRM' in a modal is unacceptable. Trading platform kill switches are universally single-action with an undo window. The X-Confirm header is retained for the API layer (prevents programmatic accidents) but the UI should not add friction to activation. Reversing the confirmation asymmetry (easy to kill, hard to reset) matches the fail-safe principle."
+      },
+      {
+        "proposed": "Defer the WebSocket signals page (/signals) to v2. Keep the other 3 pages (overview, trades, config) in v1. Replace the signals page with a simple HTMX-polled recent signals table (hx-trigger='every 10s').",
+        "reason": "Both the critic and domain specialist identified that the signals page requires custom JavaScript for WebSocket connection management (auto-reconnect, backoff, connection status, auto-scroll), which contradicts the zero-JS-build-step constraint. An HTMX-polled signals table provides 90% of the value with zero custom JavaScript. The WebSocket implementation can be designed properly in v2 when the actual signal volume and latency requirements are known from production use."
+      },
+      {
+        "proposed": "Add scan cycle duration tracking (start/end timestamp) to the scan_cycles table and surface it on the overview page as a 'System Performance' metric.",
+        "reason": "The domain specialist correctly notes that scan cycle duration and API latency are the leading indicators of system degradation. Adding a duration_ms column to scan_cycles is trivial (timer around scan_cycle() in main.py) and provides the single most useful operational metric for diagnosing performance issues. This is low-cost, high-value instrumentation."
+      },
+      {
+        "proposed": "Add a dashboard task watchdog: if the uvicorn asyncio.Task dies, log at CRITICAL level and send a Telegram alert via the existing AlertManager.",
+        "reason": "The critic correctly identifies that a silently-dead dashboard is unacceptable for a safety-critical monitoring tool. The spec says 'do not restart automatically' which is correct, but it must actively notify the operator. The AlertManager already exists — adding a task-death callback is 5 lines of code with high safety value."
+      },
+      {
+        "proposed": "Add an 'Open Positions' section to the overview page showing data from RiskGuard.state.positions (ticker, cost_cents, side) and summary metrics (total_exposure_cents, position_count). Defer market-price-based unrealized P&L to v2.",
+        "reason": "The domain specialist identifies that realized P&L alone is misleading. Showing open positions and total cost-basis exposure from RiskGuard.state requires no additional API calls (the data is already in memory) and answers the critical question: 'what am I currently exposed to?' Unrealized P&L (requiring current market prices) is correctly deferred as it adds Kalshi API call overhead."
+      },
+      {
+        "proposed": "Add a startup warning log (WARNING level) if dashboard is enabled with host != 127.0.0.1 and no authentication is configured. Include the warning text: 'Dashboard is bound to {host} without authentication. Trading data and kill switch are accessible to anyone on the network.'",
+        "reason": "This is a compromise between the risk specialist's demand for mandatory auth and the spec's constraint of minimal dependencies. It makes the security risk visible without blocking deployment. Operators who deliberately choose 0.0.0.0 see an explicit warning every time the scanner starts."
+      }
+    ],
+    "changes_rejected": [
+      {
+        "proposed": "Add HTTP Basic Auth as a mandatory v1 feature (risk specialist).",
+        "reason": "The spec targets local/VPN-only access with a default of 127.0.0.1 (after the accepted change). Adding mandatory auth increases scope and dependency surface (password hashing, session management or per-request auth). The accepted startup warning provides visibility. Optional auth gated by DASHBOARD_USER and DASHBOARD_PASS environment variables is a reasonable v1.1 addition, but making it mandatory for a localhost-only tool overweights the threat model. If someone has localhost access to the Docker host, they already have access to the container's filesystem, environment variables, and the Kalshi API keys."
+      },
+      {
+        "proposed": "Reduce v1 scope to 2 pages and 8 endpoints (critic).",
+        "reason": "The 4-page structure (overview, trades, signals-as-polled-table, config) is well-scoped after deferring the WebSocket signals page. The API endpoints are straightforward GET queries against existing data sources. The critic's concern about scope is addressed by the signals page deferral, which removes the most complex feature (WebSocket + custom JS). The remaining 3 pages + polled signals table + 12 GET endpoints + 3 POST endpoints are achievable in the 5-phase plan."
+      },
+      {
+        "proposed": "Add config reload validation that detects weakened risk parameters and requires double-confirmation (risk specialist).",
+        "reason": "While conceptually sound, this adds significant complexity: defining 'weakened' for every risk parameter, implementing comparison logic, a separate confirmation flow. The config reload is already behind X-Confirm header and logs at WARNING level. An operator who modifies settings.yaml and hits reload is making a deliberate choice. The audit log captures the before/after state. Preventing config reload based on value analysis is paternalistic for a single-operator tool and adds brittle validation logic that may itself have bugs."
+      }
+    ],
+    "open_questions": [
+      "Event loop starvation: The risk specialist raises a valid concern that a long-running scan_cycle() could block kill switch API requests. The spec should quantify the maximum expected scan_cycle() duration and determine whether asyncio.to_thread() should be used for CPU-bound edge calculations. Alternatively, the kill switch could be checked inside scan_cycle() between market batches (the _BATCH_SIZE=20 loop), providing sub-second kill responsiveness regardless of cycle duration. This needs profiling data from production scan cycles.",
+      "SQLite WAL checkpoint strategy: The risk specialist's concern about unclean Docker shutdown corrupting the WAL file is valid. Should the spec add an explicit PRAGMA wal_checkpoint(TRUNCATE) call during graceful shutdown (in the finally block of main.py)? SQLite recovers WAL automatically on next open, but explicit checkpointing on shutdown reduces recovery time and data loss risk.",
+      "Chart rendering approach: The spec mentions Chart.js via CDN as optional. Should the balance/drawdown chart use Chart.js (adds another CDN dependency, requires client-side JavaScript for chart rendering) or a server-rendered SVG approach (pure Jinja2, no JS, but less interactive)? The HTMX-first philosophy favors server-rendered SVG, but Chart.js provides zoom, hover tooltips, and responsive sizing. This is a UX decision that should be validated with actual usage.",
+      "Telegram connectivity display: The domain specialist notes the dashboard should show Telegram alert delivery status. HealthMonitor already tracks API status — should it explicitly track Telegram delivery success/failure for the last N alerts? This affects the HealthReport schema and the overview page health section. Low effort, moderate value.",
+      "Daily risk reset timing: RiskGuard tracks daily_loss_cents and daily_trade_count but the reset logic (when does 'daily' reset?) is not visible on the dashboard. Should the overview page show time-until-daily-reset and the day_start_balance_cents? This helps the operator understand the current risk window."
+    ]
+  }
+}

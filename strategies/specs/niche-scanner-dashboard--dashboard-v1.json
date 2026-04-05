@@ -1,0 +1,667 @@
+{
+  "spec_id": "dashboard-v1",
+  "title": "Niche Market Scanner Dashboard",
+  "created_date": "2026-04-04",
+  "updated_date": "2026-04-04",
+  "version": "1.1",
+  "status": "validated",
+  "domain": "trading",
+  "spec_type": "implementation",
+  "sources": [
+    {
+      "spec_ref": "niche-market-edge-scanner-trading-system--19c9c94d",
+      "title": "Niche Market Edge Scanner & Trading System",
+      "relevance": "Parent spec — the dashboard monitors and controls the live scanner defined here. All data models, risk parameters, and engine configurations originate from this spec."
+    }
+  ],
+  "debate_ref": "debate-dashboard-v1",
+  "validation": {
+    "tech_stack_verified": {
+      "fastapi_asyncio": "Confirmed: uvicorn.Server.serve() is an async coroutine that can be awaited inside an existing asyncio event loop without creating its own. Use Server(config).serve() directly, not Server.run().",
+      "htmx_cdn": "Confirmed: https://unpkg.com/htmx.org serves HTMX v2.0.8, valid and accessible.",
+      "tailwind_cdn": "Confirmed: https://cdn.tailwindcss.com serves Tailwind CSS v3.x browser bundle, valid and accessible.",
+      "sqlite_wal_aiosqlite": "Confirmed: SQLite WAL mode is enabled via PRAGMA journal_mode=WAL, supports concurrent reads with a single writer, and works through aiosqlite which wraps the standard sqlite3 module.",
+      "codebase_classes": {
+        "RiskGuard": "niche_scanner.execution.risk_guard — has .kill(), .reset_kill_switch(), .is_killed, .kill_reason, .state, .config",
+        "RiskState": "niche_scanner.execution.risk_guard — dataclass with balance, drawdown, positions, killed state",
+        "LiveTradingConfig": "niche_scanner.execution.risk_guard — dataclass with all risk limit parameters",
+        "HealthMonitor": "niche_scanner.monitor.health — has .check_health() returning HealthReport",
+        "HealthReport": "niche_scanner.monitor.health — dataclass with components, scan_loop_alive, errors",
+        "TradeJournal": "niche_scanner.journal.trade_journal — has .get_trades(), .get_stats()",
+        "EdgeSignal": "niche_scanner.engines.base — dataclass with engine, ticker, side, model_prob, etc.",
+        "MarketScanner": "niche_scanner.scanner.market_scanner — scan loop orchestrator",
+        "ScannerSettings": "niche_scanner.config — YAML config model",
+        "AlertManager": "niche_scanner.alerts.telegram — has .send_message(), .send_risk_warning()"
+      }
+    },
+    "changes_applied": [
+      "Default host changed from 0.0.0.0 to 127.0.0.1 in all references (settings.yaml, docker-compose.yml)",
+      "Single shared aiosqlite.Connection specified — TradeJournal owns it, ScanCycleLogger and BalanceTracker receive it as constructor parameter",
+      "Kill switch redesigned: single-click activation with 5-second undo toast, confirmation modal retained only for reset",
+      "WebSocket signals page deferred to v2 — replaced with HTMX-polled signals table (hx-trigger='every 10s')",
+      "Open positions section added to overview page from RiskGuard.state.positions",
+      "Dashboard death watchdog added — Telegram alert via AlertManager if dashboard task dies",
+      "Host binding contradiction resolved — all references consistently say 127.0.0.1",
+      "Scan cycle duration and API latency metrics added to health page and scan_cycles table"
+    ],
+    "changes_rejected": [
+      "Mandatory HTTP Basic Auth — localhost = filesystem access; startup warning added instead",
+      "Scope reduction to 2 pages — too aggressive after WebSocket deferral removes the complexity",
+      "Config reload risk parameter validation — paternalistic for single-operator tool"
+    ]
+  },
+  "overview": {
+    "description": "A real-time monitoring dashboard for the niche-market-scanner Kalshi trading bot. Runs as an in-process FastAPI server sharing the scanner's asyncio event loop, providing read-only visibility into trade history, risk state, system health, and live signal detection. Uses HTMX and Tailwind CSS for a lightweight server-rendered frontend with no JavaScript build step. The only writable endpoints are the kill switch toggle and a config reload, both requiring explicit confirmation headers. New SQLite tables (scan_cycles, balance_history) extend the existing trades.db journal to persist scan cycle summaries and balance snapshots for historical charting.",
+    "objectives": [
+      "Provide real-time visibility into P&L, risk state (RiskGuard/RiskState), and system health (HealthMonitor/HealthReport) without leaving the Docker container",
+      "Surface paginated, filterable trade history from the existing SQLite trades table with action/engine/outcome filters",
+      "Surface open positions from RiskGuard.state.positions with per-position cost basis and total exposure on the overview page",
+      "Persist scan cycle summaries (markets scanned, signals found, executed, skipped, NO exposure, duration_ms) to a new scan_cycles table for historical analysis",
+      "Track balance, peak, drawdown, and cumulative spend over time in a new balance_history table for drawdown charting",
+      "Expose the RiskGuard kill switch as a persistent single-click red button visible on all pages, with a 5-second undo toast for accidental activation",
+      "Maintain zero impact on scan cycle performance — API request handling must not block the scanner's scan_cycle() coroutine",
+      "Support hot config reload without restarting the container",
+      "Track scan cycle duration and API latency metrics for system performance monitoring",
+      "Detect dashboard task death and send Telegram alert via AlertManager"
+    ],
+    "constraints": [
+      "Must run in-process with the scanner (single Docker container, single asyncio event loop) — no separate process, no IPC",
+      "No JavaScript build toolchain — HTMX via CDN for dynamic updates, Tailwind CSS via CDN for styling",
+      "SQLite single-writer constraint: all writes (scan_cycles, balance_history, trades) go through a single shared aiosqlite.Connection with WAL mode enabled — TradeJournal owns the connection, ScanCycleLogger and BalanceTracker receive it as a constructor parameter",
+      "Read-only by default: only POST /api/risk/kill, POST /api/risk/reset, and POST /api/config/reload are writable, all requiring X-Confirm: true header",
+      "Must not expose the dashboard publicly without authentication — intended for local/VPN access only, default host binding is 127.0.0.1",
+      "Dashboard port (default 8050) must be configurable via settings.yaml and overridable via DASHBOARD_PORT environment variable",
+      "No new heavyweight dependencies — FastAPI + uvicorn + jinja2 are the only additions to pyproject.toml",
+      "Must work with the existing data/trades.db SQLite database, applying schema migrations additively (new tables only, no ALTER on trades)",
+      "WebSocket signal streaming is deferred to v2 — v1 uses HTMX-polled signals table"
+    ],
+    "assumptions": [
+      "The scanner is already running in live mode with RiskGuard, HealthMonitor, TradeJournal, and MarketScanner all instantiated in main.py",
+      "The dashboard has direct Python reference access to the RiskGuard instance (self.state, self.config), HealthMonitor instance, and TradeJournal instance — no serialization boundary",
+      "The existing trades table schema (db.py SCHEMA) is stable and will not be modified by this spec",
+      "The scanner's asyncio event loop has capacity for FastAPI request handling — scan_cycle() is I/O-bound (httpx calls to Kalshi/NOAA/FRED) and yields control frequently",
+      "Users access the dashboard from a browser on the same machine or LAN — latency is negligible",
+      "Tailwind CSS CDN and HTMX CDN are acceptable for a monitoring tool (not a customer-facing product)",
+      "The Docker container's port mapping will be updated in docker-compose.yml to expose the dashboard port",
+      "AlertManager is available in main.py for the dashboard death watchdog to send Telegram alerts"
+    ]
+  },
+  "architecture": {
+    "components": [
+      {
+        "name": "DashboardServer",
+        "description": "FastAPI application lifecycle manager. Creates the FastAPI app, mounts all routers, configures Jinja2 templates, and runs uvicorn as an asyncio task alongside the scanner's scan loop. Starts after all scanner components are initialized in main.py. Shares references to RiskGuard, HealthMonitor, TradeJournal, and ScannerSettings via FastAPI's app.state. Includes a death watchdog that sends a Telegram alert via AlertManager if the dashboard asyncio task dies unexpectedly.",
+        "responsibilities": [
+          "Create and configure the FastAPI app instance with CORS middleware (localhost only)",
+          "Mount APIRouter, DashboardPages, and KillSwitchAPI routers",
+          "Configure Jinja2Templates with the templates directory path",
+          "Start uvicorn.Server.serve() as an asyncio task on the configured port (default 8050, host 127.0.0.1)",
+          "Gracefully shut down the uvicorn server when the scanner's shutdown_event fires",
+          "Store shared references (risk_guard, health_monitor, journal, settings, scanner, alert_manager) on app.state for endpoint access",
+          "Wrap the dashboard asyncio task in a death watchdog callback that logs at CRITICAL level and sends a Telegram alert via AlertManager if the task raises an exception or completes unexpectedly",
+          "Log a WARNING at startup if dashboard host is not 127.0.0.1 and no authentication is configured: 'Dashboard is bound to {host} without authentication. Trading data and kill switch are accessible to anyone on the network.'"
+        ],
+        "inputs": [
+          "RiskGuard instance from main.py",
+          "HealthMonitor instance from main.py",
+          "TradeJournal instance from main.py",
+          "ScannerSettings instance from main.py",
+          "MarketScanner instance from main.py",
+          "AlertManager instance from main.py",
+          "Dashboard config (port, host) from settings.yaml dashboard section"
+        ],
+        "outputs": [
+          "Running uvicorn server accepting HTTP connections",
+          "Graceful shutdown signal propagation",
+          "Telegram alert on dashboard task death"
+        ],
+        "dependencies": [
+          "fastapi",
+          "uvicorn",
+          "niche_scanner.main (lifecycle integration)",
+          "niche_scanner.alerts.telegram.AlertManager (death watchdog)"
+        ]
+      },
+      {
+        "name": "APIRouter",
+        "description": "REST API endpoints serving JSON data for trade history, aggregate statistics, risk state, health status, scanner status, and balance information. All endpoints are GET (read-only). Trade queries hit SQLite via TradeJournal; risk and health data are read directly from in-memory RiskGuard.state and HealthMonitor.check_health(). Response models use Pydantic for serialization.",
+        "responsibilities": [
+          "GET /api/trades — paginated trade list with engine, action, and outcome filters, plus offset/limit pagination",
+          "GET /api/trades/{id} — single trade detail by ID",
+          "GET /api/stats — aggregate stats (total_trades, wins, losses, win_rate, avg_edge_pp, net_pnl_cents) with optional engine filter via TradeJournal.get_stats()",
+          "GET /api/stats/daily — daily P&L aggregation from trades table grouped by date(created_at) for charting",
+          "GET /api/risk/state — serialize full RiskState dataclass (peak_balance_cents, current_balance_cents, cumulative_spend_cents, daily_loss_cents, daily_trade_count, open_position_count, killed, kill_reason, positions)",
+          "GET /api/risk/config — serialize LiveTradingConfig dataclass (all risk limits and thresholds)",
+          "GET /api/health — serialize HealthReport from HealthMonitor.check_health() (components, api_status, scan_loop_alive, errors) plus scan cycle duration and API latency metrics",
+          "GET /api/scanner/status — return scanner mode (paper/live), enabled engines, scan interval, last scan timestamp",
+          "GET /api/balance — return current Kalshi balance from RiskGuard.state.current_balance_cents",
+          "GET /api/balance/history — return balance time series from balance_history table",
+          "GET /api/scan-cycles — return scan cycle history from scan_cycles table with limit/offset pagination",
+          "GET /api/ping — lightweight 200 OK with no computation for Docker HEALTHCHECK"
+        ],
+        "inputs": [
+          "HTTP GET requests with query parameters (engine, action, outcome, limit, offset)",
+          "TradeJournal (SQLite queries via shared aiosqlite.Connection)",
+          "RiskGuard.state and RiskGuard.config (in-memory reads)",
+          "HealthMonitor.check_health() (in-memory computation)",
+          "ScannerSettings (config values)",
+          "Shared aiosqlite.Connection for scan_cycles and balance_history queries"
+        ],
+        "outputs": [
+          "JSON responses with Pydantic model serialization",
+          "HTTP 200 for successful queries",
+          "HTTP 404 for missing trade IDs",
+          "HTTP 500 with error detail for unexpected failures"
+        ],
+        "dependencies": [
+          "fastapi.APIRouter",
+          "niche_scanner.journal.trade_journal.TradeJournal",
+          "niche_scanner.execution.risk_guard.RiskGuard",
+          "niche_scanner.execution.risk_guard.RiskState",
+          "niche_scanner.execution.risk_guard.LiveTradingConfig",
+          "niche_scanner.monitor.health.HealthMonitor",
+          "niche_scanner.monitor.health.HealthReport",
+          "niche_scanner.config.ScannerSettings"
+        ]
+      },
+      {
+        "name": "TemplateRenderer",
+        "description": "Jinja2 template engine configured with HTMX partial rendering support. Templates are stored in src/niche_scanner/dashboard/templates/. Each page has a full-page template and HTMX partial fragments that can be swapped independently. Tailwind CSS is loaded via CDN link in the base template. HTMX is loaded via CDN script tag with hx-boost enabled for SPA-like navigation.",
+        "responsibilities": [
+          "Maintain a base.html layout template with navigation, Tailwind CSS CDN, HTMX CDN, persistent kill switch button, and page structure",
+          "Render full pages on initial load (returns complete HTML document)",
+          "Render HTMX partial fragments on hx-request (returns only the changed HTML fragment, detected via HX-Request header)",
+          "Provide template context helpers for formatting cents to dollars, timestamps to relative time, percentages, and risk status colors",
+          "Support dark/light theme via Tailwind's class-based dark mode"
+        ],
+        "inputs": [
+          "Jinja2Templates directory path (src/niche_scanner/dashboard/templates/)",
+          "Template context dicts from DashboardPages route handlers",
+          "HX-Request header for partial vs full-page rendering"
+        ],
+        "outputs": [
+          "Full HTML pages (HTMLResponse)",
+          "HTMX partial HTML fragments (HTMLResponse with HX-Trigger headers where needed)"
+        ],
+        "dependencies": [
+          "jinja2",
+          "fastapi.templating.Jinja2Templates",
+          "Tailwind CSS v3+ via CDN (https://cdn.tailwindcss.com)",
+          "HTMX v2+ via CDN (https://unpkg.com/htmx.org)"
+        ]
+      },
+      {
+        "name": "ScanCycleLogger",
+        "description": "Persistence layer for scan cycle summaries. Hooks into MarketScanner.scan_cycle() to capture post-cycle metrics (markets_scanned, signals_found, executed, skipped, no_exposure_cents, duration_ms) and write them to the new scan_cycles SQLite table. Receives the shared aiosqlite.Connection from TradeJournal as a constructor parameter.",
+        "responsibilities": [
+          "Create the scan_cycles table on first initialization (additive migration, no schema changes to trades table)",
+          "Record one row per scan cycle with: markets_scanned, signals_found, executed, skipped, no_exposure_cents, duration_ms, created_at",
+          "Provide async query methods for the API: get_recent_cycles(limit, offset) and get_cycle_stats(since_hours)",
+          "Keep write transactions short (single INSERT) to minimize SQLite write lock contention with the TradeJournal"
+        ],
+        "inputs": [
+          "Scan cycle results from MarketScanner: count of markets, signals, executed, skipped, NO exposure, cycle duration in milliseconds",
+          "Shared aiosqlite.Connection (received from TradeJournal as constructor parameter)"
+        ],
+        "outputs": [
+          "Rows in scan_cycles table",
+          "Query results for API consumption (list[dict])"
+        ],
+        "dependencies": [
+          "aiosqlite (shared connection from TradeJournal)",
+          "niche_scanner.journal.db (shared database path: data/trades.db)"
+        ]
+      },
+      {
+        "name": "BalanceTracker",
+        "description": "Periodic balance snapshot recorder. After each scan cycle (or on a configurable interval), reads the current balance from RiskGuard.state and writes a snapshot to the balance_history SQLite table. Receives the shared aiosqlite.Connection from TradeJournal as a constructor parameter.",
+        "responsibilities": [
+          "Create the balance_history table on first initialization (additive migration)",
+          "Record balance snapshots: balance_cents, peak_cents, drawdown_pct, cumulative_spend_cents, created_at",
+          "Calculate drawdown_pct as (1 - current/peak) at snapshot time from RiskGuard.state",
+          "Provide async query methods: get_history(since_hours, limit) and get_latest()",
+          "Deduplicate snapshots — skip recording if balance hasn't changed since last snapshot (within same scan cycle)"
+        ],
+        "inputs": [
+          "RiskGuard.state (current_balance_cents, peak_balance_cents, cumulative_spend_cents)",
+          "Shared aiosqlite.Connection (received from TradeJournal as constructor parameter)"
+        ],
+        "outputs": [
+          "Rows in balance_history table",
+          "Query results for balance chart API endpoint"
+        ],
+        "dependencies": [
+          "aiosqlite (shared connection from TradeJournal)",
+          "niche_scanner.execution.risk_guard.RiskGuard",
+          "niche_scanner.journal.db (shared database path)"
+        ]
+      },
+      {
+        "name": "DashboardPages",
+        "description": "HTML page route handlers serving the four dashboard views. Each route queries the relevant data sources, builds a template context, and renders via Jinja2. All pages support both full-page load (initial navigation) and HTMX partial swap (subsequent interactions). Navigation is a persistent sidebar/header present on all pages. The kill switch is a persistent large red button visible in the header on all pages.",
+        "responsibilities": [
+          "GET / — Overview page: P&L summary from TradeJournal.get_stats(), risk gauges from RiskGuard.state (balance/drawdown/cumulative spend as % of limits), health traffic lights from HealthMonitor.check_health(), open positions section from RiskGuard.state.positions (ticker, cost_cents, side, total_exposure_cents, position_count), system performance metrics (scan cycle duration, API latency), balance chart placeholder (Chart.js or simple HTMX-polled SVG)",
+          "GET /trades — Trade history page: paginated table of trades with column sorting, HTMX-powered filters for engine (weather/economics), action (buy/sell/rejected/failed), and outcome (win/loss/pending), HTMX pagination via hx-get with offset/limit query params",
+          "GET /signals — HTMX-polled recent signals table (hx-trigger='every 10s') showing EdgeSignals from the current session, with signal count badge. WebSocket live streaming deferred to v2.",
+          "GET /config — Configuration display page: read-only rendering of settings.yaml sections (scanner, sizing, live_trading, verticals) with a reload button that triggers POST /api/config/reload"
+        ],
+        "inputs": [
+          "HTTP GET requests (with optional HTMX headers for partial rendering)",
+          "TradeJournal for trade data and stats",
+          "RiskGuard for risk state, config, and open positions",
+          "HealthMonitor for health report",
+          "ScannerSettings for config display",
+          "balance_history and scan_cycles tables for chart data and performance metrics"
+        ],
+        "outputs": [
+          "Full HTML pages (initial load) or HTMX partial fragments (subsequent swaps)",
+          "Template context with formatted values (dollars, percentages, relative timestamps)"
+        ],
+        "dependencies": [
+          "TemplateRenderer (Jinja2Templates)",
+          "APIRouter (reuses query logic for data fetching)",
+          "All scanner data sources (TradeJournal, RiskGuard, HealthMonitor, ScannerSettings)"
+        ]
+      },
+      {
+        "name": "KillSwitchAPI",
+        "description": "Protected POST endpoints for activating and resetting the RiskGuard kill switch, plus a config reload endpoint. These are the only writable operations in the entire dashboard. Each requires an X-Confirm: true header to prevent programmatic accidents. Kill switch activation is single-click from the UI with a 5-second undo toast; reset requires a confirmation modal with text input. The kill switch button is a persistent large red element visible on all pages.",
+        "responsibilities": [
+          "POST /api/risk/kill — activate RiskGuard.kill(reason) with a default reason string ('Manual kill via dashboard'), requiring X-Confirm: true header. Returns the updated RiskState plus an undo token valid for 5 seconds.",
+          "POST /api/risk/undo-kill — reverse a kill activation within the 5-second undo window using the undo token. Only valid if kill was activated via the dashboard within the window.",
+          "POST /api/risk/reset — call RiskGuard.reset_kill_switch(), requiring X-Confirm: true header AND a confirmation modal where the user types 'CONFIRM', logging the reset event",
+          "POST /api/config/reload — reload ScannerSettings from disk (settings.yaml), requiring X-Confirm: true header",
+          "Return 400 Bad Request with clear error message if X-Confirm header is missing or not 'true'",
+          "Log all kill/undo/reset/reload actions at WARNING level with timestamp for audit trail",
+          "Return the updated RiskState or config as JSON in the response body after successful mutation"
+        ],
+        "inputs": [
+          "POST requests with X-Confirm: true header",
+          "RiskGuard instance (for kill/undo/reset)",
+          "ScannerSettings instance (for reload)"
+        ],
+        "outputs": [
+          "JSON response with updated state after mutation",
+          "HTTP 200 on success, HTTP 400 on missing confirmation or expired undo window, HTTP 500 on error"
+        ],
+        "dependencies": [
+          "fastapi.APIRouter",
+          "niche_scanner.execution.risk_guard.RiskGuard",
+          "niche_scanner.config.ScannerSettings"
+        ]
+      }
+    ],
+    "data_flow": "The scanner's main.py creates all core components (RiskGuard, HealthMonitor, TradeJournal, MarketScanner, ScannerSettings, AlertManager) and passes them to DashboardServer, which stores references on FastAPI's app.state. TradeJournal owns the single shared aiosqlite.Connection; ScanCycleLogger and BalanceTracker receive this connection as a constructor parameter, ensuring all writes are serialized through the same connection. On each scan cycle: (1) MarketScanner.scan_cycle() runs engines, sizes signals, and executes trades — the cycle is timed for duration_ms tracking; (2) ScanCycleLogger records the cycle summary (including duration_ms) to scan_cycles table via the shared connection; (3) BalanceTracker snapshots the balance from RiskGuard.state to balance_history table via the shared connection; (4) Detected EdgeSignals are stored in an in-memory buffer for the HTMX-polled signals page. Browser clients hit API endpoints which read from: SQLite (trades, scan_cycles, balance_history) for persistent data, RiskGuard.state/config for live risk data (including open positions), HealthMonitor.check_health() for system health. HTMX pages poll API endpoints via hx-trigger for periodic refresh (30s overview, 60s trades, 10s signals). Kill switch is a persistent single-click button on all pages with 5-second undo toast. If the dashboard asyncio task dies, a watchdog callback sends a Telegram alert via AlertManager.",
+    "integration_points": [
+      "main.py — DashboardServer is created after all scanner components are initialized, started as an asyncio task alongside the scan loop, and shut down during cleanup. The task is wrapped with a done_callback that triggers AlertManager.send_risk_warning() if the task exits unexpectedly. Requires adding ~25 lines to main.py (import, instantiation, task creation, death watchdog, shutdown).",
+      "MarketScanner.scan_cycle() — ScanCycleLogger hooks into the scan cycle to capture post-cycle metrics including duration_ms. Either the scanner calls a callback after scan_cycle() returns, or main.py wraps the call with a timer to record results and duration.",
+      "RiskGuard — the dashboard reads .state and .config directly (dataclass attribute access, no serialization overhead). KillSwitchAPI calls .kill() and .reset_kill_switch() which are existing methods. Overview page reads .state.positions for the open positions section.",
+      "HealthMonitor — the dashboard calls .check_health() which returns a HealthReport dataclass. No modifications needed to health.py.",
+      "TradeJournal — the dashboard uses existing .get_trades() and .get_stats() methods. New queries (daily stats, trade by ID) require adding 2-3 methods to TradeJournal. TradeJournal's aiosqlite.Connection is shared with ScanCycleLogger and BalanceTracker.",
+      "AlertManager — the dashboard death watchdog calls AlertManager.send_risk_warning() if the uvicorn task dies. No modifications needed to telegram.py.",
+      "docker-compose.yml — add port mapping (127.0.0.1:8050:8050) for dashboard access and update the healthcheck to hit /api/ping.",
+      "settings.yaml — add a new 'dashboard' section with port, host (default 127.0.0.1), and enabled configuration.",
+      "pyproject.toml — add fastapi, uvicorn[standard], jinja2 to dependencies.",
+      "db.py — extend SCHEMA or add a migration function for scan_cycles and balance_history tables alongside the existing trades table."
+    ]
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "FastAPI server skeleton + REST API endpoints",
+        "tasks": [
+          "Add fastapi, uvicorn[standard], jinja2 to pyproject.toml dependencies",
+          "Create src/niche_scanner/dashboard/ package with __init__.py",
+          "Create src/niche_scanner/dashboard/server.py — DashboardServer class that creates FastAPI app, configures app.state with shared references (including AlertManager), and runs uvicorn.Server.serve() as asyncio task with death watchdog callback",
+          "Create src/niche_scanner/dashboard/api.py — APIRouter with all GET endpoints: /api/trades (with engine/action/outcome/limit/offset query params), /api/trades/{id}, /api/stats, /api/stats/daily, /api/risk/state (including positions), /api/risk/config, /api/health (including scan cycle duration and API latency metrics), /api/scanner/status, /api/balance, /api/ping",
+          "Add TradeJournal.get_trade_by_id(id) and TradeJournal.get_daily_stats() methods to trade_journal.py",
+          "Expose TradeJournal's aiosqlite.Connection as a property so ScanCycleLogger and BalanceTracker can receive it",
+          "Integrate DashboardServer startup into main.py — create after all components, start as asyncio task with done_callback for death watchdog (AlertManager.send_risk_warning on unexpected exit), shutdown in finally block",
+          "Add dashboard config section to settings.yaml (port: 8050, host: 127.0.0.1, enabled: true)",
+          "Add startup WARNING log if host != 127.0.0.1: 'Dashboard is bound to {host} without authentication. Trading data and kill switch are accessible to anyone on the network.'",
+          "Update docker-compose.yml to expose port 127.0.0.1:8050:8050",
+          "Enable WAL mode on SQLite connection in db.py init_db() via PRAGMA journal_mode=WAL"
+        ],
+        "deliverables": [
+          "src/niche_scanner/dashboard/__init__.py",
+          "src/niche_scanner/dashboard/server.py (with death watchdog)",
+          "src/niche_scanner/dashboard/api.py (with /api/ping)",
+          "Modified: src/niche_scanner/journal/trade_journal.py (2 new query methods, connection property)",
+          "Modified: src/niche_scanner/journal/db.py (WAL mode pragma)",
+          "Modified: src/niche_scanner/main.py (dashboard integration with death watchdog)",
+          "Modified: config/settings.yaml (dashboard section with host: 127.0.0.1)",
+          "Modified: docker-compose.yml (port 127.0.0.1:8050:8050)",
+          "Modified: pyproject.toml (3 new dependencies)",
+          "All API endpoints returning valid JSON, verified via pytest with httpx.AsyncClient"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "HTMX frontend pages and templates",
+        "tasks": [
+          "Create src/niche_scanner/dashboard/templates/ directory",
+          "Create base.html — layout with Tailwind CDN (https://cdn.tailwindcss.com), HTMX CDN (https://unpkg.com/htmx.org), navigation sidebar (Overview/Trades/Signals/Config links), persistent large red kill switch button in page header visible on all pages, kill status banner (red persistent banner when RiskGuard.is_killed is True), dark mode toggle",
+          "Create overview.html — P&L summary cards (net PnL, win rate, total trades, avg edge), risk gauge bars (balance/drawdown/cumulative spend as % of limits), health traffic lights (per-component status), open positions section (table of RiskGuard.state.positions with ticker, cost_cents, side, and summary: total_exposure_cents, position_count), system performance metrics (avg scan cycle duration_ms, API latency), balance chart placeholder (Chart.js or simple HTMX-polled SVG)",
+          "Create trades.html — filterable trade table with columns (ID, time, ticker, engine, side, action, contracts, price, cost, edge, outcome, thesis), HTMX filter dropdowns (engine, action, outcome) that swap the table body, HTMX pagination controls (prev/next) with hx-get to /api/trades partials",
+          "Create signals.html — HTMX-polled recent signals table (hx-trigger='every 10s') showing EdgeSignals from the current session, with signal count badge. No WebSocket — uses polling.",
+          "Create config.html — read-only YAML display of all settings sections, config reload button with confirmation modal",
+          "Create src/niche_scanner/dashboard/pages.py — FastAPI router for HTML page routes (/, /trades, /signals, /config) with full-page and HTMX partial rendering based on HX-Request header",
+          "Create HTMX partial templates: _trade_rows.html, _overview_stats.html, _risk_gauges.html, _health_status.html, _open_positions.html, _signals_table.html for swap targets",
+          "Add Jinja2 template filters: cents_to_dollars, format_pct, relative_time, risk_color, duration_ms_format",
+          "Implement kill switch single-click UX: clicking the persistent red button sends POST /api/risk/kill with X-Confirm header, response triggers a 5-second undo toast via HTMX (hx-swap-oob) that allows POST /api/risk/undo-kill"
+        ],
+        "deliverables": [
+          "src/niche_scanner/dashboard/templates/base.html (with persistent kill switch button and undo toast)",
+          "src/niche_scanner/dashboard/templates/overview.html (with open positions section and performance metrics)",
+          "src/niche_scanner/dashboard/templates/trades.html",
+          "src/niche_scanner/dashboard/templates/signals.html (HTMX-polled, no WebSocket)",
+          "src/niche_scanner/dashboard/templates/config.html",
+          "src/niche_scanner/dashboard/templates/partials/_trade_rows.html",
+          "src/niche_scanner/dashboard/templates/partials/_overview_stats.html",
+          "src/niche_scanner/dashboard/templates/partials/_risk_gauges.html",
+          "src/niche_scanner/dashboard/templates/partials/_health_status.html",
+          "src/niche_scanner/dashboard/templates/partials/_open_positions.html",
+          "src/niche_scanner/dashboard/templates/partials/_signals_table.html",
+          "src/niche_scanner/dashboard/pages.py",
+          "Dashboard navigable in browser with all 4 pages rendering, HTMX swaps working for trade filters, pagination, and signals polling"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "New persistence layers (scan_cycles + balance_history)",
+        "tasks": [
+          "Add scan_cycles and balance_history CREATE TABLE statements to db.py (either in SCHEMA or a separate DASHBOARD_SCHEMA string applied in init_db()). scan_cycles includes duration_ms column.",
+          "Create src/niche_scanner/dashboard/scan_cycle_logger.py — ScanCycleLogger class that receives the shared aiosqlite.Connection from TradeJournal as constructor parameter, with record_cycle(duration_ms) and get_recent_cycles(limit, offset) async methods",
+          "Create src/niche_scanner/dashboard/balance_tracker.py — BalanceTracker class that receives the shared aiosqlite.Connection from TradeJournal as constructor parameter, with record_snapshot() and get_history(since_hours, limit) async methods",
+          "Integrate ScanCycleLogger into main.py scan loop — wrap scan_cycle() with a timer to capture duration_ms, call record_cycle() after each scan_cycle() completes with the cycle metrics and duration",
+          "Integrate BalanceTracker into main.py scan loop — call record_snapshot() after each balance sync from Kalshi API",
+          "Add /api/scan-cycles and /api/balance/history endpoints to api.py using the new query methods",
+          "Wire balance chart on overview page to use real balance_history data",
+          "Add scan cycle performance stats to overview page (cycles/hour, avg duration_ms, avg signals/cycle)"
+        ],
+        "deliverables": [
+          "Modified: src/niche_scanner/journal/db.py (2 new table schemas, scan_cycles includes duration_ms)",
+          "src/niche_scanner/dashboard/scan_cycle_logger.py (receives shared connection)",
+          "src/niche_scanner/dashboard/balance_tracker.py (receives shared connection)",
+          "Modified: src/niche_scanner/main.py (ScanCycleLogger and BalanceTracker integration with scan cycle timer)",
+          "Modified: src/niche_scanner/dashboard/api.py (2 new endpoints)",
+          "Modified: overview.html (balance chart with real data, scan cycle performance stats)",
+          "Unit tests for ScanCycleLogger and BalanceTracker with in-memory SQLite"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "HTMX auto-refresh, signals polling, and real-time updates",
+        "tasks": [
+          "Implement in-memory EdgeSignal buffer in DashboardServer — a bounded deque (maxlen=100) that stores recent signals for the HTMX-polled signals page",
+          "Add signal capture hook into MarketScanner or main.py — after each EdgeSignal is detected, append to the signal buffer",
+          "Create GET /api/signals/recent endpoint returning the last N signals from the buffer as JSON",
+          "Wire signals.html HTMX polling (hx-trigger='every 10s') to /api/signals/recent, swapping the _signals_table.html partial",
+          "Add HTMX auto-refresh (hx-trigger='every 30s') to overview page stats, risk gauges, health status, and open positions partials",
+          "Add HTMX auto-refresh to trades page table (hx-trigger='every 60s') to show new trades without manual reload"
+        ],
+        "deliverables": [
+          "Modified: src/niche_scanner/dashboard/server.py (signal buffer)",
+          "Modified: src/niche_scanner/main.py or scanner/market_scanner.py (signal capture hook)",
+          "Modified: src/niche_scanner/dashboard/api.py (GET /api/signals/recent)",
+          "Modified: signals.html (HTMX polling wired to signals endpoint)",
+          "Modified: overview.html (HTMX auto-refresh triggers on partials including open positions)",
+          "Modified: trades.html (HTMX auto-refresh trigger on table)"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Kill switch API, config reload, and hardening",
+        "tasks": [
+          "Create src/niche_scanner/dashboard/kill_switch.py — KillSwitchAPI router with POST /api/risk/kill (single-click, returns undo token), POST /api/risk/undo-kill (5-second undo window), and POST /api/risk/reset (with confirmation modal requiring 'CONFIRM' text input), all requiring X-Confirm: true header",
+          "Implement 5-second undo window: kill activation stores a timestamped undo token; POST /api/risk/undo-kill checks token validity and calls reset_kill_switch() if within window",
+          "Implement POST /api/config/reload — reload ScannerSettings from disk, return new config values",
+          "Wire kill switch button in base.html — persistent large red button sends POST /api/risk/kill on single click, response triggers undo toast via HTMX hx-swap-oob with 5-second countdown",
+          "Wire kill switch reset — separate reset button (only visible when killed) opens confirmation modal requiring 'CONFIRM' text input before sending POST /api/risk/reset",
+          "Add kill switch status banner to base.html — red persistent banner when RiskGuard.is_killed is True, shown on all pages",
+          "Add request logging middleware — log all API requests with method, path, status, duration for audit trail",
+          "Add exception handling middleware — catch all unhandled exceptions in dashboard routes, log them, return 500 without crashing the scanner",
+          "Update Docker HEALTHCHECK to use /api/ping endpoint (lightweight, no computation)",
+          "Write integration tests: kill switch activation/undo/reset round-trip, undo window expiry, confirmation header enforcement, config reload",
+          "Security hardening: validate that no endpoint leaks secrets (API keys, private key paths), add rate limiting to kill switch endpoints (1 req/sec)"
+        ],
+        "deliverables": [
+          "src/niche_scanner/dashboard/kill_switch.py (with undo-kill endpoint)",
+          "Modified: src/niche_scanner/dashboard/server.py (middleware, kill switch router)",
+          "Modified: src/niche_scanner/dashboard/templates/base.html (single-click kill button, undo toast, reset confirmation modal, status banner)",
+          "Modified: Dockerfile (healthcheck using /api/ping)",
+          "Integration tests for kill switch (activate, undo within 5s, undo after 5s fails, reset with confirmation)",
+          "Final end-to-end verification: all 4 pages load, all API endpoints return valid data, kill switch works with undo, HTMX polling refreshes signals/overview/trades"
+        ]
+      }
+    ],
+    "tech_stack": [
+      "Python 3.11+ (existing)",
+      "FastAPI 0.115+ — ASGI web framework, async-native, Pydantic integration. uvicorn.Server.serve() runs as asyncio coroutine in the scanner's event loop.",
+      "uvicorn[standard] 0.34+ — ASGI server, Server.serve() is an async coroutine that runs inside an existing asyncio event loop without creating its own",
+      "Jinja2 3.1+ — server-side HTML template rendering, confirmed compatible with FastAPI's Jinja2Templates",
+      "HTMX 2.0+ via CDN (https://unpkg.com/htmx.org) — verified serving v2.0.8, dynamic HTML swaps without client-side JavaScript framework",
+      "Tailwind CSS 3.x via CDN (https://cdn.tailwindcss.com) — verified serving v3.x browser bundle, utility-first CSS styling with no build step",
+      "aiosqlite 0.20+ (existing) — async SQLite for all persistence, supports PRAGMA journal_mode=WAL for concurrent reads with single writer",
+      "Pydantic 2.9+ (existing) — request/response model validation and serialization",
+      "Chart.js 4.x via CDN (optional) — balance/PnL chart rendering on overview page"
+    ],
+    "complexity": "medium"
+  },
+  "schemas": {
+    "new_tables": {
+      "scan_cycles": {
+        "ddl": "CREATE TABLE IF NOT EXISTS scan_cycles (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    markets_scanned INTEGER NOT NULL,\n    signals_found INTEGER NOT NULL,\n    executed INTEGER NOT NULL,\n    skipped INTEGER NOT NULL,\n    no_exposure_cents INTEGER NOT NULL DEFAULT 0,\n    duration_ms INTEGER NOT NULL DEFAULT 0,\n    created_at TEXT NOT NULL DEFAULT (datetime('now'))\n);\nCREATE INDEX IF NOT EXISTS idx_scan_cycles_created ON scan_cycles (created_at);",
+        "description": "One row per scan cycle. Captures the summary metrics logged by MarketScanner at the end of each cycle. The no_exposure_cents field tracks cumulative NO-side exposure for the cycle, matching the existing scan_cycle() tracking variable. The duration_ms field records how long the scan cycle took from start to finish, enabling performance monitoring and degradation detection."
+      },
+      "balance_history": {
+        "ddl": "CREATE TABLE IF NOT EXISTS balance_history (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    balance_cents INTEGER NOT NULL,\n    peak_cents INTEGER NOT NULL,\n    drawdown_pct REAL NOT NULL,\n    cumulative_spend_cents INTEGER NOT NULL,\n    created_at TEXT NOT NULL DEFAULT (datetime('now'))\n);\nCREATE INDEX IF NOT EXISTS idx_balance_history_created ON balance_history (created_at);",
+        "description": "Balance snapshots recorded after each scan cycle (when balance is synced from Kalshi). drawdown_pct is calculated as (1 - balance_cents/peak_cents). Provides the time series for the balance/drawdown chart on the overview page."
+      }
+    },
+    "existing_tables_referenced": {
+      "trades": {
+        "source_file": "src/niche_scanner/journal/db.py",
+        "columns": ["id", "ticker", "engine", "side", "action", "contracts", "price_cents", "cost_cents (generated)", "model_prob", "market_prob", "edge_pp", "kelly_fraction", "thesis", "payout_cents", "outcome", "created_at", "resolved_at"],
+        "new_queries_needed": [
+          "SELECT * FROM trades WHERE id = ? — get_trade_by_id()",
+          "SELECT date(created_at) as day, SUM(payout_cents - cost_cents) as daily_pnl, COUNT(*) as trade_count FROM trades WHERE outcome IS NOT NULL GROUP BY day ORDER BY day — get_daily_stats()",
+          "SELECT * FROM trades WHERE outcome IS NULL — open positions query for overview page (supplements RiskGuard.state.positions with trade details)"
+        ]
+      }
+    },
+    "api_endpoints": [
+      {
+        "method": "GET",
+        "path": "/api/ping",
+        "response": {"status": "ok"},
+        "description": "Lightweight health check for Docker HEALTHCHECK — returns 200 with no computation"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trades",
+        "query_params": {"engine": "str|null", "action": "str|null", "outcome": "str|null", "limit": "int=50", "offset": "int=0"},
+        "response": {"trades": "[TradeRow]", "total": "int", "limit": "int", "offset": "int"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/trades/{id}",
+        "response": "TradeRow"
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats",
+        "query_params": {"engine": "str|null"},
+        "response": {"total_trades": "int", "wins": "int", "losses": "int", "win_rate": "float", "avg_edge_pp": "float", "net_pnl_cents": "int"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats/daily",
+        "response": {"days": "[{day: str, daily_pnl_cents: int, trade_count: int, cumulative_pnl_cents: int}]"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/risk/state",
+        "response": {"peak_balance_cents": "int", "current_balance_cents": "int", "cumulative_spend_cents": "int", "daily_loss_cents": "int", "daily_trade_count": "int", "open_position_count": "int", "day_start_balance_cents": "int", "killed": "bool", "kill_reason": "str", "positions": "dict[str, int]"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/risk/config",
+        "response": {"enabled": "bool", "starting_cash_cents": "int", "max_bet_size_cents": "int", "max_buy_usd_cum_cents": "int", "max_portfolio_drawdown": "float", "max_daily_loss_cents": "int", "position_stop_loss": "float", "max_open_positions": "int", "max_daily_trades": "int", "require_confirmation": "bool"}
+      },
+      {
+        "method": "POST",
+        "path": "/api/risk/kill",
+        "headers_required": {"X-Confirm": "true"},
+        "body": {"reason": "str (optional, defaults to 'Manual kill via dashboard')"},
+        "response": {"state": "RiskState", "undo_token": "str", "undo_expires_at": "str (ISO 8601, 5 seconds from now)"},
+        "description": "Single-click kill switch activation. Returns undo token valid for 5 seconds."
+      },
+      {
+        "method": "POST",
+        "path": "/api/risk/undo-kill",
+        "headers_required": {"X-Confirm": "true"},
+        "body": {"undo_token": "str"},
+        "response": "RiskState",
+        "description": "Undo kill switch activation within 5-second window. Returns 400 if token expired."
+      },
+      {
+        "method": "POST",
+        "path": "/api/risk/reset",
+        "headers_required": {"X-Confirm": "true"},
+        "body": {"confirmation": "str (must be 'CONFIRM')"},
+        "response": "RiskState",
+        "description": "Reset kill switch after the undo window has expired. Requires typing 'CONFIRM' in the UI modal."
+      },
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "response": {"components": "dict[str, {name: str, healthy: bool, last_error: str, seconds_since_heartbeat: float}]", "scan_loop_alive": "bool", "errors": "[str]", "scan_cycle_duration_ms": "int|null (latest)", "avg_scan_cycle_duration_ms": "float|null (last 10 cycles)"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/scanner/status",
+        "response": {"mode": "str (paper|live)", "engines": "[str]", "scan_interval_sec": "float", "last_scan_at": "str|null", "verticals": "dict[str, bool]"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/balance",
+        "response": {"balance_cents": "int", "peak_cents": "int", "drawdown_pct": "float", "cumulative_spend_cents": "int"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/balance/history",
+        "query_params": {"since_hours": "int=24", "limit": "int=500"},
+        "response": {"snapshots": "[{balance_cents: int, peak_cents: int, drawdown_pct: float, cumulative_spend_cents: int, created_at: str}]"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/scan-cycles",
+        "query_params": {"limit": "int=50", "offset": "int=0"},
+        "response": {"cycles": "[{id: int, markets_scanned: int, signals_found: int, executed: int, skipped: int, no_exposure_cents: int, duration_ms: int, created_at: str}]", "total": "int"}
+      },
+      {
+        "method": "POST",
+        "path": "/api/config/reload",
+        "headers_required": {"X-Confirm": "true"},
+        "response": {"reloaded": "bool", "config": "ScannerSettings snapshot"}
+      },
+      {
+        "method": "GET",
+        "path": "/api/signals/recent",
+        "query_params": {"limit": "int=20"},
+        "response": {"signals": "[{engine: str, ticker: str, side: str, model_prob: float, market_prob: float, edge_pp: float, fee_adjusted_edge: float, confidence: float, thesis: str, timestamp: str}]", "count": "int"},
+        "description": "Returns recent EdgeSignals from the in-memory buffer for HTMX-polled signals page"
+      }
+    ]
+  },
+  "file_structure": {
+    "new_files": [
+      "src/niche_scanner/dashboard/__init__.py",
+      "src/niche_scanner/dashboard/server.py",
+      "src/niche_scanner/dashboard/api.py",
+      "src/niche_scanner/dashboard/pages.py",
+      "src/niche_scanner/dashboard/kill_switch.py",
+      "src/niche_scanner/dashboard/scan_cycle_logger.py",
+      "src/niche_scanner/dashboard/balance_tracker.py",
+      "src/niche_scanner/dashboard/templates/base.html",
+      "src/niche_scanner/dashboard/templates/overview.html",
+      "src/niche_scanner/dashboard/templates/trades.html",
+      "src/niche_scanner/dashboard/templates/signals.html",
+      "src/niche_scanner/dashboard/templates/config.html",
+      "src/niche_scanner/dashboard/templates/partials/_trade_rows.html",
+      "src/niche_scanner/dashboard/templates/partials/_overview_stats.html",
+      "src/niche_scanner/dashboard/templates/partials/_risk_gauges.html",
+      "src/niche_scanner/dashboard/templates/partials/_health_status.html",
+      "src/niche_scanner/dashboard/templates/partials/_open_positions.html",
+      "src/niche_scanner/dashboard/templates/partials/_signals_table.html"
+    ],
+    "modified_files": [
+      "src/niche_scanner/main.py — add dashboard server lifecycle (import, create, start task with death watchdog callback, shutdown)",
+      "src/niche_scanner/journal/db.py — add scan_cycles (with duration_ms) and balance_history table DDL, enable WAL mode",
+      "src/niche_scanner/journal/trade_journal.py — add get_trade_by_id(), get_daily_stats(), and connection property for sharing",
+      "src/niche_scanner/config.py — add DashboardConfig section parsing from settings.yaml",
+      "config/settings.yaml — add dashboard section (port: 8050, host: 127.0.0.1, enabled: true)",
+      "pyproject.toml — add fastapi, uvicorn[standard], jinja2 dependencies",
+      "docker-compose.yml — add port mapping 127.0.0.1:8050:8050",
+      "Dockerfile — update HEALTHCHECK to curl /api/ping"
+    ],
+    "removed_from_v1": [
+      "src/niche_scanner/dashboard/websocket.py — WebSocket signal streaming deferred to v2"
+    ]
+  },
+  "risks": [
+    {
+      "description": "SQLite single-writer contention: the scanner's TradeJournal, ScanCycleLogger, and BalanceTracker all write to the same database file through a single shared aiosqlite.Connection.",
+      "severity": "medium",
+      "mitigation": "Enable WAL (Write-Ahead Logging) mode on the SQLite connection via PRAGMA journal_mode=WAL in init_db(). All three writers share a single aiosqlite.Connection owned by TradeJournal — ScanCycleLogger and BalanceTracker receive this connection as a constructor parameter. This ensures writes are serialized through Python's await mechanism, eliminating SQLITE_BUSY errors. The dashboard only writes scan_cycles and balance_history rows (both small, infrequent INSERTs) — the primary writer remains TradeJournal which already uses short transactions."
+    },
+    {
+      "description": "In-process server crash propagation: if an unhandled exception in FastAPI/uvicorn propagates to the event loop, it could crash the entire scanner process, halting live trading.",
+      "severity": "high",
+      "mitigation": "Wrap the uvicorn server asyncio task in a try/except that catches all exceptions, logs them, and does NOT re-raise. Add FastAPI exception handler middleware that catches all unhandled route exceptions and returns 500 without propagating. The scanner's scan loop and the dashboard server run as independent asyncio tasks — a crash in one should not affect the other if properly isolated. A death watchdog callback on the dashboard asyncio task sends a Telegram alert via AlertManager.send_risk_warning() if the task exits unexpectedly, ensuring the operator is notified even if they are not watching the dashboard."
+    },
+    {
+      "description": "Kill switch must be instantly accessible in emergency scenarios without friction that delays activation.",
+      "severity": "high",
+      "mitigation": "Kill switch is a persistent large red button visible in the page header on ALL dashboard pages — single click to activate with X-Confirm header sent automatically by the HTMX request. After activation, a 5-second undo toast appears allowing POST /api/risk/undo-kill to reverse the action if it was accidental. After the 5-second window expires, reversing requires POST /api/risk/reset with a confirmation modal where the user types 'CONFIRM'. This asymmetry (easy to kill, hard to reset) follows the fail-safe principle. All kill/undo/reset events are logged at WARNING level for audit trail."
+    },
+    {
+      "description": "Dashboard port conflict: the default port 8050 may already be in use on the host machine, preventing the dashboard from starting.",
+      "severity": "low",
+      "mitigation": "Make the port configurable via settings.yaml (dashboard.port) and overridable via DASHBOARD_PORT environment variable. If the port is in use, log a clear error message and continue running the scanner without the dashboard (degraded mode). Do not crash the scanner because the dashboard port is unavailable."
+    },
+    {
+      "description": "Scan cycle performance degradation: if many browser clients are polling API endpoints simultaneously, the I/O load from SQLite reads could slow down the scan cycle.",
+      "severity": "low",
+      "mitigation": "SQLite reads in WAL mode do not block writes, so API queries will not contend with the scanner's write path. HTMX polling intervals are conservative (30s for overview, 60s for trades, 10s for signals). The maximum expected concurrent users is 1-3 (operator monitoring). If needed, add simple in-memory caching (TTL=5s) for frequently-hit endpoints like /api/risk/state and /api/health which read from memory anyway."
+    },
+    {
+      "description": "No authentication: the dashboard exposes trading controls (kill switch) and sensitive data (balance, positions) without any authentication.",
+      "severity": "medium",
+      "mitigation": "Default host binding is 127.0.0.1 (localhost only). Docker port mapping uses 127.0.0.1:8050:8050 to prevent network exposure. A startup WARNING log is emitted if host is not 127.0.0.1: 'Dashboard is bound to {host} without authentication. Trading data and kill switch are accessible to anyone on the network.' For remote access, users should use SSH tunneling or a VPN. Optional HTTP Basic Auth gated by DASHBOARD_USER and DASHBOARD_PASS environment variables is a reasonable v1.1 follow-up."
+    },
+    {
+      "description": "Dashboard task dies silently, leaving operator without monitoring.",
+      "severity": "high",
+      "mitigation": "The dashboard asyncio task is wrapped with a done_callback that fires if the task completes unexpectedly (exception or early return). The callback logs at CRITICAL level and sends a Telegram alert via AlertManager.send_risk_warning('Dashboard server died: {error}'). The dashboard is not restarted automatically to avoid crash loops. The operator must restart the container to restore dashboard access."
+    }
+  ],
+  "success_criteria": [
+    "Dashboard loads the overview page within 2 seconds showing current P&L, win rate, risk gauge bars (balance/drawdown/spend), health status traffic lights, and open positions section (from RiskGuard.state.positions with ticker, cost_cents, total_exposure_cents, position_count)",
+    "Trade history page displays all trades from the SQLite journal with working filters (engine, action, outcome) and HTMX-powered pagination (50 trades per page)",
+    "Kill switch is a persistent large red button visible on ALL pages — single click activates it, a 5-second undo toast appears, and after the window expires reset requires typing 'CONFIRM' in a modal",
+    "Balance chart on the overview page shows historical balance and drawdown from the balance_history table with at least 24 hours of data resolution",
+    "Scan cycle history is queryable via /api/scan-cycles (including duration_ms) and visible on the overview page with cycles-per-hour, avg duration, and signals-per-cycle metrics",
+    "Signals page shows recent EdgeSignals via HTMX polling (every 10 seconds) from an in-memory buffer, without WebSocket",
+    "No measurable impact on scan cycle duration — dashboard API requests do not block or delay the scanner's scan_cycle() coroutine (verified by comparing scan cycle logs before and after dashboard integration)",
+    "All API endpoints return valid JSON matching the documented response schemas, verified by automated tests using httpx.AsyncClient against the FastAPI test client",
+    "The scanner continues to operate normally if the dashboard server fails to start (port conflict, uvicorn error) — graceful degradation with clear log messages",
+    "If the dashboard asyncio task dies, a Telegram alert is sent via AlertManager within 30 seconds",
+    "Config page displays all settings.yaml sections and the reload button successfully reloads settings without restarting the container",
+    "Docker HEALTHCHECK uses the /api/ping endpoint (lightweight, no computation) and correctly reports container health",
+    "Dashboard binds to 127.0.0.1 by default; a WARNING log is emitted at startup if host is changed to a non-localhost address"
+  ],
+  "notes": "This dashboard is designed as a monitoring and safety control surface, not a trading interface. It does not support placing orders, modifying positions, or changing risk parameters (except the kill switch and config reload). The read-heavy, write-light design minimizes the risk of the dashboard interfering with the scanner's primary trading function.\n\nKey architectural decision: running FastAPI in-process rather than as a separate container avoids the complexity of IPC (shared memory, Redis, message queue) for accessing RiskGuard and HealthMonitor state. The tradeoff is tighter coupling — a catastrophic dashboard failure could theoretically affect the scanner. This is mitigated by exception isolation and the death watchdog that alerts via Telegram if the dashboard task dies.\n\nThe HTMX + Tailwind approach was chosen over React/Vue/Svelte because: (1) no JavaScript build step simplifies the Docker image and development workflow, (2) server-rendered HTML with HTMX partial swaps provides sufficient interactivity for a monitoring dashboard, (3) the scanner's Python developers can maintain the templates without learning a JS framework, (4) Tailwind via CDN eliminates CSS build complexity while providing professional styling.\n\nWebSocket signal streaming was deferred to v2 after debate review identified that the signals page requires custom JavaScript for connection management (auto-reconnect, backoff, connection status), contradicting the zero-JS-build constraint. The v1 signals page uses HTMX polling (every 10s) from an in-memory buffer, providing 90% of the value with zero custom JavaScript. The v2 WebSocket implementation can be designed properly once signal volume and latency requirements are known from production.\n\nAll SQLite writers share a single aiosqlite.Connection owned by TradeJournal. ScanCycleLogger and BalanceTracker receive this connection as a constructor parameter, ensuring writes are serialized and eliminating SQLITE_BUSY errors.\n\nFuture extensions (out of scope for v1): WebSocket signal streaming (v2), HTTP basic auth (v1.1), trade annotation/notes UI, unrealized P&L tracking (requires Kalshi price polling for open positions), multi-scanner aggregation, Grafana/Prometheus metrics export, mobile-responsive layout optimization."
+}
