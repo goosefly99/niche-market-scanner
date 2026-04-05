@@ -10,7 +10,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 | 1.2 | Create dashboard package with `__init__.py` | Done (scaffold) | -- | `dashboard/__init__.py` |
 | 1.3 | Create DashboardServer class (FastAPI app, uvicorn task, death watchdog) | Complete | 1.2 | `dashboard/server.py` |
 | 1.4 | Create APIRouter with all GET endpoints | Complete | 1.3 | `dashboard/routes.py` |
-| 1.5 | Add `TradeJournal.get_trade_by_id()` and `get_daily_stats()` methods | Not Started | -- | `journal/trade_journal.py` |
+| 1.5 | Add `TradeJournal.get_trade_by_id()` and `get_daily_stats()` methods | Complete | -- | `journal/trade_journal.py` |
 | 1.6 | Expose TradeJournal aiosqlite.Connection as property | Not Started | -- | `journal/trade_journal.py` |
 | 1.7 | Integrate DashboardServer into main.py (task + death watchdog) | Not Started | 1.3 | `main.py` |
 | 1.8 | Add dashboard config section to settings.yaml | Not Started | -- | `config/settings.yaml` |

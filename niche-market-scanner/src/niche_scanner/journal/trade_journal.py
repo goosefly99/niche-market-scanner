@@ -112,6 +112,43 @@ class TradeJournal:
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
+    async def get_trade_by_id(self, trade_id: int) -> dict | None:
+        """Return a single trade as a dict, or None if not found."""
+        conn = self._ensure_conn()
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.execute(
+            "SELECT * FROM trades WHERE id = ?", (trade_id,),
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    async def get_daily_stats(self) -> list[dict]:
+        """Return per-day aggregates for resolved trades.
+
+        Each item has keys: date, trades, wins, losses, net_pnl_cents.
+        Results are ordered by date ascending.
+        """
+        conn = self._ensure_conn()
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.execute(
+            """
+            SELECT
+                date(created_at)                             AS date,
+                COUNT(*)                                     AS trades,
+                COALESCE(SUM(outcome = 'win'), 0)            AS wins,
+                COALESCE(SUM(outcome = 'loss'), 0)           AS losses,
+                COALESCE(SUM(payout_cents - cost_cents), 0)  AS net_pnl_cents
+            FROM trades
+            WHERE outcome IS NOT NULL
+            GROUP BY date(created_at)
+            ORDER BY date ASC
+            """,
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
     async def get_stats(self, engine: str | None = None) -> dict:
         """Return aggregate statistics for resolved trades.
 
