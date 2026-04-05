@@ -20,13 +20,15 @@ alongside the scanner's scan loop. All persistence goes through a single shared
 
 | Module | Role |
 |---|---|
-| `server.py` | Lifecycle manager. Creates the FastAPI app, mounts routers, starts/stops uvicorn as an asyncio task. Includes a death watchdog that alerts via Telegram if the dashboard task dies. |
-| `routes.py` | REST API endpoints (GET-only data, POST kill/reset/reload). Returns JSON for all `/api/*` paths. |
+| `server.py` | Lifecycle manager. Creates the FastAPI app, mounts routers, starts/stops uvicorn as an asyncio task. Includes a death watchdog that alerts via Telegram if the dashboard task dies. Owns the shared `SignalBuffer`, `ScanCycleLogger`, and `BalanceTracker` on `app.state`. |
+| `routes.py` | REST API endpoints (GET-only JSON). Serves trades, stats, risk, health, scanner status, balance, scan cycles, and recent signals. |
 | `pages.py` | HTML page route handlers. Renders Jinja2 templates for `/`, `/trades`, `/signals`, `/config`. Supports full-page and HTMX partial rendering. |
-| `kill_switch.py` | Kill switch API router. POST endpoints for kill (single-click + 5s undo), undo-kill, reset (requires CONFIRM), and config reload. All require `X-Confirm: true` header. |
 | `scan_cycle_logger.py` | Writes scan cycle summaries to the `scan_cycles` SQLite table. Receives shared aiosqlite connection from TradeJournal. `main.py` reads `scanner.last_cycle_stats` (a `ScanCycleStats` dataclass snapshot) after each cycle and passes the fields through. |
 | `balance_tracker.py` | Writes balance snapshots to the `balance_history` SQLite table. Receives shared aiosqlite connection from TradeJournal. |
+| `signal_buffer.py` | Bounded FIFO (`collections.deque`) of recent `EdgeSignal` objects. Shared between `main.py` (producer, calls `extend()` after each scan cycle) and the dashboard (consumer, `/api/signals/recent` + `/signals` page). Volatile — cleared on restart. Default capacity: 100. |
 | `templates/` | Jinja2 HTML templates. `base.html` is the layout; page templates extend it; `partials/` holds HTMX swap fragments. |
+
+**Planned (Phase 5):** `kill_switch.py` — POST endpoints for kill (single-click + 5s undo), undo-kill, reset (requires CONFIRM), and config reload. All will require `X-Confirm: true` header.
 
 ## Key Conventions
 
@@ -55,9 +57,9 @@ src/niche_scanner/dashboard/
     server.py               # FastAPI app lifecycle, uvicorn task, death watchdog
     routes.py               # REST API endpoints (JSON)
     pages.py                # HTML page route handlers (Jinja2)
-    kill_switch.py          # Kill/undo/reset/reload POST endpoints
     scan_cycle_logger.py    # scan_cycles table writer
     balance_tracker.py      # balance_history table writer
+    signal_buffer.py        # In-memory bounded deque of recent EdgeSignals
     templates/
         base.html           # Layout: Tailwind, HTMX, nav, kill switch button
         overview.html       # P&L, risk gauges, health, positions, balance chart
@@ -66,10 +68,6 @@ src/niche_scanner/dashboard/
         config.html         # Read-only settings display + reload button
         partials/
             _trade_rows.html
-            _overview_stats.html
-            _risk_gauges.html
-            _health_status.html
-            _open_positions.html
             _signals_table.html
 ```
 

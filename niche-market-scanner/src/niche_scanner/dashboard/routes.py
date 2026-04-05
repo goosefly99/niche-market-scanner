@@ -333,6 +333,30 @@ async def get_scan_cycles(
 # ---------------------------------------------------------------------------
 
 
+def _serialize_signal(signal: object) -> dict:
+    """Serialize an :class:`EdgeSignal` to a JSON-safe dict.
+
+    Converts the ``datetime`` timestamp to an ISO-8601 string and keeps
+    the metadata dict as-is (caller is responsible for only inserting
+    JSON-serialisable values into metadata).
+    """
+    ts = getattr(signal, "timestamp", None)
+    ts_str = ts.isoformat() if ts is not None else None
+    return {
+        "engine": signal.engine,
+        "ticker": signal.ticker,
+        "side": signal.side,
+        "model_prob": signal.model_prob,
+        "market_prob": signal.market_prob,
+        "edge_pp": signal.edge_pp,
+        "fee_adjusted_edge": signal.fee_adjusted_edge,
+        "confidence": signal.confidence,
+        "thesis": signal.thesis,
+        "metadata": dict(signal.metadata) if signal.metadata else {},
+        "timestamp": ts_str,
+    }
+
+
 @api_router.get("/signals/recent")
 async def get_recent_signals(
     request: Request,
@@ -340,10 +364,16 @@ async def get_recent_signals(
 ) -> dict:
     """Recent EdgeSignals from in-memory buffer (HTMX-polled, no WebSocket).
 
-    Returns an empty list until the signal buffer (Phase 4) is wired.
+    Reads from ``app.state.signal_buffer`` — a bounded deque populated by
+    the scan loop in ``main.py``.  Returns newest first.
     """
-    # Phase 4: read from app.state.signal_buffer (bounded deque)
+    signal_buffer = getattr(request.app.state, "signal_buffer", None)
+    if signal_buffer is None:
+        return {"signals": [], "count": 0}
+
+    recent = signal_buffer.recent(limit=limit)
+    payload = [_serialize_signal(s) for s in recent]
     return {
-        "signals": [],
-        "count": 0,
+        "signals": payload,
+        "count": len(payload),
     }

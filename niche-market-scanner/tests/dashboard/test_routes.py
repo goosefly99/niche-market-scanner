@@ -591,10 +591,96 @@ class TestGetScanCycles:
 
 
 class TestGetRecentSignals:
-    async def test_returns_empty(self, client: AsyncClient) -> None:
-        """Returns empty list until signal buffer is wired (future work)."""
+    async def test_returns_empty_when_buffer_empty(
+        self, client: AsyncClient,
+    ) -> None:
+        """Empty buffer returns an empty list."""
         resp = await client.get("/api/signals/recent")
         assert resp.status_code == 200
         body = resp.json()
         assert body["signals"] == []
         assert body["count"] == 0
+
+    async def test_returns_buffered_signals_newest_first(
+        self, client: AsyncClient,
+    ) -> None:
+        """Signals placed in the buffer are returned newest first."""
+        from datetime import datetime, timezone
+
+        from niche_scanner.engines.base import EdgeSignal
+
+        buffer = client._transport.app.state.signal_buffer
+        buffer.clear()
+        for ticker in ["A", "B", "C"]:
+            buffer.append(EdgeSignal(
+                engine="weather",
+                ticker=ticker,
+                side="yes",
+                model_prob=0.7,
+                market_prob=0.6,
+                edge_pp=10.0,
+                fee_adjusted_edge=9.5,
+                confidence=0.8,
+                thesis=f"test {ticker}",
+                metadata={"kelly_fraction": 0.05},
+                timestamp=datetime(
+                    2026, 4, 4, 12, 0, 0, tzinfo=timezone.utc,
+                ),
+            ))
+
+        resp = await client.get("/api/signals/recent")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["count"] == 3
+        tickers = [s["ticker"] for s in body["signals"]]
+        assert tickers == ["C", "B", "A"]
+        # Each signal has expected fields
+        first = body["signals"][0]
+        assert first["engine"] == "weather"
+        assert first["side"] == "yes"
+        assert first["model_prob"] == pytest.approx(0.7)
+        assert first["edge_pp"] == pytest.approx(10.0)
+        assert first["thesis"] == "test C"
+        assert first["metadata"] == {"kelly_fraction": 0.05}
+        assert first["timestamp"] == "2026-04-04T12:00:00+00:00"
+
+    async def test_respects_limit_parameter(
+        self, client: AsyncClient,
+    ) -> None:
+        """The limit query parameter caps the returned count."""
+        from niche_scanner.engines.base import EdgeSignal
+
+        buffer = client._transport.app.state.signal_buffer
+        buffer.clear()
+        for i in range(10):
+            buffer.append(EdgeSignal(
+                engine="economics",
+                ticker=f"T{i}",
+                side="no",
+                model_prob=0.4,
+                market_prob=0.5,
+                edge_pp=8.0,
+                fee_adjusted_edge=7.5,
+                confidence=0.7,
+                thesis=f"test {i}",
+            ))
+
+        resp = await client.get("/api/signals/recent?limit=3")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["count"] == 3
+        # newest first: T9, T8, T7
+        tickers = [s["ticker"] for s in body["signals"]]
+        assert tickers == ["T9", "T8", "T7"]
+
+    async def test_limit_validation_rejects_zero(
+        self, client: AsyncClient,
+    ) -> None:
+        resp = await client.get("/api/signals/recent?limit=0")
+        assert resp.status_code == 422
+
+    async def test_limit_validation_rejects_too_large(
+        self, client: AsyncClient,
+    ) -> None:
+        resp = await client.get("/api/signals/recent?limit=1000")
+        assert resp.status_code == 422

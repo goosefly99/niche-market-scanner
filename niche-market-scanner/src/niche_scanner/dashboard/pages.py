@@ -273,15 +273,36 @@ async def trades_page(
 
 
 @pages_router.get("/signals", response_class=HTMLResponse)
-async def signals_page(request: Request) -> HTMLResponse:
+async def signals_page(
+    request: Request,
+    limit: int = Query(20, ge=1, le=100),
+) -> HTMLResponse:
     """Signals page: HTMX-polled recent signals table (every 10s).
 
-    Renders from the in-memory signal buffer (populated in Phase 4).
+    Renders from the in-memory ``signal_buffer`` on ``app.state`` —
+    populated by the scan loop in ``main.py``.  Newest first.
     """
     risk_guard = request.app.state.risk_guard
+    signal_buffer = getattr(request.app.state, "signal_buffer", None)
 
-    # Phase 4: read from app.state.signal_buffer
     signals: list[dict] = []
+    if signal_buffer is not None:
+        for s in signal_buffer.recent(limit=limit):
+            signals.append({
+                "engine": s.engine,
+                "ticker": s.ticker,
+                "side": s.side,
+                "model_prob": s.model_prob,
+                "market_prob": s.market_prob,
+                "edge_pp": s.edge_pp,
+                "fee_adjusted_edge": s.fee_adjusted_edge,
+                "confidence": s.confidence,
+                "thesis": s.thesis,
+                "kelly_fraction": float(
+                    s.metadata.get("kelly_fraction", 0.0),
+                ) if s.metadata else 0.0,
+                "timestamp": s.timestamp,
+            })
 
     context = {
         "request": request,

@@ -49,10 +49,10 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 
 | # | Task | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
-| 4.1 | Implement in-memory EdgeSignal buffer (bounded deque, maxlen=100) | Not Started | 1.3 | `dashboard/server.py` |
-| 4.2 | Add signal capture hook in MarketScanner or main.py | Not Started | 4.1 | `main.py` or `scanner/market_scanner.py` |
-| 4.3 | Create GET /api/signals/recent endpoint | Not Started | 4.1 | `dashboard/routes.py` |
-| 4.4 | Wire signals.html HTMX polling to /api/signals/recent (every 10s) | Not Started | 4.3, 2.4 | `templates/signals.html` |
+| 4.1 | Implement in-memory EdgeSignal buffer (bounded deque, maxlen=100) | Complete | 1.3 | `dashboard/signal_buffer.py`, `dashboard/server.py` |
+| 4.2 | Add signal capture hook in MarketScanner or main.py | Complete | 4.1 | `main.py` |
+| 4.3 | Create GET /api/signals/recent endpoint | Complete | 4.1 | `dashboard/routes.py` |
+| 4.4 | Wire signals.html HTMX polling to /api/signals/recent (every 10s) | Complete | 4.3, 2.4 | `templates/signals.html`, `dashboard/pages.py` |
 | 4.5 | Add HTMX auto-refresh to overview page (every 30s) | Not Started | 2.2 | `templates/overview.html` |
 | 4.6 | Add HTMX auto-refresh to trades page (every 60s) | Not Started | 2.3 | `templates/trades.html` |
 

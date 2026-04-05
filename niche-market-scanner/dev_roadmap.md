@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 31 |
+| Complete | 32 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **31** |
+| **Total** | **32** |
 
 ---
 
@@ -105,6 +105,7 @@ Improvements identified during codebase review after Phase 5 completion.
 | 6.2 | Build real probability estimation in economics engine | Complete | High | `src/niche_scanner/engines/economics.py`, `tests/engines/test_economics.py` |
 | 6.3 | Add broader market discovery for thin-market engine | Complete | High | `src/niche_scanner/scanner/market_scanner.py`, `src/niche_scanner/kalshi/client.py` |
 | 6.4 | Wire dashboard API stubs to real ScanCycleLogger and BalanceTracker data | Complete | High | `src/niche_scanner/dashboard/server.py`, `src/niche_scanner/dashboard/routes.py`, `tests/dashboard/test_routes.py`, `tests/dashboard/test_server.py` |
+| 6.5 | Add in-memory EdgeSignal buffer wired to /signals page and /api/signals/recent (dashboard Phase 4.1-4.4) | Complete | High | `src/niche_scanner/dashboard/signal_buffer.py`, `src/niche_scanner/dashboard/server.py`, `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/dashboard/pages.py`, `src/niche_scanner/main.py`, `tests/dashboard/test_signal_buffer.py` |
 
 ---
 

@@ -67,6 +67,43 @@ class TestCreateApp:
         assert hasattr(app.state, "templates")
         assert hasattr(app.state, "scan_cycle_logger")
         assert hasattr(app.state, "balance_tracker")
+        assert hasattr(app.state, "signal_buffer")
+
+    def test_signal_buffer_created_when_not_provided(self) -> None:
+        """create_app() builds a fresh SignalBuffer when none is passed."""
+        from niche_scanner.dashboard.signal_buffer import SignalBuffer
+
+        app = _make_app()
+        assert isinstance(app.state.signal_buffer, SignalBuffer)
+        assert len(app.state.signal_buffer) == 0
+
+    def test_signal_buffer_shared_when_provided(self) -> None:
+        """A caller-supplied SignalBuffer is attached to app.state verbatim."""
+        from niche_scanner.dashboard.signal_buffer import SignalBuffer
+
+        risk_guard = MagicMock()
+        risk_guard.state = MagicMock()
+        risk_guard.config = MagicMock()
+        risk_guard.is_killed = False
+        risk_guard.kill_reason = ""
+        health_monitor = MagicMock()
+        journal = MagicMock()
+        settings = MagicMock()
+        scanner = MagicMock()
+        alert_manager = MagicMock()
+
+        shared = SignalBuffer(maxlen=42)
+        app = create_app(
+            risk_guard=risk_guard,
+            health_monitor=health_monitor,
+            journal=journal,
+            settings=settings,
+            scanner=scanner,
+            alert_manager=alert_manager,
+            signal_buffer=shared,
+        )
+        assert app.state.signal_buffer is shared
+        assert app.state.signal_buffer.maxlen == 42
 
     def test_api_router_mounted(self) -> None:
         app = _make_app()

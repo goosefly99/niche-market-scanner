@@ -30,6 +30,7 @@ from fastapi.templating import Jinja2Templates
 if TYPE_CHECKING:
     from niche_scanner.alerts.telegram import AlertManager
     from niche_scanner.config import ScannerSettings
+    from niche_scanner.dashboard.signal_buffer import SignalBuffer
     from niche_scanner.execution.risk_guard import RiskGuard
     from niche_scanner.journal.trade_journal import TradeJournal
     from niche_scanner.monitor.health import HealthMonitor
@@ -48,11 +49,20 @@ def create_app(
     settings: ScannerSettings,
     scanner: MarketScanner,
     alert_manager: AlertManager,
+    signal_buffer: SignalBuffer | None = None,
 ) -> FastAPI:
     """Create and configure the FastAPI application.
 
     Shared component references are stored on ``app.state`` so that route
     handlers can access them via ``request.app.state.<component>``.
+
+    Parameters
+    ----------
+    signal_buffer:
+        Optional shared :class:`SignalBuffer`.  When provided, both the
+        scan loop (``main.py``) and the dashboard read/write the same
+        bounded deque of recent :class:`EdgeSignal` objects.  When
+        ``None``, a fresh buffer is created for dashboard-only use.
     """
     app = FastAPI(
         title="Niche Market Scanner Dashboard",
@@ -71,10 +81,14 @@ def create_app(
     # --- Dashboard persistence components (shared connection) ----------
     from niche_scanner.dashboard.balance_tracker import BalanceTracker
     from niche_scanner.dashboard.scan_cycle_logger import ScanCycleLogger
+    from niche_scanner.dashboard.signal_buffer import SignalBuffer
 
     conn = journal.connection
     app.state.scan_cycle_logger = ScanCycleLogger(conn)
     app.state.balance_tracker = BalanceTracker(conn)
+
+    # --- In-memory signal buffer (volatile, cleared on restart) --------
+    app.state.signal_buffer = signal_buffer if signal_buffer is not None else SignalBuffer()
 
     # --- Templates ------------------------------------------------------
     app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))

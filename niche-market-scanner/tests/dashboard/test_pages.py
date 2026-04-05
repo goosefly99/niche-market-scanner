@@ -406,6 +406,58 @@ class TestSignalsPage:
         html = resp.text
         assert "<!DOCTYPE html>" not in html
 
+    async def test_renders_buffered_signals(self, client: AsyncClient) -> None:
+        """Signals in the buffer are rendered into the HTML table."""
+        from niche_scanner.engines.base import EdgeSignal
+
+        buffer = client._transport.app.state.signal_buffer
+        buffer.clear()
+        buffer.append(EdgeSignal(
+            engine="weather",
+            ticker="KXHIGHNY-26APR04-T75",
+            side="yes",
+            model_prob=0.72,
+            market_prob=0.60,
+            edge_pp=12.0,
+            fee_adjusted_edge=11.5,
+            confidence=0.8,
+            thesis="NOAA forecast exceeds market implied temp",
+            metadata={"kelly_fraction": 0.08},
+        ))
+
+        resp = await client.get("/signals")
+        assert resp.status_code == 200
+        html = resp.text
+        assert "KXHIGHNY-26APR04-T75" in html
+        assert "weather" in html
+        assert "No signals detected" not in html
+
+    async def test_signal_count_badge_reflects_buffer(
+        self, client: AsyncClient,
+    ) -> None:
+        """The signal count badge matches the number of signals rendered."""
+        from niche_scanner.engines.base import EdgeSignal
+
+        buffer = client._transport.app.state.signal_buffer
+        buffer.clear()
+        for i in range(2):
+            buffer.append(EdgeSignal(
+                engine="economics",
+                ticker=f"KXECON-{i}",
+                side="no",
+                model_prob=0.3,
+                market_prob=0.5,
+                edge_pp=15.0,
+                fee_adjusted_edge=14.0,
+                confidence=0.7,
+                thesis=f"release nowcast {i}",
+            ))
+        resp = await client.get("/signals")
+        html = resp.text
+        # Count badge shows 2
+        assert "KXECON-0" in html
+        assert "KXECON-1" in html
+
 
 class TestConfigPage:
     async def test_returns_html(self, client: AsyncClient) -> None:

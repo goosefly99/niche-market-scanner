@@ -16,6 +16,7 @@ from niche_scanner.config import (
 )
 from niche_scanner.dashboard.scan_cycle_logger import ScanCycleLogger
 from niche_scanner.dashboard.server import create_app, start_dashboard
+from niche_scanner.dashboard.signal_buffer import SignalBuffer
 from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
 from niche_scanner.engines.economics import EconomicsEdgeEngine, ReleaseCalendar
@@ -78,6 +79,9 @@ async def main() -> None:
 
     # 3b. Scan cycle persistence (shares the journal's aiosqlite connection)
     scan_cycle_logger = ScanCycleLogger(conn=journal.connection)
+
+    # 3c. In-memory signal buffer (shared between scan loop and dashboard)
+    signal_buffer = SignalBuffer()
 
     # 4. Build sizing config and sizer
     sizing_data = settings.sizing
@@ -232,6 +236,7 @@ async def main() -> None:
             settings=settings,
             scanner=scanner,
             alert_manager=alert_manager,
+            signal_buffer=signal_buffer,
         )
         dashboard_task = await start_dashboard(
             app,
@@ -275,9 +280,14 @@ async def main() -> None:
                 break
 
             try:
-                await scanner.scan_cycle(bankroll_cents)
+                cycle_signals = await scanner.scan_cycle(bankroll_cents)
                 monitor.scan_loop_heartbeat()
                 monitor.heartbeat("scanner")
+
+                # Push any newly-detected signals into the in-memory
+                # buffer for the dashboard's /signals view.
+                if cycle_signals:
+                    signal_buffer.extend(cycle_signals)
 
                 # Persist cycle metrics for the dashboard (best-effort)
                 stats = scanner.last_cycle_stats
