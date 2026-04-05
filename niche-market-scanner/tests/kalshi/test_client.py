@@ -150,3 +150,104 @@ async def test_get_balance(mock_auth: MagicMock) -> None:
         assert isinstance(balance, int)
     finally:
         await client.close()
+
+
+# ---------------------------------------------------------------------------
+# get_active_markets
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_get_active_markets(mock_auth: MagicMock) -> None:
+    """Mock GET /markets?status=open and verify (markets, cursor) returned."""
+    respx.get(f"{BASE_URL}/markets").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "markets": [
+                    {
+                        "ticker": "CRYPTO-BTC-100K",
+                        "event_ticker": "CRYPTO-BTC",
+                        "subtitle": "BTC above 100k",
+                        "yes_bid": 60,
+                        "yes_ask": 65,
+                        "no_bid": 35,
+                        "no_ask": 40,
+                        "last_price": 62,
+                        "volume": 500,
+                        "open_interest": 200,
+                        "status": "active",
+                        "close_time": "2026-12-31T23:59:59Z",
+                        "result": "",
+                    },
+                    {
+                        "ticker": "POLITICS-PRES-2028",
+                        "event_ticker": "POLITICS-PRES",
+                        "subtitle": "2028 Presidential",
+                        "yes_bid": 20,
+                        "yes_ask": 25,
+                        "no_bid": 75,
+                        "no_ask": 80,
+                        "last_price": 22,
+                        "volume": 1000,
+                        "open_interest": 800,
+                        "status": "active",
+                        "close_time": "2028-11-05T23:59:59Z",
+                        "result": "",
+                    },
+                ],
+                "cursor": "next-page-abc",
+            },
+        ),
+    )
+
+    client = KalshiClient(base_url=BASE_URL, auth=mock_auth)
+    try:
+        markets, cursor = await client.get_active_markets(limit=100)
+        assert len(markets) == 2
+        assert all(isinstance(m, Market) for m in markets)
+        assert markets[0].ticker == "CRYPTO-BTC-100K"
+        assert markets[1].ticker == "POLITICS-PRES-2028"
+        assert cursor == "next-page-abc"
+    finally:
+        await client.close()
+
+
+@respx.mock
+async def test_get_active_markets_empty_cursor(mock_auth: MagicMock) -> None:
+    """When the API returns no cursor, the last page has been reached."""
+    respx.get(f"{BASE_URL}/markets").mock(
+        return_value=httpx.Response(
+            200,
+            json={"markets": [], "cursor": ""},
+        ),
+    )
+
+    client = KalshiClient(base_url=BASE_URL, auth=mock_auth)
+    try:
+        markets, cursor = await client.get_active_markets()
+        assert markets == []
+        assert cursor == ""
+    finally:
+        await client.close()
+
+
+@respx.mock
+async def test_get_active_markets_caps_limit(mock_auth: MagicMock) -> None:
+    """Requesting a limit above 200 is clamped to 200."""
+    route = respx.get(f"{BASE_URL}/markets").mock(
+        return_value=httpx.Response(
+            200,
+            json={"markets": [], "cursor": ""},
+        ),
+    )
+
+    client = KalshiClient(base_url=BASE_URL, auth=mock_auth)
+    try:
+        await client.get_active_markets(limit=999)
+        # Verify the actual request used limit=200
+        actual_params = dict(route.calls[0].request.url.params)
+        assert actual_params["limit"] == "200"
+        assert actual_params["status"] == "open"
+    finally:
+        await client.close()

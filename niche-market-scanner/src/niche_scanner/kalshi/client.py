@@ -92,6 +92,44 @@ class KalshiClient:
         data = await self._request("GET", "/markets", params=params)
         return [Market(**m) for m in data.get("markets", [])]
 
+    async def get_active_markets(
+        self,
+        limit: int = 200,
+        cursor: str | None = None,
+    ) -> tuple[list[Market], str]:
+        """Fetch open markets across all categories for broad discovery.
+
+        Unlike :meth:`get_markets`, this method filters by
+        ``status=open`` and does not require a series or event ticker,
+        returning markets from any category (politics, crypto, sports,
+        etc.).  Pagination is supported via the returned cursor.
+
+        Parameters
+        ----------
+        limit:
+            Maximum number of markets to return in a single page
+            (Kalshi caps this at 200).
+        cursor:
+            Pagination cursor from a previous call.  Pass ``None``
+            for the first page.
+
+        Returns
+        -------
+        tuple[list[Market], str]
+            A ``(markets, next_cursor)`` pair.  When ``next_cursor``
+            is empty the final page has been reached.
+        """
+        params: dict[str, str | int] = {
+            "limit": min(limit, 200),
+            "status": "open",
+        }
+        if cursor is not None:
+            params["cursor"] = cursor
+        data = await self._request("GET", "/markets", params=params)
+        markets = [Market(**m) for m in data.get("markets", [])]
+        next_cursor: str = data.get("cursor", "")
+        return markets, next_cursor
+
     async def get_events(
         self,
         status: str | None = "open",

@@ -602,3 +602,330 @@ def test_scanner_backward_compat_without_calendar_args(
     assert scanner._normal_interval_sec == 600.0
     assert scanner._urgent_interval_sec == 120.0
     assert scanner.get_scan_interval_sec() == 600.0
+
+
+# ---------------------------------------------------------------------------
+# Item 6.3: Broad market discovery for thin-market engine
+# ---------------------------------------------------------------------------
+
+
+def _make_settings(
+    thin_market_enabled: bool = True,
+    discovery_limit: int | None = None,
+) -> MagicMock:
+    """Build a mock ScannerSettings with the given vertical/scanner config."""
+    settings = MagicMock()
+    settings.is_vertical_enabled.side_effect = (
+        lambda name: name == "thin_market" and thin_market_enabled
+    )
+    scanner_cfg: dict = {}
+    if discovery_limit is not None:
+        scanner_cfg["thin_market_discovery_limit"] = discovery_limit
+    settings.scanner = scanner_cfg
+    return settings
+
+
+async def test_discovery_enabled_when_settings_provided(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Discovery is enabled when settings has thin_market vertical on."""
+    settings = _make_settings(thin_market_enabled=True)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    assert scanner._discovery_enabled() is True
+
+
+async def test_discovery_disabled_without_settings(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Discovery defaults to off when no ScannerSettings is provided."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    assert scanner._discovery_enabled() is False
+
+
+async def test_discovery_disabled_when_vertical_off(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Discovery is off when thin_market vertical is disabled."""
+    settings = _make_settings(thin_market_enabled=False)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    assert scanner._discovery_enabled() is False
+
+
+async def test_discovery_limit_from_settings(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Discovery limit is read from settings.scanner config."""
+    settings = _make_settings(discovery_limit=300)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    assert scanner._discovery_limit == 300
+
+
+async def test_discovery_limit_explicit_overrides_settings(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """An explicit discovery_limit arg overrides settings.yaml."""
+    settings = _make_settings(discovery_limit=300)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+        discovery_limit=50,
+    )
+    assert scanner._discovery_limit == 50
+
+
+async def test_discovery_limit_default_without_settings(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Without settings, discovery limit defaults to _DEFAULT_DISCOVERY_LIMIT."""
+    from niche_scanner.scanner.market_scanner import _DEFAULT_DISCOVERY_LIMIT
+
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    assert scanner._discovery_limit == _DEFAULT_DISCOVERY_LIMIT
+
+
+async def test_scan_cycle_includes_discovery_markets(
+    sizer, trader, mock_icao,
+) -> None:
+    """When discovery is enabled, broad markets are added to the scan."""
+    weather_market = _make_market("KXHIGHNY-26APR05-T67")
+    discovery_market = _make_market("CRYPTO-BTC-100K")
+
+    client = AsyncMock()
+
+    # get_markets returns weather market for the series fetch
+    async def _get_markets(**kwargs):
+        series = kwargs.get("series_ticker", "")
+        if series == "KXTEST":
+            return [weather_market]
+        return []
+
+    client.get_markets = AsyncMock(side_effect=_get_markets)
+
+    # get_active_markets returns discovery market
+    client.get_active_markets = AsyncMock(
+        return_value=([discovery_market], ""),
+    )
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    settings = _make_settings(thin_market_enabled=True)
+    engine = StubEngine(signals=[])
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    # get_active_markets must have been called
+    client.get_active_markets.assert_called_once()
+
+
+async def test_scan_cycle_deduplicates_discovery_markets(
+    sizer, trader, mock_icao,
+) -> None:
+    """Markets already fetched via series are not duplicated by discovery."""
+    weather_market = _make_market("KXHIGHNY-26APR05-T67")
+    # Discovery returns the same weather market AND a new one
+    dup_market = _make_market("KXHIGHNY-26APR05-T67")
+    new_market = _make_market("POLITICS-PRES-2028")
+
+    client = AsyncMock()
+
+    async def _get_markets(**kwargs):
+        series = kwargs.get("series_ticker", "")
+        if series == "KXTEST":
+            return [weather_market]
+        return []
+
+    client.get_markets = AsyncMock(side_effect=_get_markets)
+    client.get_active_markets = AsyncMock(
+        return_value=([dup_market, new_market], ""),
+    )
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    settings = _make_settings(thin_market_enabled=True)
+
+    # Use an engine that records what markets it receives
+    received_markets: list[Market] = []
+
+    class RecordingEngine(EdgeEngine):
+        async def scan(self, markets, orderbooks):
+            received_markets.extend(markets)
+            return []
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[RecordingEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    # Should have 2 unique markets, not 3
+    tickers = [m.ticker for m in received_markets]
+    assert len(tickers) == 2
+    assert "KXHIGHNY-26APR05-T67" in tickers
+    assert "POLITICS-PRES-2028" in tickers
+
+
+async def test_scan_cycle_skips_discovery_when_disabled(
+    sizer, trader, mock_icao,
+) -> None:
+    """When thin_market is disabled, no discovery fetch is made."""
+    client = AsyncMock()
+    client.get_markets = AsyncMock(return_value=[_make_market()])
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+    client.get_active_markets = AsyncMock()
+
+    settings = _make_settings(thin_market_enabled=False)
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    # get_active_markets should NOT have been called
+    client.get_active_markets.assert_not_called()
+
+
+async def test_scan_cycle_discovery_failure_does_not_crash(
+    sizer, trader, mock_icao,
+) -> None:
+    """If the discovery fetch raises, the scan cycle continues."""
+    client = AsyncMock()
+    client.get_markets = AsyncMock(return_value=[_make_market()])
+    client.get_batch_orderbooks = AsyncMock(
+        return_value={"TEST-MKT-1": _make_orderbook()},
+    )
+    # get_active_markets raises
+    client.get_active_markets = AsyncMock(
+        side_effect=RuntimeError("API error"),
+    )
+
+    settings = _make_settings(thin_market_enabled=True)
+    engine = StubEngine(signals=[_make_signal()])
+    scanner = MarketScanner(
+        client=client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+    )
+    # Should not raise
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert len(signals) == 1
+
+
+async def test_fetch_discovery_markets_paginates(
+    sizer, trader, mock_icao,
+) -> None:
+    """_fetch_discovery_markets pages through multiple API responses."""
+    page1_markets = [_make_market(f"P1-{i}") for i in range(3)]
+    page2_markets = [_make_market(f"P2-{i}") for i in range(2)]
+
+    call_count = 0
+
+    async def _get_active(limit, cursor=None):
+        nonlocal call_count
+        call_count += 1
+        if cursor is None:
+            return page1_markets, "cursor-page-2"
+        return page2_markets, ""
+
+    client = AsyncMock()
+    client.get_active_markets = AsyncMock(side_effect=_get_active)
+    client.get_markets = AsyncMock(return_value=[])
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    settings = _make_settings(thin_market_enabled=True)
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+        discovery_limit=500,
+    )
+
+    result = await scanner._fetch_discovery_markets()
+    assert len(result) == 5
+    assert call_count == 2
+
+
+async def test_fetch_discovery_markets_respects_limit(
+    sizer, trader, mock_icao,
+) -> None:
+    """_fetch_discovery_markets stops once the limit is reached."""
+    large_page = [_make_market(f"D-{i}") for i in range(200)]
+
+    client = AsyncMock()
+    client.get_active_markets = AsyncMock(
+        return_value=(large_page, "more-pages"),
+    )
+    client.get_markets = AsyncMock(return_value=[])
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    settings = _make_settings(thin_market_enabled=True)
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        settings=settings,
+        discovery_limit=200,
+    )
+
+    result = await scanner._fetch_discovery_markets()
+    # Should stop after first page since 200 >= discovery_limit
+    assert len(result) == 200
+    assert client.get_active_markets.call_count == 1

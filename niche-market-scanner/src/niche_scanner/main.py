@@ -195,6 +195,7 @@ async def main() -> None:
         trader=trader,
         icao_stations=icao,
         alert_manager=alert_manager,
+        settings=settings,
         economics_series=economics_series,
         release_calendar=release_calendar,
         normal_interval_sec=normal_interval_sec,

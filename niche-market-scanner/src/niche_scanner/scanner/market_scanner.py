@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from niche_scanner.config import ICAOStations
+from niche_scanner.config import ICAOStations, ScannerSettings
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.engines.economics import ReleaseCalendar
 from niche_scanner.execution.paper_trader import PaperTrader
@@ -15,10 +15,16 @@ from niche_scanner.sizing.kelly import KellySizer, PositionSize
 
 if TYPE_CHECKING:
     from niche_scanner.alerts.telegram import AlertManager
+    from niche_scanner.kalshi.models import Market
 
 logger = logging.getLogger(__name__)
 
 _BATCH_SIZE = 20
+
+# Default cap for the broad market discovery fetch used by the
+# thin-market engine.  Overridden via ``thin_market_discovery_limit``
+# in the ``scanner`` section of settings.yaml.
+_DEFAULT_DISCOVERY_LIMIT = 200
 
 
 class MarketScanner:
@@ -39,11 +45,21 @@ class MarketScanner:
     alert_manager:
         Optional Telegram alert manager for sending signal and scan
         summary notifications. When ``None``, alerting is silently skipped.
+    settings:
+        Optional :class:`ScannerSettings` used to check vertical flags
+        and read ``thin_market_discovery_limit``.  When ``None``,
+        discovery is controlled solely by *discovery_limit*.
+    economics_series:
+        List of Kalshi series tickers for economics markets.
     release_calendar:
         Optional release calendar for dynamic scan interval switching.
         When provided, ``get_scan_interval_sec()`` returns the urgent
         interval if any tracked release type is within the configured
         window, otherwise the normal interval.
+    discovery_limit:
+        Maximum number of markets to fetch during broad discovery.
+        Only used when the ``thin_market`` vertical is enabled (or
+        when *settings* is ``None``).  Defaults to 200.
     normal_interval_sec:
         Default scan interval in seconds when no release is imminent.
     urgent_interval_sec:
@@ -61,8 +77,10 @@ class MarketScanner:
         trader: PaperTrader,
         icao_stations: ICAOStations | None = None,
         alert_manager: AlertManager | None = None,
+        settings: ScannerSettings | None = None,
         economics_series: list[str] | None = None,
         release_calendar: ReleaseCalendar | None = None,
+        discovery_limit: int | None = None,
         normal_interval_sec: float = 600.0,
         urgent_interval_sec: float = 120.0,
         urgent_window_hours: float = 48.0,
@@ -73,11 +91,24 @@ class MarketScanner:
         self._trader = trader
         self._icao = icao_stations
         self._alert_manager = alert_manager
+        self._settings = settings
         self._economics_series = economics_series or []
         self._release_calendar = release_calendar
         self._normal_interval_sec = normal_interval_sec
         self._urgent_interval_sec = urgent_interval_sec
         self._urgent_window_hours = urgent_window_hours
+
+        # Resolve discovery limit: explicit arg > settings.yaml > default
+        if discovery_limit is not None:
+            self._discovery_limit = discovery_limit
+        elif settings is not None:
+            self._discovery_limit = int(
+                settings.scanner.get(
+                    "thin_market_discovery_limit", _DEFAULT_DISCOVERY_LIMIT,
+                ),
+            )
+        else:
+            self._discovery_limit = _DEFAULT_DISCOVERY_LIMIT
 
     def get_scan_interval_sec(self) -> float:
         """Return the current scan interval in seconds.
@@ -110,20 +141,65 @@ class MarketScanner:
 
         return self._normal_interval_sec
 
+    def _discovery_enabled(self) -> bool:
+        """Return ``True`` when the broad market discovery fetch should run.
+
+        Discovery is gated on the ``thin_market`` vertical.  When no
+        :class:`ScannerSettings` was provided at construction time the
+        feature defaults to **off** to avoid unexpected API traffic.
+        """
+        if self._settings is None:
+            return False
+        return self._settings.is_vertical_enabled("thin_market")
+
+    async def _fetch_discovery_markets(self) -> list[Market]:
+        """Fetch open markets across all Kalshi categories.
+
+        Pages through ``KalshiClient.get_active_markets`` until
+        *discovery_limit* markets have been collected or the API
+        returns no further results.
+        """
+        collected: list[Market] = []
+        cursor: str | None = None
+        remaining = self._discovery_limit
+
+        while remaining > 0:
+            page_size = min(remaining, 200)
+            try:
+                batch, next_cursor = await self._client.get_active_markets(
+                    limit=page_size, cursor=cursor,
+                )
+            except Exception:
+                logger.debug("Discovery fetch failed (cursor=%s)", cursor)
+                break
+
+            if not batch:
+                break
+
+            collected.extend(batch)
+            remaining -= len(batch)
+
+            if not next_cursor:
+                break
+            cursor = next_cursor
+
+        return collected
+
     async def scan_cycle(self, bankroll_cents: int) -> list[EdgeSignal]:
         """Run one full scan cycle and return all detected signals.
 
         Steps
         -----
-        1. Fetch active markets from Kalshi.
-        2. Batch-fetch order books in chunks of 100.
+        1. Fetch active markets from Kalshi (weather + economics series).
+        1b. Optionally fetch broad discovery markets for the thin-market
+            engine and deduplicate against already-fetched tickers.
+        2. Batch-fetch order books in chunks of 20.
         3. Run each engine's ``scan()`` method (errors are caught per-engine).
         4. Size each signal via Kelly and execute if sized.
         5. Track aggregate NO-side exposure across the cycle.
         6. Log a summary of the cycle.
         """
         # 1. Fetch markets from all configured series (weather + economics)
-        from niche_scanner.kalshi.models import Market
         markets: list[Market] = []
 
         # Weather series from ICAO config
@@ -149,11 +225,28 @@ class MarketScanner:
             len(markets), total_series,
             len(weather_tickers), len(self._economics_series),
         )
+
+        # 1b. Broad market discovery for thin-market engine
+        discovery_count = 0
+        if self._discovery_enabled():
+            known_tickers = {m.ticker for m in markets}
+            discovery_markets = await self._fetch_discovery_markets()
+            for dm in discovery_markets:
+                if dm.ticker not in known_tickers:
+                    markets.append(dm)
+                    known_tickers.add(dm.ticker)
+                    discovery_count += 1
+            logger.info(
+                "Discovery fetch: %d new markets added (%d total after dedup)",
+                discovery_count,
+                len(markets),
+            )
+
         if not markets:
             logger.info("No markets found across any series")
             return []
 
-        # 2. Batch-fetch order books in chunks of 100
+        # 2. Batch-fetch order books in chunks of 20
         tickers = [m.ticker for m in markets]
         orderbooks: dict[str, OrderBook] = {}
         for i in range(0, len(tickers), _BATCH_SIZE):
@@ -206,9 +299,10 @@ class MarketScanner:
 
         # 6. Log summary
         logger.info(
-            "Scan cycle complete: %d markets, %d signals, "
+            "Scan cycle complete: %d markets (%d discovery), %d signals, "
             "%d executed, %d skipped, NO exposure %d cents",
             len(markets),
+            discovery_count,
             len(all_signals),
             executed_count,
             skipped_count,
