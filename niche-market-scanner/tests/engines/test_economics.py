@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
+import respx
 
 from niche_scanner.engines.economics import (
     INDICATOR_SIGMA,
@@ -30,7 +31,7 @@ def test_indicator_reading_weighted_probability() -> None:
     assert abs(result - expected) < 1e-9
 
 
-def test_no_bet_detection() -> None:
+async def test_no_bet_detection() -> None:
     """Engine can be instantiated and classifies CPI tickers correctly."""
     engine = EconomicsEdgeEngine(min_edge_pp=12.0)
 
@@ -41,11 +42,12 @@ def test_no_bet_detection() -> None:
     assert "jobs" in engine.SERIES_PATTERNS
     assert "gdp" in engine.SERIES_PATTERNS
 
-    # Verify fetch_indicators returns empty lists (Phase 2 stub)
-    assert engine.fetch_indicators("CPI") == []
-    assert engine.fetch_indicators("fed_rate") == []
-    assert engine.fetch_indicators("jobs") == []
-    assert engine.fetch_indicators("gdp") == []
+    # Verify fetch_indicators returns empty lists without FRED_API_KEY
+    # (CPI/fed_rate gracefully return [], jobs/gdp are stubs).
+    assert await engine.fetch_indicators("CPI") == []
+    assert await engine.fetch_indicators("fed_rate") == []
+    assert await engine.fetch_indicators("jobs") == []
+    assert await engine.fetch_indicators("gdp") == []
 
     # Verify _calculate_model_probability returns None for empty readings
     assert EconomicsEdgeEngine._calculate_model_probability([]) is None
@@ -205,11 +207,11 @@ class TestCPIIndicatorFetcher:
         rate = calculate_yoy_rate(current=309.0, year_ago=300.0)
         assert abs(rate - 3.0) < 0.01
 
-    def test_fetch_cpi_indicators_returns_readings(self) -> None:
+    async def test_fetch_cpi_indicators_returns_readings(self) -> None:
         """Integration: fetch_indicators('cpi') returns IndicatorReadings
         when FRED API key is not set (should return empty gracefully)."""
         engine = EconomicsEdgeEngine(min_edge_pp=12.0)
-        readings = engine.fetch_indicators("cpi")
+        readings = await engine.fetch_indicators("cpi")
         # Without FRED_API_KEY env var, should return empty (not crash)
         assert isinstance(readings, list)
 
@@ -243,10 +245,10 @@ class TestFedWatchFetcher:
         assert lower == 4.50
         assert upper == 4.75
 
-    def test_fetch_fed_rate_indicators_graceful(self) -> None:
+    async def test_fetch_fed_rate_indicators_graceful(self) -> None:
         """fetch_indicators('fed_rate') returns empty without FRED key."""
         engine = EconomicsEdgeEngine(min_edge_pp=12.0)
-        readings = engine.fetch_indicators("fed_rate")
+        readings = await engine.fetch_indicators("fed_rate")
         assert isinstance(readings, list)
 
 
@@ -309,6 +311,149 @@ class TestFREDClient:
         history = [("2025-01-01", 300.0), ("2025-02-01", 301.0)]
         yoy = client._yoy_from_history(history)
         assert yoy is None
+
+
+class TestFREDClientAsync:
+    """Verify FREDClient network I/O is truly async (non-blocking)."""
+
+    @respx.mock
+    async def test_fetch_history_makes_async_request(self) -> None:
+        """fetch_history() uses httpx.AsyncClient and parses the response."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "observations": [
+                        {"date": "2025-01-01", "value": "3.5"},
+                        {"date": "2025-02-01", "value": "3.7"},
+                    ],
+                },
+            ),
+        )
+        client = FREDClient(api_key="test-key")
+        history = await client.fetch_history("CPIAUCSL")
+        assert history == [("2025-01-01", 3.5), ("2025-02-01", 3.7)]
+
+    @respx.mock
+    async def test_fetch_history_caches_result(self) -> None:
+        """fetch_history() only hits the network once per unique cache key."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        route = respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": [{"date": "2025-01-01", "value": "3.5"}]},
+            ),
+        )
+        client = FREDClient(api_key="test-key")
+        first = await client.fetch_history("CPIAUCSL")
+        second = await client.fetch_history("CPIAUCSL")
+        assert first == second
+        assert route.call_count == 1  # cache hit on second call
+
+    @respx.mock
+    async def test_fetch_history_returns_empty_on_http_error(self) -> None:
+        """fetch_history() logs and returns [] when the API fails."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(500),
+        )
+        client = FREDClient(api_key="test-key")
+        result = await client.fetch_history("CPIAUCSL")
+        assert result == []
+
+    @respx.mock
+    async def test_fetch_latest_returns_most_recent_value(self) -> None:
+        """fetch_latest() returns the single observation value."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": [{"date": "2026-04-01", "value": "4.33"}]},
+            ),
+        )
+        client = FREDClient(api_key="test-key")
+        value = await client.fetch_latest("DFF")
+        assert value == 4.33
+
+    @respx.mock
+    async def test_fetch_latest_returns_none_on_empty(self) -> None:
+        """fetch_latest() returns None when no observations are returned."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(200, json={"observations": []}),
+        )
+        client = FREDClient(api_key="test-key")
+        value = await client.fetch_latest("DFF")
+        assert value is None
+
+
+class TestEconomicsEngineAsyncFetch:
+    """Verify EconomicsEdgeEngine.fetch_indicators() path is async end-to-end."""
+
+    @respx.mock
+    async def test_fetch_cpi_indicators_async_with_mocked_fred(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """With FRED_API_KEY set, CPI fetch returns IndicatorReadings."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL
+
+        monkeypatch.setenv("FRED_API_KEY", "test-key")
+
+        # 13 months of rising index values -> positive YoY
+        observations = [
+            {"date": f"2025-{m:02d}-01", "value": f"{300.0 + m * 0.5:.1f}"}
+            for m in range(13, 0, -1)  # desc order per FRED sort_order=desc
+        ]
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": observations},
+            ),
+        )
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        readings = await engine.fetch_indicators("cpi")
+        assert isinstance(readings, list)
+        assert len(readings) == 2  # Headline + Core CPI
+        for r in readings:
+            assert r.name.startswith("FRED")
+            assert r.weight == 0.5
+
+    @respx.mock
+    async def test_fetch_fed_rate_indicators_async_with_mocked_fred(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """With FRED_API_KEY set, fed_rate fetch returns IndicatorReadings."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL
+
+        monkeypatch.setenv("FRED_API_KEY", "test-key")
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": [{"date": "2026-04-01", "value": "4.33"}]},
+            ),
+        )
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        readings = await engine.fetch_indicators("fed_rate")
+        assert isinstance(readings, list)
+        assert len(readings) == 3  # DFF + T10YIE + DFEDTARU
+        names = {r.name for r in readings}
+        assert "FRED Effective Fed Funds Rate" in names
 
 
 # ---------------------------------------------------------------------------
@@ -663,13 +808,13 @@ class TestScanWithRefinement:
         # Override fetch_indicators to return known readings
         original_fetch = engine.fetch_indicators
 
-        def mock_fetch(release_type: str) -> list[IndicatorReading]:
+        async def mock_fetch(release_type: str) -> list[IndicatorReading]:
             if release_type == "cpi":
                 return [
                     IndicatorReading("FRED Headline CPI YoY", 3.2, 0.5, 0.5),
                     IndicatorReading("FRED Core CPI YoY", 3.0, 0.5, 0.5),
                 ]
-            return original_fetch(release_type)
+            return await original_fetch(release_type)
 
         engine.fetch_indicators = mock_fetch  # type: ignore[assignment]
 

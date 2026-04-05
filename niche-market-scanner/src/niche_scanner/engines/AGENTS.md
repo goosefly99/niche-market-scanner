@@ -14,7 +14,7 @@ own lens (weather forecasts, economic indicators, liquidity analysis).
 |---|---|
 | `base.py` | ABC `EdgeEngine` with abstract `scan()`. Dataclass `EdgeSignal` (engine, ticker, side, model_prob, market_prob, edge_pp, fee_adjusted_edge, confidence, thesis, metadata). |
 | `weather.py` | `WeatherEdgeEngine` — fetches NOAA hourly forecasts, builds Gaussian temperature model (`NOAAForecast`), compares bucket/threshold probabilities against Kalshi weather market prices. Caches NOAA responses in-memory. |
-| `economics.py` | `EconomicsEdgeEngine` — classifies markets by release type (CPI, Fed rate, jobs, GDP, etc.) via `SERIES_TICKER_MAP`, fetches indicators from FRED API, computes weighted model probability. Also contains `ReleaseCalendar` for scan interval switching. |
+| `economics.py` | `EconomicsEdgeEngine` — classifies markets by release type (CPI, Fed rate, jobs, GDP, etc.) via `SERIES_TICKER_MAP`, fetches indicators from FRED API via async `fetch_indicators()`, computes weighted model probability. Also contains `ReleaseCalendar` for scan interval switching and async `FREDClient` for historical data retrieval. |
 | `thin_market.py` | `ThinMarketEngine` — cross-category dead room detector. Derives fair value from orderbook mid-price (or last-trade fallback), compares against executable bid/ask prices, signals when fee-adjusted edge exceeds threshold. |
 
 ## Key Conventions
@@ -31,6 +31,10 @@ own lens (weather forecasts, economic indicators, liquidity analysis).
   mapping. Only verified stations are scanned.
 - Economics engine requires `FRED_API_KEY` env var for live indicator
   data; without it, indicator fetching returns empty (no crash).
+- **All HTTP I/O inside engines is async.** Engines use
+  `httpx.AsyncClient` context managers; no synchronous `httpx.get()`
+  calls in the scan path — blocking calls would stall the scanner and
+  dashboard on the shared event loop.
 
 ## Testing
 

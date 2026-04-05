@@ -102,11 +102,15 @@ FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
 
 
 class FREDClient:
-    """Client for fetching economic data from the FRED API.
+    """Async client for fetching economic data from the FRED API.
 
     Provides caching, historical series retrieval, and YoY calculations.
     Used by the economics engine for both live indicator fetching and
     backtesting/calibration against historical releases.
+
+    All network I/O is async — the shared event loop is never blocked
+    during FRED requests. The parsing helpers (``_parse_history``,
+    ``_yoy_from_history``) remain synchronous since they do no I/O.
 
     Requires a FRED API key (free, register at https://fred.stlouisfed.org/docs/api/api_key.html).
     """
@@ -115,7 +119,7 @@ class FREDClient:
         self.api_key = api_key
         self._cache: dict[str, list[tuple[str, float]]] = {}
 
-    def fetch_history(
+    async def fetch_history(
         self,
         series_id: str,
         start_date: str | None = None,
@@ -151,16 +155,17 @@ class FREDClient:
             params["observation_end"] = end_date
 
         try:
-            resp = httpx.get(FRED_BASE_URL, params=params, timeout=15.0)
-            resp.raise_for_status()
-            history = self._parse_history(resp.json())
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(FRED_BASE_URL, params=params)
+                resp.raise_for_status()
+                history = self._parse_history(resp.json())
             self._cache[cache_key] = history
             return history
         except httpx.HTTPError:
             logger.exception("FRED history fetch failed for %s", series_id)
             return []
 
-    def fetch_latest(self, series_id: str) -> float | None:
+    async def fetch_latest(self, series_id: str) -> float | None:
         """Fetch the most recent observation value."""
         params: dict[str, str | int] = {
             "series_id": series_id,
@@ -170,9 +175,10 @@ class FREDClient:
             "limit": 1,
         }
         try:
-            resp = httpx.get(FRED_BASE_URL, params=params, timeout=10.0)
-            resp.raise_for_status()
-            values = self._parse_history(resp.json())
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(FRED_BASE_URL, params=params)
+                resp.raise_for_status()
+                values = self._parse_history(resp.json())
             return values[0][1] if values else None
         except (httpx.HTTPError, IndexError):
             return None
@@ -558,21 +564,22 @@ class EconomicsEdgeEngine(EdgeEngine):
     # Indicator fetching (Phase 2 stubs)
     # ------------------------------------------------------------------
 
-    def fetch_indicators(self, release_type: str) -> list[IndicatorReading]:
+    async def fetch_indicators(self, release_type: str) -> list[IndicatorReading]:
         """Fetch indicator readings for a release type.
 
-        Currently implemented: CPI (via FRED API).
-        Stubs: fed_rate (CME FedWatch), jobs (ADP).
+        All network I/O is async — the event loop is never blocked during
+        FRED requests. Currently implemented: CPI and fed_rate (via FRED
+        API). Stubs: jobs (ADP), gdp, unemployment.
         """
         if release_type == "cpi":
-            return self._fetch_cpi_indicators()
+            return await self._fetch_cpi_indicators()
         if release_type == "fed_rate":
-            return self._fetch_fed_rate_indicators()
+            return await self._fetch_fed_rate_indicators()
         if release_type == "jobs":
-            return self._fetch_jobs_indicators()
+            return await self._fetch_jobs_indicators()
         return []
 
-    def _fetch_cpi_indicators(self) -> list[IndicatorReading]:
+    async def _fetch_cpi_indicators(self) -> list[IndicatorReading]:
         """Fetch CPI indicator readings from FRED API.
 
         Uses CPIAUCSL (headline CPI) and CPILFESL (core CPI) to calculate
@@ -588,37 +595,42 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         readings: list[IndicatorReading] = []
 
-        for series_id, weight, name in [
-            ("CPIAUCSL", 0.5, "FRED Headline CPI YoY"),
-            ("CPILFESL", 0.5, "FRED Core CPI YoY"),
-        ]:
-            try:
-                yoy = self._fetch_fred_yoy(api_key, series_id)
-                if yoy is not None:
-                    # For a CPI threshold like "3.5% or above":
-                    # probability_above is estimated from how close
-                    # current YoY is to the threshold. This is a rough
-                    # model — refinement comes with Cleveland Fed nowcast.
-                    readings.append(IndicatorReading(
-                        name=name,
-                        value=yoy,
-                        probability_above=0.5,  # Neutral default; refined per-market
-                        weight=weight,
-                    ))
-            except Exception:
-                logger.exception("Failed to fetch FRED series %s", series_id)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            for series_id, weight, name in [
+                ("CPIAUCSL", 0.5, "FRED Headline CPI YoY"),
+                ("CPILFESL", 0.5, "FRED Core CPI YoY"),
+            ]:
+                try:
+                    yoy = await self._fetch_fred_yoy(client, api_key, series_id)
+                    if yoy is not None:
+                        # For a CPI threshold like "3.5% or above":
+                        # probability_above is estimated from how close
+                        # current YoY is to the threshold. This is a rough
+                        # model — refinement comes with Cleveland Fed nowcast.
+                        readings.append(IndicatorReading(
+                            name=name,
+                            value=yoy,
+                            probability_above=0.5,  # Neutral default; refined per-market
+                            weight=weight,
+                        ))
+                except Exception:
+                    logger.exception("Failed to fetch FRED series %s", series_id)
 
         return readings
 
     @staticmethod
-    def _fetch_fred_yoy(api_key: str, series_id: str) -> float | None:
+    async def _fetch_fred_yoy(
+        client: httpx.AsyncClient, api_key: str, series_id: str,
+    ) -> float | None:
         """Fetch latest YoY rate for a FRED series.
 
         Retrieves the last 13 months of data, calculates YoY from the
-        most recent vs 12-months-ago observations.
+        most recent vs 12-months-ago observations. Uses the supplied
+        :class:`httpx.AsyncClient` so the caller controls connection
+        pooling and request timeouts.
         """
         try:
-            resp = httpx.get(
+            resp = await client.get(
                 FRED_BASE_URL,
                 params={
                     "series_id": series_id,
@@ -627,7 +639,6 @@ class EconomicsEdgeEngine(EdgeEngine):
                     "sort_order": "desc",
                     "limit": 13,
                 },
-                timeout=10.0,
             )
             resp.raise_for_status()
             values = parse_fred_observations(resp.json())
@@ -641,7 +652,7 @@ class EconomicsEdgeEngine(EdgeEngine):
             logger.exception("FRED fetch failed for %s", series_id)
             return None
 
-    def _fetch_fed_rate_indicators(self) -> list[IndicatorReading]:
+    async def _fetch_fed_rate_indicators(self) -> list[IndicatorReading]:
         """Fetch Fed rate indicators from FRED API.
 
         Uses the Effective Federal Funds Rate (DFF) and target range
@@ -663,57 +674,68 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         readings: list[IndicatorReading] = []
 
-        # Fetch effective Fed Funds rate
-        try:
-            eff_rate = self._fetch_fred_latest(api_key, "DFF")
-            if eff_rate is not None:
-                lower, upper = parse_fed_target_range(eff_rate)
-                readings.append(IndicatorReading(
-                    name="FRED Effective Fed Funds Rate",
-                    value=eff_rate,
-                    probability_above=0.5,  # Neutral; refined per-market
-                    weight=0.4,
-                ))
-                logger.info(
-                    "Fed rate: %.2f%% (target range %.2f-%.2f%%)",
-                    eff_rate, lower, upper,
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Fetch effective Fed Funds rate
+            try:
+                eff_rate = await self._fetch_fred_latest(client, api_key, "DFF")
+                if eff_rate is not None:
+                    lower, upper = parse_fed_target_range(eff_rate)
+                    readings.append(IndicatorReading(
+                        name="FRED Effective Fed Funds Rate",
+                        value=eff_rate,
+                        probability_above=0.5,  # Neutral; refined per-market
+                        weight=0.4,
+                    ))
+                    logger.info(
+                        "Fed rate: %.2f%% (target range %.2f-%.2f%%)",
+                        eff_rate, lower, upper,
+                    )
+            except Exception:
+                logger.exception("Failed to fetch DFF")
+
+            # Fetch breakeven inflation rate (market expectations)
+            try:
+                breakeven = await self._fetch_fred_latest(
+                    client, api_key, "T10YIE",
                 )
-        except Exception:
-            logger.exception("Failed to fetch DFF")
+                if breakeven is not None:
+                    readings.append(IndicatorReading(
+                        name="10Y Breakeven Inflation Rate",
+                        value=breakeven,
+                        probability_above=0.5,
+                        weight=0.3,
+                    ))
+            except Exception:
+                logger.exception("Failed to fetch T10YIE")
 
-        # Fetch breakeven inflation rate (market expectations)
-        try:
-            breakeven = self._fetch_fred_latest(api_key, "T10YIE")
-            if breakeven is not None:
-                readings.append(IndicatorReading(
-                    name="10Y Breakeven Inflation Rate",
-                    value=breakeven,
-                    probability_above=0.5,
-                    weight=0.3,
-                ))
-        except Exception:
-            logger.exception("Failed to fetch T10YIE")
-
-        # Fetch target range bounds
-        try:
-            target_upper = self._fetch_fred_latest(api_key, "DFEDTARU")
-            if target_upper is not None:
-                readings.append(IndicatorReading(
-                    name="Fed Funds Target Upper",
-                    value=target_upper,
-                    probability_above=0.5,
-                    weight=0.3,
-                ))
-        except Exception:
-            logger.exception("Failed to fetch DFEDTARU")
+            # Fetch target range bounds
+            try:
+                target_upper = await self._fetch_fred_latest(
+                    client, api_key, "DFEDTARU",
+                )
+                if target_upper is not None:
+                    readings.append(IndicatorReading(
+                        name="Fed Funds Target Upper",
+                        value=target_upper,
+                        probability_above=0.5,
+                        weight=0.3,
+                    ))
+            except Exception:
+                logger.exception("Failed to fetch DFEDTARU")
 
         return readings
 
     @staticmethod
-    def _fetch_fred_latest(api_key: str, series_id: str) -> float | None:
-        """Fetch the most recent observation value for a FRED series."""
+    async def _fetch_fred_latest(
+        client: httpx.AsyncClient, api_key: str, series_id: str,
+    ) -> float | None:
+        """Fetch the most recent observation value for a FRED series.
+
+        Uses the supplied :class:`httpx.AsyncClient` so the caller
+        controls connection pooling and request timeouts.
+        """
         try:
-            resp = httpx.get(
+            resp = await client.get(
                 FRED_BASE_URL,
                 params={
                     "series_id": series_id,
@@ -722,7 +744,6 @@ class EconomicsEdgeEngine(EdgeEngine):
                     "sort_order": "desc",
                     "limit": 1,
                 },
-                timeout=10.0,
             )
             resp.raise_for_status()
             values = parse_fred_observations(resp.json())
@@ -731,7 +752,7 @@ class EconomicsEdgeEngine(EdgeEngine):
             return None
 
     @staticmethod
-    def _fetch_jobs_indicators() -> list[IndicatorReading]:
+    async def _fetch_jobs_indicators() -> list[IndicatorReading]:
         """Stub: ADP, jobless claims, ISM employment (future)."""
         return []
 
@@ -920,7 +941,7 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         # 2. For each release type, fetch indicators and evaluate per-market
         for release_type, group in grouped.items():
-            readings = self.fetch_indicators(release_type)
+            readings = await self.fetch_indicators(release_type)
             if not readings:
                 logger.debug(
                     "No indicator data for %s; skipping %d markets",
