@@ -25,7 +25,6 @@ from typing import TYPE_CHECKING
 
 import uvicorn
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 if TYPE_CHECKING:
@@ -73,13 +72,12 @@ def create_app(
     app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
     # --- Routers --------------------------------------------------------
-    # TODO: mount routers once implemented
-    # from niche_scanner.dashboard.routes import api_router
-    # from niche_scanner.dashboard.pages import pages_router
-    # from niche_scanner.dashboard.kill_switch import kill_switch_router
-    # app.include_router(api_router)
-    # app.include_router(pages_router)
-    # app.include_router(kill_switch_router)
+    from niche_scanner.dashboard.routes import api_router
+
+    app.include_router(api_router)
+
+    # Phase 2: pages_router (HTML page routes)
+    # Phase 5: kill_switch_router (POST endpoints for kill/reset/reload)
 
     return app
 
