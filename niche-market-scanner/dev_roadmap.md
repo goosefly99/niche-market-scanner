@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 27 |
+| Complete | 28 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **27** |
+| **Total** | **28** |
 
 ---
 
@@ -92,6 +92,16 @@ Identified during continuous improvement review. Not blocking — all core funct
 | 5.5 | Add Kalshi WebSocket client for real-time orderbook streaming | Complete | Medium | `src/niche_scanner/kalshi/websocket.py` |
 | 5.6 | Add economics markets to scanner fetch (alongside weather series) | Complete | High | `src/niche_scanner/scanner/market_scanner.py` |
 | 5.7 | Integration test: end-to-end scan cycle with mocked Kalshi + NOAA APIs | Complete | Medium | `tests/test_integration.py` |
+
+---
+
+## Phase 6: Continuous Improvement
+
+Improvements identified during codebase review after Phase 5 completion.
+
+| # | Item | Status | Priority | Target Files |
+|---|------|--------|----------|--------------|
+| 6.1 | Add AGENTS.md to all subpackages with 3+ source files | Complete | Medium | `src/niche_scanner/kalshi/AGENTS.md`, `src/niche_scanner/engines/AGENTS.md`, `src/niche_scanner/execution/AGENTS.md`, `src/niche_scanner/sizing/AGENTS.md`, `src/niche_scanner/journal/AGENTS.md` |
 
 ---
 
