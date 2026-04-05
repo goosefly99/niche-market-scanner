@@ -38,7 +38,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 |---|------|--------|------------|--------------|
 | 3.1 | Add scan_cycles and balance_history CREATE TABLE to db.py | Complete | -- | `journal/db.py` |
 | 3.2 | Create ScanCycleLogger (record_cycle, get_recent_cycles) | Complete | 3.1 | `dashboard/scan_cycle_logger.py` |
-| 3.3 | Create BalanceTracker (record_snapshot, get_history) | Not Started | 3.1 | `dashboard/balance_tracker.py` |
+| 3.3 | Create BalanceTracker (record_snapshot, get_history) | Complete | 3.1 | `dashboard/balance_tracker.py` |
 | 3.4 | Integrate ScanCycleLogger into main.py scan loop (with timer) | Not Started | 3.2, 1.7 | `main.py` |
 | 3.5 | Integrate BalanceTracker into main.py scan loop | Not Started | 3.3, 1.7 | `main.py` |
 | 3.6 | Add /api/scan-cycles and /api/balance/history endpoints | Not Started | 3.2, 3.3 | `dashboard/routes.py` |
