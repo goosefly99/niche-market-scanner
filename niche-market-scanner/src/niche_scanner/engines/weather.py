@@ -105,18 +105,68 @@ class NOAAForecast:
 
 
 class WeatherEdgeEngine(EdgeEngine):
-    """Detect edges on Kalshi temperature markets using NOAA forecasts."""
+    """Detect edges on Kalshi temperature markets using NOAA forecasts.
+
+    Parameters
+    ----------
+    icao_stations:
+        ICAO station configuration providing city-to-NOAA-grid mappings.
+    min_edge_pp:
+        Minimum fee-adjusted edge (in percentage points) required to emit
+        a signal.
+    noaa_cache_ttl_sec:
+        Time-to-live for in-memory NOAA forecast cache entries.
+    http_client:
+        Optional shared :class:`httpx.AsyncClient` used for NOAA HTTP
+        calls.  When ``None`` (the default), the engine lazily creates a
+        single long-lived client on first use and owns its lifecycle —
+        call :meth:`close` at shutdown to release sockets.  Passing an
+        externally owned client disables that ownership so the caller is
+        responsible for closing it (useful for sharing one client across
+        engines or in unit tests).
+    """
 
     def __init__(
         self,
         icao_stations: ICAOStations,
         min_edge_pp: float = 12.0,
         noaa_cache_ttl_sec: int = 900,
+        http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._stations = icao_stations
         self._min_edge_pp = min_edge_pp
         self._cache_ttl = noaa_cache_ttl_sec
         self._cache: dict[str, tuple[float, NOAAForecast]] = {}
+        # Connection reuse: a single long-lived client avoids re-opening a
+        # TCP connection (and the TLS handshake) for every city on every
+        # scan cycle.  ``_owns_client`` tracks whether we created the
+        # client ourselves so ``close()`` only closes what we own.
+        self._http_client: httpx.AsyncClient | None = http_client
+        self._owns_client: bool = http_client is None
+
+    async def close(self) -> None:
+        """Release HTTP resources owned by this engine.
+
+        Safe to call multiple times.  When an externally supplied client
+        was passed to ``__init__`` this method is a no-op.
+        """
+        if self._owns_client and self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
+
+    def _get_http_client(self) -> httpx.AsyncClient:
+        """Return the shared HTTP client, creating it on first use.
+
+        The client is given the NOAA-mandated User-Agent header but no
+        default timeout; each request passes its own ``timeout=``
+        explicitly so per-call deadlines remain independent of the
+        shared client.
+        """
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient(
+                headers={"User-Agent": "niche-market-scanner/0.1"},
+            )
+        return self._http_client
 
     # -- ticker parsing -----------------------------------------------------
 
@@ -264,14 +314,10 @@ class WeatherEdgeEngine(EdgeEngine):
         )
 
         try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    url,
-                    headers={"User-Agent": "niche-market-scanner/0.1"},
-                    timeout=10.0,
-                )
-                resp.raise_for_status()
-                data = resp.json()
+            client = self._get_http_client()
+            resp = await client.get(url, timeout=10.0)
+            resp.raise_for_status()
+            data = resp.json()
         except (httpx.HTTPError, Exception):
             logger.exception("NOAA fetch failed for %s", city)
             return None

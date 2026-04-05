@@ -457,6 +457,107 @@ class TestEconomicsEngineAsyncFetch:
 
 
 # ---------------------------------------------------------------------------
+# Item 6.10: Shared httpx.AsyncClient reuse
+# ---------------------------------------------------------------------------
+
+
+class TestHttpClientReuse:
+    """Verify engines and FREDClient reuse a single AsyncClient instance."""
+
+    @respx.mock
+    async def test_fred_client_reuses_single_async_client(self) -> None:
+        """FREDClient reuses its lazy client across multiple fetches."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL, FREDClient
+
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": [{"date": "2025-01-01", "value": "3.5"}]},
+            ),
+        )
+        client = FREDClient(api_key="test-key")
+        assert client._http_client is None  # lazy: no client yet
+
+        await client.fetch_latest("CPIAUCSL")
+        first_client = client._http_client
+        assert first_client is not None
+
+        await client.fetch_latest("DFF")
+        assert client._http_client is first_client  # same instance reused
+
+        await client.aclose()
+        assert client._http_client is None
+        # Calling aclose() again is a no-op (idempotent)
+        await client.aclose()
+
+    async def test_fred_client_external_client_not_closed(self) -> None:
+        """Injected clients are not closed by FREDClient.aclose()."""
+        import httpx
+        from niche_scanner.engines.economics import FREDClient
+
+        external = httpx.AsyncClient()
+        try:
+            client = FREDClient(api_key="test-key", http_client=external)
+            assert client._owns_client is False
+            assert client._http_client is external
+
+            await client.aclose()
+            # External client remains open
+            assert not external.is_closed
+        finally:
+            await external.aclose()
+
+    @respx.mock
+    async def test_economics_engine_reuses_single_async_client(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """EconomicsEdgeEngine reuses its lazy client across fetches."""
+        import httpx
+        from niche_scanner.engines.economics import FRED_BASE_URL
+
+        monkeypatch.setenv("FRED_API_KEY", "test-key")
+        respx.get(FRED_BASE_URL).mock(
+            return_value=httpx.Response(
+                200,
+                json={"observations": [{"date": "2026-04-01", "value": "4.33"}]},
+            ),
+        )
+
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        assert engine._http_client is None
+
+        await engine.fetch_indicators("fed_rate")
+        first_client = engine._http_client
+        assert first_client is not None
+
+        await engine.fetch_indicators("fed_rate")
+        assert engine._http_client is first_client
+
+        await engine.close()
+        assert engine._http_client is None
+        # close() is idempotent
+        await engine.close()
+
+    async def test_economics_engine_external_client_not_closed(self) -> None:
+        """Injected clients are not closed by EconomicsEdgeEngine.close()."""
+        import httpx
+
+        external = httpx.AsyncClient()
+        try:
+            engine = EconomicsEdgeEngine(
+                min_edge_pp=12.0, http_client=external,
+            )
+            assert engine._owns_client is False
+            assert engine._http_client is external
+
+            await engine.close()
+            assert not external.is_closed
+        finally:
+            await external.aclose()
+
+
+# ---------------------------------------------------------------------------
 # Item 3.4: Economics release calendar
 # ---------------------------------------------------------------------------
 

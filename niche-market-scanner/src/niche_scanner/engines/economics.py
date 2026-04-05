@@ -115,9 +115,41 @@ class FREDClient:
     Requires a FRED API key (free, register at https://fred.stlouisfed.org/docs/api/api_key.html).
     """
 
-    def __init__(self, api_key: str) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
         self.api_key = api_key
         self._cache: dict[str, list[tuple[str, float]]] = {}
+        # Connection reuse: a single long-lived client keeps TLS
+        # connections warm across the many FRED calls made per scan
+        # cycle.  ``_owns_client`` distinguishes self-created clients
+        # (which must be closed in ``aclose``) from injected ones
+        # (lifecycle managed by the caller).
+        self._http_client: httpx.AsyncClient | None = http_client
+        self._owns_client: bool = http_client is None
+
+    def _get_http_client(self) -> httpx.AsyncClient:
+        """Return the shared HTTP client, creating it on first use.
+
+        The client is created without a default timeout; each request
+        passes its own ``timeout=`` explicitly so per-call deadlines are
+        preserved even though the underlying client is shared.
+        """
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient()
+        return self._http_client
+
+    async def aclose(self) -> None:
+        """Release HTTP resources owned by this client.
+
+        Safe to call multiple times.  When an externally supplied client
+        was passed to ``__init__`` this method is a no-op.
+        """
+        if self._owns_client and self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
 
     async def fetch_history(
         self,
@@ -155,10 +187,10 @@ class FREDClient:
             params["observation_end"] = end_date
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.get(FRED_BASE_URL, params=params)
-                resp.raise_for_status()
-                history = self._parse_history(resp.json())
+            client = self._get_http_client()
+            resp = await client.get(FRED_BASE_URL, params=params, timeout=15.0)
+            resp.raise_for_status()
+            history = self._parse_history(resp.json())
             self._cache[cache_key] = history
             return history
         except httpx.HTTPError:
@@ -175,10 +207,10 @@ class FREDClient:
             "limit": 1,
         }
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(FRED_BASE_URL, params=params)
-                resp.raise_for_status()
-                values = self._parse_history(resp.json())
+            client = self._get_http_client()
+            resp = await client.get(FRED_BASE_URL, params=params, timeout=10.0)
+            resp.raise_for_status()
+            values = self._parse_history(resp.json())
             return values[0][1] if values else None
         except (httpx.HTTPError, IndexError):
             return None
@@ -484,13 +516,46 @@ class EconomicsEdgeEngine(EdgeEngine):
         ],
     }
 
-    def __init__(self, min_edge_pp: float = 12.0) -> None:
+    def __init__(
+        self,
+        min_edge_pp: float = 12.0,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
         self.min_edge_pp = min_edge_pp
         # Build reverse lookup: series_ticker -> release_type
         self._ticker_to_type: dict[str, str] = {}
         for release_type, tickers in self.SERIES_TICKER_MAP.items():
             for ticker in tickers:
                 self._ticker_to_type[ticker.upper()] = release_type
+
+        # Connection reuse: each scan cycle can issue ~5 FRED calls per
+        # release type. Reusing a single client keeps TLS sessions warm
+        # and avoids thousands of stray ``httpx.AsyncClient`` instances
+        # over a long-running session.  ``_owns_client`` distinguishes
+        # self-created from injected clients for lifecycle management.
+        self._http_client: httpx.AsyncClient | None = http_client
+        self._owns_client: bool = http_client is None
+
+    def _get_http_client(self) -> httpx.AsyncClient:
+        """Return the shared HTTP client, creating it on first use.
+
+        The client is created without a default timeout; each FRED
+        request passes its own ``timeout=`` explicitly so per-call
+        deadlines are preserved across the shared client.
+        """
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient()
+        return self._http_client
+
+    async def close(self) -> None:
+        """Release HTTP resources owned by this engine.
+
+        Safe to call multiple times.  When an externally supplied client
+        was passed to ``__init__`` this method is a no-op.
+        """
+        if self._owns_client and self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
 
     @classmethod
     def all_series_tickers(cls) -> list[str]:
@@ -595,26 +660,26 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         readings: list[IndicatorReading] = []
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            for series_id, weight, name in [
-                ("CPIAUCSL", 0.5, "FRED Headline CPI YoY"),
-                ("CPILFESL", 0.5, "FRED Core CPI YoY"),
-            ]:
-                try:
-                    yoy = await self._fetch_fred_yoy(client, api_key, series_id)
-                    if yoy is not None:
-                        # For a CPI threshold like "3.5% or above":
-                        # probability_above is estimated from how close
-                        # current YoY is to the threshold. This is a rough
-                        # model — refinement comes with Cleveland Fed nowcast.
-                        readings.append(IndicatorReading(
-                            name=name,
-                            value=yoy,
-                            probability_above=0.5,  # Neutral default; refined per-market
-                            weight=weight,
-                        ))
-                except Exception:
-                    logger.exception("Failed to fetch FRED series %s", series_id)
+        client = self._get_http_client()
+        for series_id, weight, name in [
+            ("CPIAUCSL", 0.5, "FRED Headline CPI YoY"),
+            ("CPILFESL", 0.5, "FRED Core CPI YoY"),
+        ]:
+            try:
+                yoy = await self._fetch_fred_yoy(client, api_key, series_id)
+                if yoy is not None:
+                    # For a CPI threshold like "3.5% or above":
+                    # probability_above is estimated from how close
+                    # current YoY is to the threshold. This is a rough
+                    # model — refinement comes with Cleveland Fed nowcast.
+                    readings.append(IndicatorReading(
+                        name=name,
+                        value=yoy,
+                        probability_above=0.5,  # Neutral default; refined per-market
+                        weight=weight,
+                    ))
+            except Exception:
+                logger.exception("Failed to fetch FRED series %s", series_id)
 
         return readings
 
@@ -639,6 +704,7 @@ class EconomicsEdgeEngine(EdgeEngine):
                     "sort_order": "desc",
                     "limit": 13,
                 },
+                timeout=10.0,
             )
             resp.raise_for_status()
             values = parse_fred_observations(resp.json())
@@ -674,54 +740,55 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         readings: list[IndicatorReading] = []
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # Fetch effective Fed Funds rate
-            try:
-                eff_rate = await self._fetch_fred_latest(client, api_key, "DFF")
-                if eff_rate is not None:
-                    lower, upper = parse_fed_target_range(eff_rate)
-                    readings.append(IndicatorReading(
-                        name="FRED Effective Fed Funds Rate",
-                        value=eff_rate,
-                        probability_above=0.5,  # Neutral; refined per-market
-                        weight=0.4,
-                    ))
-                    logger.info(
-                        "Fed rate: %.2f%% (target range %.2f-%.2f%%)",
-                        eff_rate, lower, upper,
-                    )
-            except Exception:
-                logger.exception("Failed to fetch DFF")
+        client = self._get_http_client()
 
-            # Fetch breakeven inflation rate (market expectations)
-            try:
-                breakeven = await self._fetch_fred_latest(
-                    client, api_key, "T10YIE",
+        # Fetch effective Fed Funds rate
+        try:
+            eff_rate = await self._fetch_fred_latest(client, api_key, "DFF")
+            if eff_rate is not None:
+                lower, upper = parse_fed_target_range(eff_rate)
+                readings.append(IndicatorReading(
+                    name="FRED Effective Fed Funds Rate",
+                    value=eff_rate,
+                    probability_above=0.5,  # Neutral; refined per-market
+                    weight=0.4,
+                ))
+                logger.info(
+                    "Fed rate: %.2f%% (target range %.2f-%.2f%%)",
+                    eff_rate, lower, upper,
                 )
-                if breakeven is not None:
-                    readings.append(IndicatorReading(
-                        name="10Y Breakeven Inflation Rate",
-                        value=breakeven,
-                        probability_above=0.5,
-                        weight=0.3,
-                    ))
-            except Exception:
-                logger.exception("Failed to fetch T10YIE")
+        except Exception:
+            logger.exception("Failed to fetch DFF")
 
-            # Fetch target range bounds
-            try:
-                target_upper = await self._fetch_fred_latest(
-                    client, api_key, "DFEDTARU",
-                )
-                if target_upper is not None:
-                    readings.append(IndicatorReading(
-                        name="Fed Funds Target Upper",
-                        value=target_upper,
-                        probability_above=0.5,
-                        weight=0.3,
-                    ))
-            except Exception:
-                logger.exception("Failed to fetch DFEDTARU")
+        # Fetch breakeven inflation rate (market expectations)
+        try:
+            breakeven = await self._fetch_fred_latest(
+                client, api_key, "T10YIE",
+            )
+            if breakeven is not None:
+                readings.append(IndicatorReading(
+                    name="10Y Breakeven Inflation Rate",
+                    value=breakeven,
+                    probability_above=0.5,
+                    weight=0.3,
+                ))
+        except Exception:
+            logger.exception("Failed to fetch T10YIE")
+
+        # Fetch target range bounds
+        try:
+            target_upper = await self._fetch_fred_latest(
+                client, api_key, "DFEDTARU",
+            )
+            if target_upper is not None:
+                readings.append(IndicatorReading(
+                    name="Fed Funds Target Upper",
+                    value=target_upper,
+                    probability_above=0.5,
+                    weight=0.3,
+                ))
+        except Exception:
+            logger.exception("Failed to fetch DFEDTARU")
 
         return readings
 
@@ -744,6 +811,7 @@ class EconomicsEdgeEngine(EdgeEngine):
                     "sort_order": "desc",
                     "limit": 1,
                 },
+                timeout=10.0,
             )
             resp.raise_for_status()
             values = parse_fred_observations(resp.json())

@@ -575,3 +575,108 @@ class TestStrikePreferredOverSubtitle:
 
         signal = engine._evaluate_market(market, fc)
         assert signal is None
+
+
+# ---------------------------------------------------------------------------
+# Item 6.10: Shared httpx.AsyncClient reuse
+# ---------------------------------------------------------------------------
+
+
+class TestHttpClientReuse:
+    """Verify WeatherEdgeEngine reuses a single long-lived AsyncClient."""
+
+    def _engine(self) -> WeatherEdgeEngine:
+        stations = _make_icao_stations(
+            {
+                "new_york": {
+                    "icao": "KJFK",
+                    "verified": True,
+                    "office": "OKX",
+                    "grid_x": 33,
+                    "grid_y": 37,
+                },
+            },
+        )
+        return WeatherEdgeEngine(icao_stations=stations, min_edge_pp=5.0)
+
+    def test_owns_client_by_default(self) -> None:
+        """When no client is injected the engine owns its own client."""
+        engine = self._engine()
+        assert engine._owns_client is True
+        assert engine._http_client is None  # lazy: not yet created
+
+    async def test_external_client_disables_ownership(self) -> None:
+        """When a client is injected the engine does not own it."""
+        import httpx
+
+        external = httpx.AsyncClient()
+        try:
+            stations = _make_icao_stations(
+                {
+                    "new_york": {
+                        "icao": "KJFK",
+                        "verified": True,
+                        "office": "OKX",
+                        "grid_x": 33,
+                        "grid_y": 37,
+                    },
+                },
+            )
+            engine = WeatherEdgeEngine(
+                icao_stations=stations,
+                min_edge_pp=5.0,
+                http_client=external,
+            )
+            assert engine._owns_client is False
+            assert engine._http_client is external
+        finally:
+            await external.aclose()
+
+    def test_get_http_client_reuses_single_instance(self) -> None:
+        """Successive calls to _get_http_client return the same client."""
+        engine = self._engine()
+        first = engine._get_http_client()
+        second = engine._get_http_client()
+        assert first is second
+
+    async def test_close_is_idempotent(self) -> None:
+        """close() may be called multiple times safely."""
+        engine = self._engine()
+        # Force client creation
+        _ = engine._get_http_client()
+        assert engine._http_client is not None
+
+        await engine.close()
+        assert engine._http_client is None
+
+        # Second close() is a no-op
+        await engine.close()
+        assert engine._http_client is None
+
+    async def test_close_noop_when_external_client(self) -> None:
+        """close() does not aclose an externally supplied client."""
+        import httpx
+
+        external = httpx.AsyncClient()
+        try:
+            stations = _make_icao_stations(
+                {
+                    "new_york": {
+                        "icao": "KJFK",
+                        "verified": True,
+                        "office": "OKX",
+                        "grid_x": 33,
+                        "grid_y": 37,
+                    },
+                },
+            )
+            engine = WeatherEdgeEngine(
+                icao_stations=stations,
+                min_edge_pp=5.0,
+                http_client=external,
+            )
+            await engine.close()
+            # External client remains usable
+            assert not external.is_closed
+        finally:
+            await external.aclose()

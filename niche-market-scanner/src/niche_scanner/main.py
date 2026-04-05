@@ -400,6 +400,17 @@ async def main() -> None:
         logger.info("Final health:\n%s", monitor.format_status())
         if risk_guard:
             logger.info("Risk guard final state:\n%s", risk_guard.format_status())
+        # Close any per-engine HTTP resources (NOAA / FRED clients).
+        # Engines without a ``close`` method are skipped silently.
+        for engine in engines:
+            close = getattr(engine, "close", None)
+            if close is not None:
+                try:
+                    await close()
+                except Exception:
+                    logger.exception(
+                        "Failed to close engine %s", type(engine).__name__,
+                    )
         await client.close()
         await journal.close()
         logger.info("Shutdown complete")
