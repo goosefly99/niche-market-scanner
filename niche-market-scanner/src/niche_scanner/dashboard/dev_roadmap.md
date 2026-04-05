@@ -2,7 +2,7 @@
 
 Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, validated)
 
-## Phase 1: FastAPI Server + REST API
+## Phase 1: FastAPI Server + REST API (Complete)
 
 | # | Task | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
@@ -16,7 +16,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 | 1.8 | Add dashboard config section to settings.yaml | Complete | -- | `config/settings.yaml` |
 | 1.9 | Add startup WARNING log if host != 127.0.0.1 | Complete | 1.3 | `dashboard/server.py` |
 | 1.10 | Update docker-compose.yml port mapping (127.0.0.1:8050:8050) | Complete | -- | `docker-compose.yml` |
-| 1.11 | Enable WAL mode on SQLite connection | Not Started | -- | `journal/db.py` |
+| 1.11 | Enable WAL mode on SQLite connection | Complete | -- | `journal/db.py` |
 
 ## Phase 2: HTMX Frontend Pages
 

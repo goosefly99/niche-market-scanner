@@ -37,6 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_trades_ticker ON trades (ticker);
 async def init_db(path: str) -> aiosqlite.Connection:
     """Open (or create) the SQLite database at *path* and apply the schema."""
     conn = await aiosqlite.connect(path)
+    await conn.execute("PRAGMA journal_mode=WAL")
     await conn.executescript(SCHEMA)
     await conn.commit()
     return conn
