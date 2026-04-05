@@ -24,7 +24,7 @@ alongside the scanner's scan loop. All persistence goes through a single shared
 | `routes.py` | REST API endpoints (GET-only JSON). Serves trades, stats, risk, health, scanner status, balance, scan cycles, and recent signals. |
 | `pages.py` | HTML page route handlers. Renders Jinja2 templates for `/`, `/trades`, `/signals`, `/config`. Supports full-page and HTMX partial rendering. |
 | `scan_cycle_logger.py` | Writes scan cycle summaries to the `scan_cycles` SQLite table. Receives shared aiosqlite connection from TradeJournal. `main.py` reads `scanner.last_cycle_stats` (a `ScanCycleStats` dataclass snapshot) after each cycle and passes the fields through. |
-| `balance_tracker.py` | Writes balance snapshots to the `balance_history` SQLite table. Receives shared aiosqlite connection from TradeJournal. |
+| `balance_tracker.py` | Writes balance snapshots to the `balance_history` SQLite table. Receives shared aiosqlite connection from TradeJournal. `main.py` calls `record_snapshot` after each scan cycle: live mode reads `risk_guard.state` (current/peak/cumulative_spend), paper mode derives the balance from the starting bankroll minus `PaperTrader._total_cost_cents` and tracks the peak locally. |
 | `signal_buffer.py` | Bounded FIFO (`collections.deque`) of recent `EdgeSignal` objects. Shared between `main.py` (producer, calls `extend()` after each scan cycle) and the dashboard (consumer, `/api/signals/recent` + `/signals` page). Volatile — cleared on restart. Default capacity: 100. |
 | `templates/` | Jinja2 HTML templates. `base.html` is the layout; page templates extend it; `partials/` holds HTMX swap fragments. |
 

@@ -14,6 +14,7 @@ from niche_scanner.config import (
     ScannerSettings,
     TelegramConfig,
 )
+from niche_scanner.dashboard.balance_tracker import BalanceTracker
 from niche_scanner.dashboard.scan_cycle_logger import ScanCycleLogger
 from niche_scanner.dashboard.server import create_app, start_dashboard
 from niche_scanner.dashboard.signal_buffer import SignalBuffer
@@ -35,6 +36,31 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_PAPER_BANKROLL_CENTS = 1_000_000
 _DEFAULT_SCAN_INTERVAL_SEC = 60
+
+
+async def _record_balance_snapshot(
+    *,
+    tracker: BalanceTracker,
+    balance_cents: int,
+    peak_cents: int,
+    cumulative_spend_cents: int,
+) -> int:
+    """Persist a balance snapshot, computing drawdown from peak/current.
+
+    Drawdown is expressed as a percentage (0.0-100.0) to match the
+    ``balance_history.drawdown_pct`` column and the values returned by
+    :meth:`BalanceTracker.get_history`.
+    """
+    drawdown_pct = 0.0
+    if peak_cents > 0 and balance_cents < peak_cents:
+        drawdown_pct = (1.0 - balance_cents / peak_cents) * 100.0
+
+    return await tracker.record_snapshot(
+        balance_cents=balance_cents,
+        peak_cents=peak_cents,
+        drawdown_pct=drawdown_pct,
+        cumulative_spend_cents=cumulative_spend_cents,
+    )
 
 
 async def main() -> None:
@@ -80,7 +106,10 @@ async def main() -> None:
     # 3b. Scan cycle persistence (shares the journal's aiosqlite connection)
     scan_cycle_logger = ScanCycleLogger(conn=journal.connection)
 
-    # 3c. In-memory signal buffer (shared between scan loop and dashboard)
+    # 3c. Balance history persistence (shares the journal's aiosqlite connection)
+    balance_tracker = BalanceTracker(conn=journal.connection)
+
+    # 3d. In-memory signal buffer (shared between scan loop and dashboard)
     signal_buffer = SignalBuffer()
 
     # 4. Build sizing config and sizer
@@ -223,6 +252,11 @@ async def main() -> None:
             logger.exception("Failed to fetch balance in live mode — aborting")
             return
 
+    # 8b. Initialize balance snapshot state.  In live mode the risk_guard
+    # owns the authoritative peak/cumulative-spend bookkeeping; in paper
+    # mode we track the peak locally since no RiskGuard is created.
+    paper_peak_cents = bankroll_cents
+
     # 9. Start dashboard (if enabled)
     dashboard_task: asyncio.Task[None] | None = None
     dash_cfg = settings.dashboard
@@ -312,6 +346,35 @@ async def main() -> None:
                         bankroll_cents = live_balance
                     except Exception:
                         logger.warning("Failed to sync balance from Kalshi")
+
+                # Persist balance snapshot for the dashboard
+                # /api/balance/history chart (best-effort).
+                try:
+                    if risk_guard:
+                        rg_state = risk_guard.state
+                        await _record_balance_snapshot(
+                            tracker=balance_tracker,
+                            balance_cents=rg_state.current_balance_cents,
+                            peak_cents=rg_state.peak_balance_cents,
+                            cumulative_spend_cents=rg_state.cumulative_spend_cents,
+                        )
+                    else:
+                        # Paper mode: compute effective balance from
+                        # starting bankroll minus cumulative paper spend.
+                        paper_spend = getattr(
+                            trader, "_total_cost_cents", 0,
+                        )
+                        effective_balance = bankroll_cents - paper_spend
+                        if effective_balance > paper_peak_cents:
+                            paper_peak_cents = effective_balance
+                        await _record_balance_snapshot(
+                            tracker=balance_tracker,
+                            balance_cents=effective_balance,
+                            peak_cents=paper_peak_cents,
+                            cumulative_spend_cents=paper_spend,
+                        )
+                except Exception:
+                    logger.exception("Failed to persist balance snapshot")
             except Exception:
                 logger.exception("Scan cycle failed")
                 monitor.report_error("scanner", "Scan cycle exception")
