@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 34 |
+| Complete | 35 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **34** |
+| **Total** | **35** |
 
 ---
 
@@ -108,6 +108,7 @@ Improvements identified during codebase review after Phase 5 completion.
 | 6.5 | Add in-memory EdgeSignal buffer wired to /signals page and /api/signals/recent (dashboard Phase 4.1-4.4) | Complete | High | `src/niche_scanner/dashboard/signal_buffer.py`, `src/niche_scanner/dashboard/server.py`, `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/dashboard/pages.py`, `src/niche_scanner/main.py`, `tests/dashboard/test_signal_buffer.py` |
 | 6.6 | Wire BalanceTracker.record_snapshot() into scan loop so /api/balance/history returns real data (paper + live modes) | Complete | High | `src/niche_scanner/main.py`, `tests/test_main_balance_tracking.py` |
 | 6.7 | Convert economics engine FRED client from blocking httpx.get to async httpx.AsyncClient (prevents event loop stalls during scan cycles) | Complete | High | `src/niche_scanner/engines/economics.py`, `tests/engines/test_economics.py`, `src/niche_scanner/engines/AGENTS.md` |
+| 6.8 | Parallelize per-series market fetching in MarketScanner.scan_cycle with asyncio.gather (90+ sequential requests per cycle drops to batched concurrent calls bounded by KalshiClient's existing semaphore) | Complete | High | `src/niche_scanner/scanner/market_scanner.py`, `tests/scanner/test_market_scanner.py` |
 
 ---
 

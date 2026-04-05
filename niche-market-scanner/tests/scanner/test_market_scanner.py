@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
@@ -1100,3 +1101,171 @@ async def test_last_cycle_stats_tracks_no_exposure_cents(
     assert stats.executed == 1
     # A NO-side trade should register NO exposure
     assert stats.no_exposure_cents > 0
+
+
+# ---------------------------------------------------------------------------
+# Item 6.8: Parallel series fetching
+# ---------------------------------------------------------------------------
+
+
+async def test_fetch_series_markets_runs_concurrently(
+    sizer, trader,
+) -> None:
+    """Per-series fetches run concurrently, not sequentially.
+
+    Each ``get_markets`` mock sleeps 50ms before returning.  Ten series
+    fetched sequentially would take 500ms; fetched concurrently they
+    should complete in ~50ms.  We assert the wall clock is well below
+    the sequential lower bound to prove concurrency.
+    """
+    import asyncio
+
+    call_count = 0
+
+    async def _slow_get_markets(**kwargs) -> list:
+        nonlocal call_count
+        call_count += 1
+        await asyncio.sleep(0.05)
+        return [_make_market(f"M-{kwargs['series_ticker']}")]
+
+    client = AsyncMock()
+    client.get_markets = AsyncMock(side_effect=_slow_get_markets)
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    icao = MagicMock()
+    icao.all_series_tickers.return_value = [f"WX{i}" for i in range(5)]
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=icao,
+        economics_series=[f"EC{i}" for i in range(5)],
+    )
+
+    start = time.monotonic()
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    elapsed = time.monotonic() - start
+
+    # 10 series * 50ms = 500ms sequential.  Concurrent should be ~50ms
+    # (plus overhead).  Allow 250ms ceiling to avoid flakes on slow CI.
+    assert call_count == 10
+    assert elapsed < 0.25, (
+        f"Expected concurrent fetching (~50ms), got {elapsed:.3f}s"
+    )
+
+
+async def test_fetch_series_markets_per_series_failure_isolated(
+    sizer, trader,
+) -> None:
+    """One failing series does not abort the whole cycle.
+
+    Three series are fetched: the first and third succeed, the middle
+    one raises.  The scan cycle should still return successfully and
+    aggregate markets from the two healthy series.
+    """
+    async def _get_markets(**kwargs) -> list:
+        series = kwargs["series_ticker"]
+        if series == "FAILS":
+            raise RuntimeError("Kalshi 500")
+        return [_make_market(f"M-{series}")]
+
+    client = AsyncMock()
+    client.get_markets = AsyncMock(side_effect=_get_markets)
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    icao = MagicMock()
+    icao.all_series_tickers.return_value = ["OK1", "FAILS"]
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=icao,
+        economics_series=["OK2"],
+    )
+
+    # Should not raise; should collect markets from OK1 and OK2 only
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.markets_scanned == 2
+
+
+async def test_fetch_series_markets_all_fail_returns_empty(
+    sizer, trader,
+) -> None:
+    """When every series fetch raises, scan_cycle returns empty."""
+    client = AsyncMock()
+    client.get_markets = AsyncMock(side_effect=RuntimeError("down"))
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    icao = MagicMock()
+    icao.all_series_tickers.return_value = ["A", "B", "C"]
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=icao,
+        economics_series=["D"],
+    )
+
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert signals == []
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.markets_scanned == 0
+
+
+async def test_fetch_series_markets_no_series_configured(
+    mock_client, sizer, trader,
+) -> None:
+    """With no weather or economics series, fetch skips the API entirely."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=None,
+        economics_series=[],
+    )
+    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    assert signals == []
+    # No series fetches should have been issued
+    mock_client.get_markets.assert_not_called()
+
+
+async def test_fetch_series_markets_preserves_weather_economics_order(
+    sizer, trader,
+) -> None:
+    """Weather series results come before economics results in the list."""
+    async def _get_markets(**kwargs) -> list:
+        series = kwargs["series_ticker"]
+        return [_make_market(f"M-{series}")]
+
+    client = AsyncMock()
+    client.get_markets = AsyncMock(side_effect=_get_markets)
+    client.get_batch_orderbooks = AsyncMock(return_value={})
+
+    icao = MagicMock()
+    icao.all_series_tickers.return_value = ["WX-A", "WX-B"]
+
+    scanner = MarketScanner(
+        client=client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=icao,
+        economics_series=["EC-C", "EC-D"],
+    )
+
+    markets = await scanner._fetch_series_markets(
+        weather_tickers=["WX-A", "WX-B"],
+        economics_series=["EC-C", "EC-D"],
+    )
+    tickers = [m.ticker for m in markets]
+    assert tickers == ["M-WX-A", "M-WX-B", "M-EC-C", "M-EC-D"]

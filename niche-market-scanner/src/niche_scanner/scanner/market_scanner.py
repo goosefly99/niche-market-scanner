@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass
@@ -12,12 +13,11 @@ from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.engines.economics import ReleaseCalendar
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.kalshi.client import KalshiClient
-from niche_scanner.kalshi.models import OrderBook
+from niche_scanner.kalshi.models import Market, OrderBook
 from niche_scanner.sizing.kelly import KellySizer, PositionSize
 
 if TYPE_CHECKING:
     from niche_scanner.alerts.telegram import AlertManager
-    from niche_scanner.kalshi.models import Market
 
 logger = logging.getLogger(__name__)
 
@@ -188,6 +188,56 @@ class MarketScanner:
             return False
         return self._settings.is_vertical_enabled("thin_market")
 
+    async def _fetch_series_markets(
+        self,
+        weather_tickers: list[str],
+        economics_series: list[str],
+    ) -> list[Market]:
+        """Fetch markets for every configured series concurrently.
+
+        Each series is fetched via one ``get_markets`` call.  All fetches
+        are dispatched through ``asyncio.gather`` with
+        ``return_exceptions=True`` so a single failing series (common —
+        unknown or empty series return HTTP errors from Kalshi) does not
+        abort the whole cycle.  Rate limiting is enforced by the
+        underlying :class:`KalshiClient` semaphore.
+
+        Results are concatenated in the order ``weather_tickers`` first,
+        then ``economics_series``, matching the prior sequential
+        implementation.
+        """
+        if not weather_tickers and not economics_series:
+            return []
+
+        # Launch one coroutine per series.  We tag each with its label
+        # ("weather"/"economics") and ticker so debug logging on failure
+        # mirrors the original sequential loop.
+        labels: list[tuple[str, str]] = []
+        tasks: list = []
+        for series in weather_tickers:
+            labels.append(("Weather", series))
+            tasks.append(
+                self._client.get_markets(series_ticker=series, limit=10),
+            )
+        for series in economics_series:
+            labels.append(("Economics", series))
+            tasks.append(
+                self._client.get_markets(series_ticker=series, limit=10),
+            )
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        markets: list[Market] = []
+        for (label, series), result in zip(labels, results):
+            if isinstance(result, BaseException):
+                logger.debug(
+                    "%s series %s not found or empty", label, series,
+                )
+                continue
+            markets.extend(result)
+
+        return markets
+
     async def _fetch_discovery_markets(self) -> list[Market]:
         """Fetch open markets across all Kalshi categories.
 
@@ -241,25 +291,19 @@ class MarketScanner:
         """
         cycle_start = time.monotonic()
 
-        # 1. Fetch markets from all configured series (weather + economics)
-        markets: list[Market] = []
-
-        # Weather series from ICAO config
+        # 1. Fetch markets from all configured series (weather + economics).
+        #
+        # Series fetches are dispatched concurrently via ``asyncio.gather``.
+        # ``KalshiClient`` already bounds concurrency with an internal
+        # semaphore (``max_requests_per_second``), so we can safely launch
+        # all per-series fetches at once without exceeding the API rate
+        # limit.  Per-series failures are caught via ``return_exceptions``
+        # and logged at debug level (matching the prior sequential
+        # behaviour where empty/unknown series are expected).
         weather_tickers = self._icao.all_series_tickers() if self._icao else []
-        for series in weather_tickers:
-            try:
-                batch = await self._client.get_markets(series_ticker=series, limit=10)
-                markets.extend(batch)
-            except Exception:
-                logger.debug("Weather series %s not found or empty", series)
-
-        # Economics series
-        for series in self._economics_series:
-            try:
-                batch = await self._client.get_markets(series_ticker=series, limit=10)
-                markets.extend(batch)
-            except Exception:
-                logger.debug("Economics series %s not found or empty", series)
+        markets = await self._fetch_series_markets(
+            weather_tickers, self._economics_series,
+        )
 
         total_series = len(weather_tickers) + len(self._economics_series)
         logger.info(
