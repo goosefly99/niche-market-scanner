@@ -929,3 +929,174 @@ async def test_fetch_discovery_markets_respects_limit(
     # Should stop after first page since 200 >= discovery_limit
     assert len(result) == 200
     assert client.get_active_markets.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# Dashboard 3.4: last_cycle_stats snapshot after each scan_cycle
+# ---------------------------------------------------------------------------
+
+
+async def test_last_cycle_stats_is_none_before_first_cycle(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """``last_cycle_stats`` starts as ``None`` until ``scan_cycle`` runs."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    assert scanner.last_cycle_stats is None
+
+
+async def test_last_cycle_stats_populated_after_scan(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """After a scan_cycle, ``last_cycle_stats`` holds the cycle metrics."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    # One market was fetched (from the mock_client fixture), no signals
+    assert stats.markets_scanned == 1
+    assert stats.signals_found == 0
+    assert stats.executed == 0
+    assert stats.skipped == 0
+    assert stats.no_exposure_cents == 0
+    assert stats.duration_ms >= 0
+
+
+async def test_last_cycle_stats_reflects_executed_signals(
+    mock_client, trader, mock_icao,
+) -> None:
+    """Stats record signals found and executed when a signal is sized."""
+    signal = _make_signal()
+    signal.edge_pp = 30.0
+    signal.fee_adjusted_edge = 22.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.signals_found == 1
+    assert stats.executed == 1
+    assert stats.skipped == 0
+
+
+async def test_last_cycle_stats_counts_skipped_signals(
+    mock_client, trader, mock_icao,
+) -> None:
+    """Stats record signals that the sizer rejects as skipped."""
+    signal = _make_signal()
+    signal.edge_pp = 5.0  # Below the 12pp minimum
+    signal.fee_adjusted_edge = 2.0
+    engine = StubEngine(signals=[signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.signals_found == 1
+    assert stats.executed == 0
+    assert stats.skipped == 1
+
+
+async def test_last_cycle_stats_snapshot_on_no_markets(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Stats are still captured when scan_cycle finds no markets."""
+    mock_client.get_markets = AsyncMock(return_value=[])
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.markets_scanned == 0
+    assert stats.signals_found == 0
+    assert stats.duration_ms >= 0
+
+
+async def test_last_cycle_stats_replaced_on_every_call(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """The snapshot is replaced on every scan_cycle call."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    first_stats = scanner.last_cycle_stats
+
+    # Second cycle with no markets
+    mock_client.get_markets = AsyncMock(return_value=[])
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+    second_stats = scanner.last_cycle_stats
+
+    assert first_stats is not None
+    assert second_stats is not None
+    assert first_stats.markets_scanned == 1
+    assert second_stats.markets_scanned == 0
+    # A new snapshot object should have been installed
+    assert first_stats is not second_stats
+
+
+async def test_last_cycle_stats_tracks_no_exposure_cents(
+    mock_client, trader, mock_icao,
+) -> None:
+    """NO-side exposure is captured in last_cycle_stats."""
+    no_signal = _make_signal(side="no")
+    no_signal.model_prob = 0.35
+    no_signal.market_prob = 0.50
+    no_signal.edge_pp = 25.0
+    no_signal.fee_adjusted_edge = 20.0
+
+    engine = StubEngine(signals=[no_signal])
+    sizer = KellySizer(config=SizingConfig(min_edge_pp=12.0))
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[engine],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
+
+    stats = scanner.last_cycle_stats
+    assert stats is not None
+    assert stats.executed == 1
+    # A NO-side trade should register NO exposure
+    assert stats.no_exposure_cents > 0

@@ -14,6 +14,7 @@ from niche_scanner.config import (
     ScannerSettings,
     TelegramConfig,
 )
+from niche_scanner.dashboard.scan_cycle_logger import ScanCycleLogger
 from niche_scanner.dashboard.server import create_app, start_dashboard
 from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
@@ -74,6 +75,9 @@ async def main() -> None:
     # 3. Create journal and initialize
     journal = TradeJournal(db_path="data/trades.db")
     await journal.initialize()
+
+    # 3b. Scan cycle persistence (shares the journal's aiosqlite connection)
+    scan_cycle_logger = ScanCycleLogger(conn=journal.connection)
 
     # 4. Build sizing config and sizer
     sizing_data = settings.sizing
@@ -274,6 +278,21 @@ async def main() -> None:
                 await scanner.scan_cycle(bankroll_cents)
                 monitor.scan_loop_heartbeat()
                 monitor.heartbeat("scanner")
+
+                # Persist cycle metrics for the dashboard (best-effort)
+                stats = scanner.last_cycle_stats
+                if stats is not None:
+                    try:
+                        await scan_cycle_logger.record_cycle(
+                            markets_scanned=stats.markets_scanned,
+                            signals_found=stats.signals_found,
+                            executed=stats.executed,
+                            skipped=stats.skipped,
+                            no_exposure_cents=stats.no_exposure_cents,
+                            duration_ms=stats.duration_ms,
+                        )
+                    except Exception:
+                        logger.exception("Failed to persist scan cycle metrics")
 
                 # Sync balance from Kalshi in live mode
                 if risk_guard:

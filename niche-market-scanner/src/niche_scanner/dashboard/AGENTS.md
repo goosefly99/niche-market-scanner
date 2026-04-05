@@ -24,7 +24,7 @@ alongside the scanner's scan loop. All persistence goes through a single shared
 | `routes.py` | REST API endpoints (GET-only data, POST kill/reset/reload). Returns JSON for all `/api/*` paths. |
 | `pages.py` | HTML page route handlers. Renders Jinja2 templates for `/`, `/trades`, `/signals`, `/config`. Supports full-page and HTMX partial rendering. |
 | `kill_switch.py` | Kill switch API router. POST endpoints for kill (single-click + 5s undo), undo-kill, reset (requires CONFIRM), and config reload. All require `X-Confirm: true` header. |
-| `scan_cycle_logger.py` | Writes scan cycle summaries to the `scan_cycles` SQLite table. Receives shared aiosqlite connection from TradeJournal. |
+| `scan_cycle_logger.py` | Writes scan cycle summaries to the `scan_cycles` SQLite table. Receives shared aiosqlite connection from TradeJournal. `main.py` reads `scanner.last_cycle_stats` (a `ScanCycleStats` dataclass snapshot) after each cycle and passes the fields through. |
 | `balance_tracker.py` | Writes balance snapshots to the `balance_history` SQLite table. Receives shared aiosqlite connection from TradeJournal. |
 | `templates/` | Jinja2 HTML templates. `base.html` is the layout; page templates extend it; `partials/` holds HTMX swap fragments. |
 

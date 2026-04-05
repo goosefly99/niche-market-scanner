@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import time
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from niche_scanner.config import ICAOStations, ScannerSettings
@@ -25,6 +27,26 @@ _BATCH_SIZE = 20
 # thin-market engine.  Overridden via ``thin_market_discovery_limit``
 # in the ``scanner`` section of settings.yaml.
 _DEFAULT_DISCOVERY_LIMIT = 200
+
+
+@dataclass(frozen=True)
+class ScanCycleStats:
+    """Summary metrics captured during a single scan cycle.
+
+    Populated at the end of :meth:`MarketScanner.scan_cycle` and exposed
+    via :pyattr:`MarketScanner.last_cycle_stats`.  Consumed by the
+    dashboard's ``ScanCycleLogger`` to persist cycle history.
+
+    All monetary values are in cents.  ``duration_ms`` is measured via
+    :func:`time.monotonic` around the body of ``scan_cycle``.
+    """
+
+    markets_scanned: int
+    signals_found: int
+    executed: int
+    skipped: int
+    no_exposure_cents: int
+    duration_ms: int
 
 
 class MarketScanner:
@@ -109,6 +131,20 @@ class MarketScanner:
             )
         else:
             self._discovery_limit = _DEFAULT_DISCOVERY_LIMIT
+
+        # Stats snapshot from the most recent ``scan_cycle`` call.  ``None``
+        # until the first cycle completes.  Read by consumers (e.g. the
+        # dashboard's ``ScanCycleLogger``) after each cycle.
+        self._last_cycle_stats: ScanCycleStats | None = None
+
+    @property
+    def last_cycle_stats(self) -> ScanCycleStats | None:
+        """Return metrics from the most recent completed scan cycle.
+
+        Returns ``None`` until ``scan_cycle`` has been called at least
+        once.  The snapshot is replaced at the end of every cycle.
+        """
+        return self._last_cycle_stats
 
     def get_scan_interval_sec(self) -> float:
         """Return the current scan interval in seconds.
@@ -198,7 +234,13 @@ class MarketScanner:
         4. Size each signal via Kelly and execute if sized.
         5. Track aggregate NO-side exposure across the cycle.
         6. Log a summary of the cycle.
+
+        On completion, :pyattr:`last_cycle_stats` is populated with the
+        per-cycle metrics (markets scanned, signals, executed, skipped,
+        NO exposure, duration).  The snapshot is replaced on every call.
         """
+        cycle_start = time.monotonic()
+
         # 1. Fetch markets from all configured series (weather + economics)
         markets: list[Market] = []
 
@@ -244,6 +286,14 @@ class MarketScanner:
 
         if not markets:
             logger.info("No markets found across any series")
+            self._last_cycle_stats = ScanCycleStats(
+                markets_scanned=0,
+                signals_found=0,
+                executed=0,
+                skipped=0,
+                no_exposure_cents=0,
+                duration_ms=int((time.monotonic() - cycle_start) * 1000),
+            )
             return []
 
         # 2. Batch-fetch order books in chunks of 20
@@ -320,5 +370,15 @@ class MarketScanner:
                 )
             except Exception:
                 logger.exception("Failed to send scan summary alert")
+
+        # 7. Snapshot cycle stats for consumers (dashboard, etc.)
+        self._last_cycle_stats = ScanCycleStats(
+            markets_scanned=len(markets),
+            signals_found=len(all_signals),
+            executed=executed_count,
+            skipped=skipped_count,
+            no_exposure_cents=no_exposure_cents,
+            duration_ms=int((time.monotonic() - cycle_start) * 1000),
+        )
 
         return all_signals
