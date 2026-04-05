@@ -88,6 +88,9 @@ async def journal_mock(db_conn):
     The mock satisfies ``journal._ensure_conn()`` and ``journal.get_stats()``.
     """
     journal = MagicMock()
+    # Expose as property-like attribute for routes.py (journal.connection)
+    journal.connection = db_conn
+    # Keep legacy mock for any remaining _ensure_conn callers
     journal._ensure_conn.return_value = db_conn
 
     # Wire get_stats to the real DB (same logic as TradeJournal.get_stats)

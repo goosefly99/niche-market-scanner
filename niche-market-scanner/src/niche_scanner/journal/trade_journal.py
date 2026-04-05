@@ -43,10 +43,23 @@ class TradeJournal:
             await self._conn.close()
             self._conn = None
 
-    def _ensure_conn(self) -> aiosqlite.Connection:
+    @property
+    def connection(self) -> aiosqlite.Connection:
+        """Return the shared aiosqlite.Connection.
+
+        Dashboard components (ScanCycleLogger, BalanceTracker, routes) use
+        this property to share a single connection for concurrent reads
+        under WAL mode.
+
+        Raises ``RuntimeError`` if :meth:`initialize` has not been called.
+        """
         if self._conn is None:
             raise RuntimeError("TradeJournal not initialized; call initialize() first")
         return self._conn
+
+    def _ensure_conn(self) -> aiosqlite.Connection:
+        """Internal helper — prefer the ``connection`` property for new code."""
+        return self.connection
 
     async def record_trade(self, record: TradeRecord) -> int:
         """Insert a trade and return the new trade ID."""

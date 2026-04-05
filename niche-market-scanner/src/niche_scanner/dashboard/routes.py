@@ -58,7 +58,7 @@ async def get_trades(
     filter value ``"pending"`` matches rows where ``outcome IS NULL``.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal._ensure_conn()
+    conn: aiosqlite.Connection = journal.connection
     conn.row_factory = aiosqlite.Row
 
     clauses: list[str] = []
@@ -109,7 +109,7 @@ async def get_trade_by_id(request: Request, trade_id: int) -> JSONResponse:
     Returns 404 if the trade does not exist.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal._ensure_conn()
+    conn: aiosqlite.Connection = journal.connection
     conn.row_factory = aiosqlite.Row
 
     cursor = await conn.execute(
@@ -142,7 +142,7 @@ async def get_daily_stats(request: Request) -> dict:
     Groups resolved trades by date(created_at) and sums net P&L per day.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal._ensure_conn()
+    conn: aiosqlite.Connection = journal.connection
     conn.row_factory = aiosqlite.Row
 
     cursor = await conn.execute(

@@ -51,6 +51,28 @@ async def test_record_trade(journal: TradeJournal) -> None:
     assert trade_id > 0
 
 
+# ---------------------------------------------------------------------------
+# connection property
+# ---------------------------------------------------------------------------
+
+
+async def test_connection_property_returns_conn(journal: TradeJournal) -> None:
+    """The connection property returns the aiosqlite.Connection after init."""
+    conn = journal.connection
+    assert conn is not None
+    # Verify it is a usable aiosqlite connection
+    cursor = await conn.execute("SELECT 1")
+    row = await cursor.fetchone()
+    assert row[0] == 1
+
+
+async def test_connection_property_before_init() -> None:
+    """Accessing connection before initialize() raises RuntimeError."""
+    tj = TradeJournal("nonexistent.db")
+    with pytest.raises(RuntimeError, match="not initialized"):
+        _ = tj.connection
+
+
 async def test_get_trades_by_engine(journal: TradeJournal) -> None:
     """Record 3 trades (2 weather, 1 economics) and filter by engine."""
     await journal.record_trade(_make_record(engine="weather"))
@@ -158,7 +180,7 @@ async def test_get_daily_stats_single_day(journal: TradeJournal) -> None:
 
 async def test_get_daily_stats_multiple_days(journal: TradeJournal) -> None:
     """Trades inserted with different created_at dates produce multiple rows."""
-    conn = journal._ensure_conn()
+    conn = journal.connection
 
     # Insert trades with explicit dates to simulate multiple days
     for date_str, payout in [
