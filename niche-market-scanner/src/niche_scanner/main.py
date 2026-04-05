@@ -14,6 +14,7 @@ from niche_scanner.config import (
     ScannerSettings,
     TelegramConfig,
 )
+from niche_scanner.dashboard.server import create_app, start_dashboard
 from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
 from niche_scanner.engines.economics import EconomicsEdgeEngine
@@ -183,7 +184,29 @@ async def main() -> None:
             logger.exception("Failed to fetch balance in live mode — aborting")
             return
 
-    # 9. Scan loop with graceful shutdown
+    # 9. Start dashboard (if enabled)
+    dashboard_task: asyncio.Task[None] | None = None
+    dash_cfg = settings.dashboard
+    if dash_cfg["enabled"]:
+        dash_host: str = dash_cfg["host"]
+        dash_port: int = dash_cfg["port"]
+        app = create_app(
+            risk_guard=risk_guard,
+            health_monitor=monitor,
+            journal=journal,
+            settings=settings,
+            scanner=scanner,
+            alert_manager=alert_manager,
+        )
+        dashboard_task = await start_dashboard(
+            app,
+            host=dash_host,
+            port=dash_port,
+            alert_manager=alert_manager,
+        )
+        logger.info("Dashboard starting on http://%s:%d", dash_host, dash_port)
+
+    # 10. Scan loop with graceful shutdown
     shutdown_event = asyncio.Event()
 
     def _handle_signal() -> None:
@@ -243,8 +266,15 @@ async def main() -> None:
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt received")
     finally:
-        # 11. Cleanup
+        # 12. Cleanup
         logger.info("Shutting down...")
+        if dashboard_task is not None and not dashboard_task.done():
+            dashboard_task.cancel()
+            try:
+                await dashboard_task
+            except asyncio.CancelledError:
+                pass
+            logger.info("Dashboard server stopped")
         logger.info("Final health:\n%s", monitor.format_status())
         if risk_guard:
             logger.info("Risk guard final state:\n%s", risk_guard.format_status())

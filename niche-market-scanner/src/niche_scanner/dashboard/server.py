@@ -42,7 +42,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 def create_app(
     *,
-    risk_guard: RiskGuard,
+    risk_guard: RiskGuard | None,
     health_monitor: HealthMonitor,
     journal: TradeJournal,
     settings: ScannerSettings,
