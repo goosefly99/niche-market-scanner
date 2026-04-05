@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 28 |
+| Complete | 29 |
 | In Progress | 0 |
-| Not Started | 0 |
+| Not Started | 1 |
 | Blocked | 0 |
-| **Total** | **28** |
+| **Total** | **30** |
 
 ---
 
@@ -102,6 +102,8 @@ Improvements identified during codebase review after Phase 5 completion.
 | # | Item | Status | Priority | Target Files |
 |---|------|--------|----------|--------------|
 | 6.1 | Add AGENTS.md to all subpackages with 3+ source files | Complete | Medium | `src/niche_scanner/kalshi/AGENTS.md`, `src/niche_scanner/engines/AGENTS.md`, `src/niche_scanner/execution/AGENTS.md`, `src/niche_scanner/sizing/AGENTS.md`, `src/niche_scanner/journal/AGENTS.md` |
+| 6.2 | Build real probability estimation in economics engine | Complete | High | `src/niche_scanner/engines/economics.py`, `tests/engines/test_economics.py` |
+| 6.3 | Add broader market discovery for thin-market engine | Not Started | High | `src/niche_scanner/scanner/market_scanner.py`, `src/niche_scanner/kalshi/client.py` |
 
 ---
 

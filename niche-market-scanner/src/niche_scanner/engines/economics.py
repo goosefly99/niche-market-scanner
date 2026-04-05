@@ -18,12 +18,55 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import httpx
+from scipy.stats import norm
 
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.kalshi.models import Market, OrderBook
 from niche_scanner.sizing.fees import round_trip_fee_pp
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Historical volatility constants for probability estimation
+# ---------------------------------------------------------------------------
+# These represent the standard deviation of "surprise" (actual vs. last-known
+# value) for each indicator type in its native unit.  They are used to build
+# a Gaussian model: P(indicator > threshold) = 1 - Phi((threshold - value) / sigma).
+#
+# Sources (approximate, from published research & historical FRED data):
+#   - CPI YoY monthly surprise:  ~0.10-0.20 percentage-points (pp)
+#   - Core CPI YoY surprise:     ~0.05-0.15 pp (less volatile than headline)
+#   - Fed Funds effective rate:   moves in 25bp increments; between meetings
+#     the effective rate fluctuates ~0.05pp around the midpoint of the range
+#   - Nonfarm payrolls:           ~75-100K surprise (std dev of miss)
+#   - GDP quarterly annualized:   ~0.5-1.0 pp surprise
+#   - Unemployment rate:          ~0.1-0.2 pp surprise
+#   - Gas prices (weekly avg):    ~$0.05-0.10 per gallon weekly change
+#
+# The dict maps release_type -> default sigma in the indicator's native unit.
+# Per-indicator overrides can be specified via INDICATOR_SIGMA below.
+
+RELEASE_TYPE_SIGMA: dict[str, float] = {
+    "cpi": 0.15,           # CPI YoY surprise std dev in percentage points
+    "fed_rate": 0.05,      # Fed Funds rate fluctuation std dev in pp
+    "jobs": 80.0,          # Nonfarm payrolls surprise std dev in thousands
+    "gdp": 0.8,            # GDP growth surprise std dev in pp
+    "unemployment": 0.15,  # Unemployment rate surprise std dev in pp
+    "gas": 0.08,           # Gas price weekly change std dev in dollars
+    "recession": 0.20,     # Generic; binary markets rarely have threshold
+    "credit": 0.20,        # Generic; binary markets rarely have threshold
+}
+
+# Per-indicator sigma overrides (indicator_name -> sigma).
+# When an IndicatorReading's name matches a key here, this sigma is used
+# instead of the release_type default.
+INDICATOR_SIGMA: dict[str, float] = {
+    "FRED Headline CPI YoY": 0.18,   # Headline CPI is more volatile
+    "FRED Core CPI YoY": 0.10,       # Core CPI is less volatile
+    "FRED Effective Fed Funds Rate": 0.05,
+    "10Y Breakeven Inflation Rate": 0.12,
+    "Fed Funds Target Upper": 0.0,    # Exact; no uncertainty in published target
+}
 
 # FRED series IDs for CPI-related indicators
 FRED_CPI_SERIES: dict[str, str] = {
@@ -198,6 +241,43 @@ def calculate_yoy_rate(current: float, year_ago: float) -> float:
     if year_ago == 0:
         return 0.0
     return ((current / year_ago) - 1.0) * 100.0
+
+
+def estimate_threshold_probability(
+    indicator_value: float,
+    threshold: float,
+    direction: str,
+    sigma: float,
+) -> float:
+    """Estimate P(indicator crosses threshold) using a normal distribution.
+
+    Models the *next* indicator reading as N(indicator_value, sigma^2),
+    where sigma represents historical surprise volatility.
+
+    Args:
+        indicator_value: Current or latest known indicator value.
+        threshold: Market threshold (e.g. 3.5 for "3.5% or above").
+        direction: ``"above"`` for P(X >= threshold),
+                   ``"below"`` for P(X < threshold).
+        sigma: Standard deviation of indicator surprise/volatility.
+
+    Returns:
+        Probability in [0, 1]. Returns 0.5 when sigma is zero and
+        indicator_value equals threshold (no information).
+    """
+    if sigma <= 0:
+        # No uncertainty — deterministic comparison
+        if direction == "above":
+            return 1.0 if indicator_value >= threshold else 0.0
+        return 1.0 if indicator_value < threshold else 0.0
+
+    z = (threshold - indicator_value) / sigma
+    # P(X >= threshold) = 1 - Phi(z)
+    prob_above: float = float(1.0 - norm.cdf(z))
+
+    if direction == "above":
+        return prob_above
+    return 1.0 - prob_above
 
 
 @dataclass
@@ -675,6 +755,48 @@ class EconomicsEdgeEngine(EdgeEngine):
             return None
         return sum(r.probability_above * r.weight for r in readings) / total_weight
 
+    @staticmethod
+    def _refine_readings_for_market(
+        readings: list[IndicatorReading],
+        threshold: float,
+        direction: str,
+        release_type: str,
+    ) -> list[IndicatorReading]:
+        """Refine indicator readings with per-market threshold probabilities.
+
+        For each reading, computes the probability that the underlying
+        indicator will cross the market's threshold using a normal
+        distribution model calibrated with historical volatility.
+
+        Args:
+            readings: Raw indicator readings (probability_above may be 0.5).
+            threshold: Numeric threshold from the market subtitle.
+            direction: ``"above"`` or ``"below"`` from ``_parse_threshold()``.
+            release_type: Release category for default sigma lookup.
+
+        Returns:
+            New list of ``IndicatorReading`` with refined ``probability_above``.
+        """
+        default_sigma = RELEASE_TYPE_SIGMA.get(release_type, 0.15)
+        refined: list[IndicatorReading] = []
+
+        for reading in readings:
+            sigma = INDICATOR_SIGMA.get(reading.name, default_sigma)
+            prob = estimate_threshold_probability(
+                indicator_value=reading.value,
+                threshold=threshold,
+                direction=direction,
+                sigma=sigma,
+            )
+            refined.append(IndicatorReading(
+                name=reading.name,
+                value=reading.value,
+                probability_above=prob,
+                weight=reading.weight,
+            ))
+
+        return refined
+
     # ------------------------------------------------------------------
     # Evaluation
     # ------------------------------------------------------------------
@@ -683,16 +805,36 @@ class EconomicsEdgeEngine(EdgeEngine):
         self,
         market: Market,
         orderbook: OrderBook | None,
-        model_prob: float,
+        readings: list[IndicatorReading],
         release_type: str,
     ) -> EdgeSignal | None:
-        """Check YES and NO sides for fee-adjusted edge, return the best."""
+        """Refine probability per-market threshold, then check for edge.
+
+        If the market subtitle contains a parseable threshold (e.g.
+        "3.5% or above"), indicator readings are refined against that
+        threshold using a Gaussian volatility model. Otherwise, the raw
+        (unrefined) weighted probability is used as a fallback.
+        """
         threshold_info = self._parse_threshold(market.subtitle)
         threshold_str = (
             f"{threshold_info[0]} ({threshold_info[1]})"
             if threshold_info
             else "unknown threshold"
         )
+
+        # Refine readings against this market's specific threshold
+        if threshold_info is not None:
+            threshold_val, direction = threshold_info
+            refined = self._refine_readings_for_market(
+                readings, threshold_val, direction, release_type,
+            )
+            model_prob = self._calculate_model_probability(refined)
+        else:
+            # No threshold parseable — use raw readings as fallback
+            model_prob = self._calculate_model_probability(readings)
+
+        if model_prob is None:
+            return None
 
         # Market-implied probability from last price
         market_prob_yes = market.last_price / 100.0 if market.last_price > 0 else 0.5
@@ -776,11 +918,10 @@ class EconomicsEdgeEngine(EdgeEngine):
 
         signals: list[EdgeSignal] = []
 
-        # 2. For each release type, fetch indicators and evaluate
+        # 2. For each release type, fetch indicators and evaluate per-market
         for release_type, group in grouped.items():
             readings = self.fetch_indicators(release_type)
-            model_prob = self._calculate_model_probability(readings)
-            if model_prob is None:
+            if not readings:
                 logger.debug(
                     "No indicator data for %s; skipping %d markets",
                     release_type,
@@ -791,7 +932,7 @@ class EconomicsEdgeEngine(EdgeEngine):
             for market in group:
                 ob = orderbooks.get(market.ticker)
                 signal = self._evaluate_market(
-                    market, ob, model_prob, release_type,
+                    market, ob, readings, release_type,
                 )
                 if signal is not None:
                     signals.append(signal)

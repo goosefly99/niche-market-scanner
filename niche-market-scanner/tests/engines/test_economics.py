@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
+import pytest
+
 from niche_scanner.engines.economics import (
+    INDICATOR_SIGMA,
+    RELEASE_TYPE_SIGMA,
     EconomicsEdgeEngine,
     IndicatorReading,
+    estimate_threshold_probability,
 )
+from niche_scanner.kalshi.models import Market
 
 
 def test_indicator_reading_weighted_probability() -> None:
@@ -406,3 +414,306 @@ releases:
         types = {e.release_type for e in cal.entries}
         assert "cpi" in types
         assert "fed_rate" in types
+
+
+# ---------------------------------------------------------------------------
+# Item 6.2: Real probability estimation from FRED indicators
+# ---------------------------------------------------------------------------
+
+
+class TestEstimateThresholdProbability:
+    """Tests for the estimate_threshold_probability() utility function."""
+
+    def test_value_well_above_threshold(self) -> None:
+        """When indicator is well above threshold, P(above) should be high."""
+        # CPI at 3.5%, threshold 3.0%, sigma 0.15
+        prob = estimate_threshold_probability(3.5, 3.0, "above", 0.15)
+        assert prob > 0.99  # 3.33 std devs above
+
+    def test_value_well_below_threshold(self) -> None:
+        """When indicator is well below threshold, P(above) should be low."""
+        # CPI at 2.5%, threshold 3.0%, sigma 0.15
+        prob = estimate_threshold_probability(2.5, 3.0, "above", 0.15)
+        assert prob < 0.01  # 3.33 std devs below
+
+    def test_value_at_threshold(self) -> None:
+        """When indicator equals threshold, P(above) should be ~0.5."""
+        prob = estimate_threshold_probability(3.0, 3.0, "above", 0.15)
+        assert abs(prob - 0.5) < 0.001
+
+    def test_direction_below(self) -> None:
+        """Direction 'below' returns 1 - P(above)."""
+        prob_above = estimate_threshold_probability(3.2, 3.0, "above", 0.15)
+        prob_below = estimate_threshold_probability(3.2, 3.0, "below", 0.15)
+        assert abs(prob_above + prob_below - 1.0) < 1e-9
+
+    def test_small_edge_produces_moderate_probability(self) -> None:
+        """Indicator slightly above threshold gives moderate-to-high probability."""
+        # CPI at 3.2%, threshold 3.0%, sigma 0.15 -> z = -1.33 -> P(above) ~ 0.91
+        prob = estimate_threshold_probability(3.2, 3.0, "above", 0.15)
+        assert 0.85 < prob < 0.95
+
+    def test_zero_sigma_deterministic_above(self) -> None:
+        """Zero sigma: deterministic comparison for 'above' direction."""
+        assert estimate_threshold_probability(3.5, 3.0, "above", 0.0) == 1.0
+        assert estimate_threshold_probability(2.5, 3.0, "above", 0.0) == 0.0
+        # At threshold: >= means above
+        assert estimate_threshold_probability(3.0, 3.0, "above", 0.0) == 1.0
+
+    def test_zero_sigma_deterministic_below(self) -> None:
+        """Zero sigma: deterministic comparison for 'below' direction."""
+        assert estimate_threshold_probability(2.5, 3.0, "below", 0.0) == 1.0
+        assert estimate_threshold_probability(3.5, 3.0, "below", 0.0) == 0.0
+
+    def test_large_sigma_pulls_toward_50(self) -> None:
+        """Very large sigma means high uncertainty -> probability near 0.5."""
+        prob = estimate_threshold_probability(3.5, 3.0, "above", 100.0)
+        assert abs(prob - 0.5) < 0.01
+
+    def test_fed_rate_threshold(self) -> None:
+        """Fed rate at 4.33%, threshold 4.50%, sigma 0.05."""
+        # z = (4.50 - 4.33) / 0.05 = 3.4 -> P(above) ~ 0.0003
+        prob = estimate_threshold_probability(4.33, 4.50, "above", 0.05)
+        assert prob < 0.01
+
+    def test_nonfarm_payrolls(self) -> None:
+        """Payrolls at 250K, threshold 200K, sigma 80K."""
+        # z = (200 - 250) / 80 = -0.625 -> P(above) ~ 0.73
+        prob = estimate_threshold_probability(250.0, 200.0, "above", 80.0)
+        assert 0.70 < prob < 0.80
+
+
+class TestVolatilityConstants:
+    """Verify the sigma constants are reasonable and complete."""
+
+    def test_all_release_types_have_sigma(self) -> None:
+        """Every release type in the ticker map has a sigma entry."""
+        for rtype in EconomicsEdgeEngine.SERIES_TICKER_MAP:
+            assert rtype in RELEASE_TYPE_SIGMA, f"Missing sigma for {rtype}"
+
+    def test_sigma_values_positive(self) -> None:
+        """All sigma values must be non-negative."""
+        for rtype, sigma in RELEASE_TYPE_SIGMA.items():
+            assert sigma >= 0, f"Negative sigma for {rtype}: {sigma}"
+
+    def test_indicator_sigma_overrides_exist(self) -> None:
+        """Key indicators should have per-indicator sigma overrides."""
+        assert "FRED Headline CPI YoY" in INDICATOR_SIGMA
+        assert "FRED Core CPI YoY" in INDICATOR_SIGMA
+        assert "FRED Effective Fed Funds Rate" in INDICATOR_SIGMA
+
+
+class TestRefineReadingsForMarket:
+    """Tests for _refine_readings_for_market()."""
+
+    def test_refinement_updates_probability_above(self) -> None:
+        """Refinement replaces 0.5 with threshold-derived probability."""
+        readings = [
+            IndicatorReading("FRED Headline CPI YoY", 3.2, 0.5, 0.5),
+            IndicatorReading("FRED Core CPI YoY", 3.0, 0.5, 0.5),
+        ]
+        refined = EconomicsEdgeEngine._refine_readings_for_market(
+            readings, threshold=3.5, direction="above", release_type="cpi",
+        )
+        assert len(refined) == 2
+        # CPI at 3.2%, threshold 3.5%, sigma 0.18 -> P(above) ~ 0.048
+        assert refined[0].probability_above < 0.10
+        # Core CPI at 3.0%, threshold 3.5%, sigma 0.10 -> P(above) ~ 0.0
+        assert refined[1].probability_above < 0.001
+        # Both should have changed from 0.5
+        assert refined[0].probability_above != 0.5
+        assert refined[1].probability_above != 0.5
+
+    def test_refinement_preserves_weight_and_name(self) -> None:
+        """Refinement keeps the original name and weight."""
+        readings = [IndicatorReading("Test", 3.0, 0.5, 0.7)]
+        refined = EconomicsEdgeEngine._refine_readings_for_market(
+            readings, threshold=3.0, direction="above", release_type="cpi",
+        )
+        assert refined[0].name == "Test"
+        assert refined[0].weight == 0.7
+        assert refined[0].value == 3.0
+
+    def test_refinement_below_direction(self) -> None:
+        """Refinement works correctly for 'below' direction."""
+        readings = [
+            IndicatorReading("FRED Headline CPI YoY", 3.2, 0.5, 1.0),
+        ]
+        refined = EconomicsEdgeEngine._refine_readings_for_market(
+            readings, threshold=3.5, direction="below", release_type="cpi",
+        )
+        # CPI at 3.2%, threshold 3.5% below -> P(below 3.5%) = 1 - P(above 3.5%)
+        # P(above 3.5%) ~ 0.048 -> P(below) ~ 0.952
+        assert refined[0].probability_above > 0.90
+
+    def test_refinement_uses_per_indicator_sigma(self) -> None:
+        """Per-indicator sigma overrides the release_type default."""
+        # "Fed Funds Target Upper" has sigma=0.0 -> deterministic
+        readings = [IndicatorReading("Fed Funds Target Upper", 4.50, 0.5, 1.0)]
+        refined = EconomicsEdgeEngine._refine_readings_for_market(
+            readings, threshold=4.25, direction="above", release_type="fed_rate",
+        )
+        # sigma=0, value=4.50 >= threshold=4.25 -> P(above) = 1.0
+        assert refined[0].probability_above == 1.0
+
+    def test_refinement_uses_default_sigma_for_unknown_indicator(self) -> None:
+        """Unknown indicator names fall back to the release_type default sigma."""
+        readings = [IndicatorReading("Custom Indicator", 3.0, 0.5, 1.0)]
+        refined = EconomicsEdgeEngine._refine_readings_for_market(
+            readings, threshold=3.0, direction="above", release_type="cpi",
+        )
+        # At-threshold with sigma>0 -> probability should be ~0.5
+        assert abs(refined[0].probability_above - 0.5) < 0.001
+
+
+class TestEvaluateMarketWithRefinement:
+    """Tests for _evaluate_market with per-market probability refinement."""
+
+    def _make_market(
+        self,
+        ticker: str = "CPIYOY-26APR10-T3.5",
+        event_ticker: str = "CPIYOY-26APR10",
+        subtitle: str = "3.5% or above",
+        last_price: int = 50,
+    ) -> Market:
+        return Market(
+            ticker=ticker,
+            event_ticker=event_ticker,
+            subtitle=subtitle,
+            status="active",
+            close_time=datetime(2026, 4, 11, tzinfo=timezone.utc),
+            last_price=last_price,
+        )
+
+    def test_cpi_above_threshold_generates_no_signal(self) -> None:
+        """CPI well below threshold -> model says NO -> possible NO-side signal."""
+        engine = EconomicsEdgeEngine(min_edge_pp=5.0)
+        market = self._make_market(
+            subtitle="3.5% or above",
+            last_price=50,  # market says 50/50
+        )
+        readings = [
+            IndicatorReading("FRED Headline CPI YoY", 2.8, 0.5, 0.5),
+            IndicatorReading("FRED Core CPI YoY", 2.7, 0.5, 0.5),
+        ]
+        signal = engine._evaluate_market(market, None, readings, "cpi")
+        # CPI at 2.8/2.7 vs threshold 3.5 -> model prob (above) very low
+        # Market says 50% -> should find NO-side edge
+        if signal is not None:
+            assert signal.side == "no"
+            assert signal.model_prob < 0.15
+
+    def test_cpi_at_threshold_no_edge(self) -> None:
+        """CPI at threshold -> model ~50% matches market 50% -> no signal."""
+        engine = EconomicsEdgeEngine(min_edge_pp=12.0)
+        market = self._make_market(
+            subtitle="3.0% or above",
+            last_price=50,  # market says 50%
+        )
+        readings = [
+            IndicatorReading("FRED Headline CPI YoY", 3.0, 0.5, 0.5),
+            IndicatorReading("FRED Core CPI YoY", 3.0, 0.5, 0.5),
+        ]
+        signal = engine._evaluate_market(market, None, readings, "cpi")
+        # Model ~0.5, market ~0.5, edge ~0 -> no signal with 12pp threshold
+        assert signal is None
+
+    def test_unparseable_subtitle_uses_raw_readings(self) -> None:
+        """Market without parseable threshold falls back to raw readings."""
+        engine = EconomicsEdgeEngine(min_edge_pp=5.0)
+        market = self._make_market(
+            subtitle="Hold",  # Not parseable as a threshold
+            last_price=50,
+        )
+        readings = [
+            IndicatorReading("Test", 4.0, 0.9, 1.0),  # Already refined externally
+        ]
+        signal = engine._evaluate_market(market, None, readings, "fed_rate")
+        # Falls back to raw readings -> model_prob = 0.9
+        # edge = (0.9 - 0.5)*100 = 40pp -> should signal YES
+        assert signal is not None
+        assert signal.side == "yes"
+        assert abs(signal.model_prob - 0.9) < 0.01
+
+    def test_strong_cpi_above_generates_yes_signal(self) -> None:
+        """CPI well above threshold + low market price -> YES signal."""
+        engine = EconomicsEdgeEngine(min_edge_pp=5.0)
+        market = self._make_market(
+            subtitle="3.0% or above",
+            last_price=20,  # market says only 20% chance
+        )
+        readings = [
+            IndicatorReading("FRED Headline CPI YoY", 3.5, 0.5, 0.5),
+            IndicatorReading("FRED Core CPI YoY", 3.3, 0.5, 0.5),
+        ]
+        signal = engine._evaluate_market(market, None, readings, "cpi")
+        # CPI well above 3.0 threshold -> model prob high, market says 20%
+        assert signal is not None
+        assert signal.side == "yes"
+        assert signal.model_prob > 0.85
+
+
+class TestScanWithRefinement:
+    """Integration tests for scan() with probability refinement."""
+
+    async def test_scan_produces_differentiated_probabilities(self) -> None:
+        """Two CPI markets with different thresholds should get different probs."""
+        engine = EconomicsEdgeEngine(min_edge_pp=5.0)
+
+        # Override fetch_indicators to return known readings
+        original_fetch = engine.fetch_indicators
+
+        def mock_fetch(release_type: str) -> list[IndicatorReading]:
+            if release_type == "cpi":
+                return [
+                    IndicatorReading("FRED Headline CPI YoY", 3.2, 0.5, 0.5),
+                    IndicatorReading("FRED Core CPI YoY", 3.0, 0.5, 0.5),
+                ]
+            return original_fetch(release_type)
+
+        engine.fetch_indicators = mock_fetch  # type: ignore[assignment]
+
+        m1 = Market(
+            ticker="CPIYOY-26APR10-T2.5",
+            event_ticker="CPIYOY-26APR10",
+            subtitle="2.5% or above",
+            status="active",
+            close_time=datetime(2026, 4, 11, tzinfo=timezone.utc),
+            last_price=50,
+        )
+        m2 = Market(
+            ticker="CPIYOY-26APR10-T4.0",
+            event_ticker="CPIYOY-26APR10",
+            subtitle="4.0% or above",
+            status="active",
+            close_time=datetime(2026, 4, 11, tzinfo=timezone.utc),
+            last_price=50,
+        )
+
+        signals = await engine.scan([m1, m2], {})
+
+        # With CPI at 3.2%:
+        # - T2.5 threshold: model prob(above 2.5) >> 0.5 -> YES edge
+        # - T4.0 threshold: model prob(above 4.0) << 0.5 -> NO edge
+        # At least one market should produce a signal with the 5pp threshold
+        assert len(signals) >= 1
+
+        # Check that the signals are differentiated (not both 0.5)
+        for s in signals:
+            assert s.model_prob != pytest.approx(0.5, abs=0.01)
+
+    async def test_scan_empty_readings_skips_markets(self) -> None:
+        """Markets with no indicator data produce no signals."""
+        engine = EconomicsEdgeEngine(min_edge_pp=5.0)
+
+        m = Market(
+            ticker="KXPROLLS-26APR03-T200",
+            event_ticker="KXPROLLS-26APR03",
+            subtitle="200K or above",
+            status="active",
+            close_time=datetime(2026, 4, 4, tzinfo=timezone.utc),
+            last_price=50,
+        )
+        # jobs fetch_indicators returns [] (stub)
+        signals = await engine.scan([m], {})
+        assert signals == []
