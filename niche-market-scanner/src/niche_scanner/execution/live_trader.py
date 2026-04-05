@@ -42,6 +42,16 @@ class LiveTrader:
         self._rejected_count = 0
         self._total_cost_cents = 0
 
+    @property
+    def total_cost_cents(self) -> int:
+        """Cumulative cost (in cents) of every successfully filled live order.
+
+        Rejected and failed orders do not contribute — the counter
+        increments only after :meth:`KalshiClient.create_order` returns
+        a placed order.
+        """
+        return self._total_cost_cents
+
     async def execute(self, signal: EdgeSignal, size: PositionSize) -> int:
         """Attempt to place a real order. Returns trade journal ID.
 

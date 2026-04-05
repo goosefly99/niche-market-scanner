@@ -361,9 +361,7 @@ async def main() -> None:
                     else:
                         # Paper mode: compute effective balance from
                         # starting bankroll minus cumulative paper spend.
-                        paper_spend = getattr(
-                            trader, "_total_cost_cents", 0,
-                        )
+                        paper_spend = trader.total_cost_cents
                         effective_balance = bankroll_cents - paper_spend
                         if effective_balance > paper_peak_cents:
                             paper_peak_cents = effective_balance

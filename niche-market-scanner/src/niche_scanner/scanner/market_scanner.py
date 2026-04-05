@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from niche_scanner.config import ICAOStations, ScannerSettings
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
 from niche_scanner.engines.economics import ReleaseCalendar
-from niche_scanner.execution.paper_trader import PaperTrader
+from niche_scanner.execution.base import Trader
 from niche_scanner.kalshi.client import KalshiClient
 from niche_scanner.kalshi.models import Market, OrderBook
 from niche_scanner.sizing.kelly import KellySizer, PositionSize
@@ -61,7 +61,9 @@ class MarketScanner:
     sizer:
         Kelly position sizer for computing trade sizes.
     trader:
-        Paper (or live) trader that executes sized signals.
+        Paper or live trader that executes sized signals.  Typed
+        against :class:`Trader` so ``PaperTrader`` and ``LiveTrader``
+        are structurally interchangeable.
     icao_stations:
         ICAO station config providing series_tickers for weather scanning.
     alert_manager:
@@ -96,7 +98,7 @@ class MarketScanner:
         client: KalshiClient,
         engines: list[EdgeEngine],
         sizer: KellySizer,
-        trader: PaperTrader,
+        trader: Trader,
         icao_stations: ICAOStations | None = None,
         alert_manager: AlertManager | None = None,
         settings: ScannerSettings | None = None,

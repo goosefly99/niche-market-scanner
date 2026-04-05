@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 35 |
+| Complete | 36 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **35** |
+| **Total** | **36** |
 
 ---
 
@@ -109,6 +109,7 @@ Improvements identified during codebase review after Phase 5 completion.
 | 6.6 | Wire BalanceTracker.record_snapshot() into scan loop so /api/balance/history returns real data (paper + live modes) | Complete | High | `src/niche_scanner/main.py`, `tests/test_main_balance_tracking.py` |
 | 6.7 | Convert economics engine FRED client from blocking httpx.get to async httpx.AsyncClient (prevents event loop stalls during scan cycles) | Complete | High | `src/niche_scanner/engines/economics.py`, `tests/engines/test_economics.py`, `src/niche_scanner/engines/AGENTS.md` |
 | 6.8 | Parallelize per-series market fetching in MarketScanner.scan_cycle with asyncio.gather (90+ sequential requests per cycle drops to batched concurrent calls bounded by KalshiClient's existing semaphore) | Complete | High | `src/niche_scanner/scanner/market_scanner.py`, `tests/scanner/test_market_scanner.py` |
+| 6.9 | Extract Trader protocol (execution/base.py) with public total_cost_cents; replace getattr on PaperTrader._total_cost_cents in main.py and fix incorrect PaperTrader type hint in MarketScanner | Complete | Medium | `src/niche_scanner/execution/base.py`, `src/niche_scanner/execution/paper_trader.py`, `src/niche_scanner/execution/live_trader.py`, `src/niche_scanner/scanner/market_scanner.py`, `src/niche_scanner/main.py`, `tests/execution/test_base.py` |
 
 ---
 

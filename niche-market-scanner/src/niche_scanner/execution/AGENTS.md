@@ -6,16 +6,20 @@ This package handles the execution side of the pipeline: taking sized
 signals and either recording them as paper trades or placing real
 orders on Kalshi through the risk guard.
 
-Both `PaperTrader` and `LiveTrader` share the same interface:
-`async execute(signal, size) -> int` (returns the journal trade ID).
-The `MarketScanner` calls whichever trader was configured at startup.
+Both `PaperTrader` and `LiveTrader` implement the `Trader` protocol
+defined in `base.py`. The protocol exposes `async execute(signal,
+size) -> int` (returns the journal trade ID), `summary()`, and a
+`total_cost_cents` read-only property. Scanner and orchestration code
+(`MarketScanner`, `main.py`) type-hint against `Trader` — not the
+concrete classes — so live and paper modes stay interchangeable.
 
 ## Module Responsibilities
 
 | Module | Role |
 |---|---|
-| `paper_trader.py` | `PaperTrader` — records simulated trades to `TradeJournal`. No real orders. Tracks running totals (signal count, total cost). |
-| `live_trader.py` | `LiveTrader` — places real orders on Kalshi via `KalshiClient`. Every order passes through `RiskGuard.check_order()` first. Rejected orders are logged with action=`"rejected"`. Failed API calls trigger the kill switch. Uses IOC (immediate-or-cancel) time-in-force for safety. |
+| `base.py` | `Trader` runtime-checkable protocol. Defines the minimum surface (`execute`, `summary`, `total_cost_cents`) both traders implement. |
+| `paper_trader.py` | `PaperTrader` — records simulated trades to `TradeJournal`. No real orders. Tracks running totals (signal count, total cost). Exposes `total_cost_cents` for the dashboard balance chart. |
+| `live_trader.py` | `LiveTrader` — places real orders on Kalshi via `KalshiClient`. Every order passes through `RiskGuard.check_order()` first. Rejected orders are logged with action=`"rejected"`. Failed API calls trigger the kill switch. Uses IOC (immediate-or-cancel) time-in-force for safety. `total_cost_cents` increments only on successful fills. |
 | `risk_guard.py` | `RiskGuard` — fail-closed safety gate. Checks: kill switch, live trading enabled, bet size limit, cumulative spend cap, daily trade count, open position limit, daily loss limit, portfolio drawdown from peak, sufficient balance. `LiveTradingConfig` dataclass holds all limits. `RiskState` tracks mutable counters. |
 
 ## Key Conventions

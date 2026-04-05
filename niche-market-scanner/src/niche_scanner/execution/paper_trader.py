@@ -23,6 +23,11 @@ class PaperTrader:
         self._signal_count = 0
         self._total_cost_cents = 0
 
+    @property
+    def total_cost_cents(self) -> int:
+        """Cumulative cost (in cents) of every paper trade recorded so far."""
+        return self._total_cost_cents
+
     async def execute(self, signal: EdgeSignal, size: PositionSize) -> int:
         """Record a paper trade and return the trade ID.
 
