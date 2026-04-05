@@ -13,7 +13,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 | 1.5 | Add `TradeJournal.get_trade_by_id()` and `get_daily_stats()` methods | Complete | -- | `journal/trade_journal.py` |
 | 1.6 | Expose TradeJournal aiosqlite.Connection as property | Complete | -- | `journal/trade_journal.py` |
 | 1.7 | Integrate DashboardServer into main.py (task + death watchdog) | Not Started | 1.3 | `main.py` |
-| 1.8 | Add dashboard config section to settings.yaml | Not Started | -- | `config/settings.yaml` |
+| 1.8 | Add dashboard config section to settings.yaml | Complete | -- | `config/settings.yaml` |
 | 1.9 | Add startup WARNING log if host != 127.0.0.1 | Complete | 1.3 | `dashboard/server.py` |
 | 1.10 | Update docker-compose.yml port mapping (127.0.0.1:8050:8050) | Not Started | -- | `docker-compose.yml` |
 | 1.11 | Enable WAL mode on SQLite connection | Not Started | -- | `journal/db.py` |

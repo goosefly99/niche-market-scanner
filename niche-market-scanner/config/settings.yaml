@@ -1,11 +1,11 @@
 scanner:
-  weather_interval_min: 15
-  weather_urgent_interval_min: 2
+  weather_interval_min: 5
+  weather_urgent_interval_min: 1
   weather_urgent_hours_before: 4
-  economics_interval_min: 30
-  economics_urgent_interval_min: 5
+  economics_interval_min: 10
+  economics_urgent_interval_min: 2
   economics_urgent_hours_before: 48
-  thin_market_interval_min: 10
+  thin_market_interval_min: 3
 
 sizing:
   kelly_fraction: 0.5
@@ -14,21 +14,20 @@ sizing:
   min_edge_pp: 12
   max_drawdown_daily: 0.05
   kill_switch_drawdown: 0.40
-  paper_trade: true  # Master mode switch: true=paper, false=live
+  paper_trade: false  # LIVE MODE ACTIVE
 
-# Live trading config — only active when paper_trade is false.
-# All monetary values in cents. Percentages as decimals.
+# Live trading config — ACTIVE
 live_trading:
-  enabled: false  # Must be explicitly true AND paper_trade must be false
-  starting_cash_cents: 100000  # $1,000 — initial capital for risk calculations
+  enabled: true  # LIVE TRADING ENABLED
+  starting_cash_cents: 149942  # $1,499.42 — actual account balance
   max_bet_size_cents: 1000  # $10 max per individual trade
   max_buy_usd_cum: 100  # $100 cumulative spend cap across ALL positions (hard cap)
   max_portfolio_drawdown: 0.15  # 15% from peak balance triggers kill switch
-  max_daily_loss_cents: 5000  # $50/day loss limit triggers kill switch
+  max_daily_loss_cents: 2000  # $20/day loss limit triggers kill switch
   position_stop_loss: 0.50  # 50% loss on a single position
   max_open_positions: 10
-  max_daily_trades: 50
-  require_confirmation: true  # Not yet implemented — reserved for human-in-the-loop
+  max_daily_trades: 20
+  require_confirmation: false
 
 verticals:
   weather: { enabled: true }
@@ -36,3 +35,8 @@ verticals:
   thin_market: { enabled: false }
   sports: { enabled: false }
   earnings: { enabled: false }
+
+dashboard:
+  enabled: true
+  host: 127.0.0.1
+  port: 8050

@@ -42,6 +42,50 @@ class TestScannerSettings:
         assert settings.is_vertical_enabled("weather") is True
         assert settings.is_vertical_enabled("economics") is True
 
+    def test_dashboard_config_from_yaml(self, tmp_path: Path) -> None:
+        from niche_scanner.config import ScannerSettings
+
+        yaml_path = tmp_path / "settings.yaml"
+        yaml_path.write_text(yaml.dump({
+            "dashboard": {"enabled": True, "host": "0.0.0.0", "port": 9090},
+        }))
+        settings = ScannerSettings(path=yaml_path)
+        assert settings.dashboard["enabled"] is True
+        assert settings.dashboard["host"] == "0.0.0.0"
+        assert settings.dashboard["port"] == 9090
+
+    def test_dashboard_defaults_when_section_missing(self, tmp_path: Path) -> None:
+        from niche_scanner.config import ScannerSettings
+
+        yaml_path = tmp_path / "settings.yaml"
+        yaml_path.write_text(yaml.dump({"scanner": {}}))
+        settings = ScannerSettings(path=yaml_path)
+        assert settings.dashboard["enabled"] is False
+        assert settings.dashboard["host"] == "127.0.0.1"
+        assert settings.dashboard["port"] == 8050
+
+    def test_dashboard_partial_override(self, tmp_path: Path) -> None:
+        """Partial overrides merge with defaults — missing keys get safe values."""
+        from niche_scanner.config import ScannerSettings
+
+        yaml_path = tmp_path / "settings.yaml"
+        yaml_path.write_text(yaml.dump({
+            "dashboard": {"enabled": True},
+        }))
+        settings = ScannerSettings(path=yaml_path)
+        assert settings.dashboard["enabled"] is True
+        assert settings.dashboard["host"] == "127.0.0.1"
+        assert settings.dashboard["port"] == 8050
+
+    def test_default_settings_include_dashboard(self) -> None:
+        """The shipped config/settings.yaml includes the dashboard section."""
+        from niche_scanner.config import ScannerSettings
+
+        settings = ScannerSettings()  # Uses default path
+        assert settings.dashboard["enabled"] is True
+        assert settings.dashboard["host"] == "127.0.0.1"
+        assert settings.dashboard["port"] == 8050
+
 
 class TestICAOStations:
     """Tests for ICAO station loading and lookup."""

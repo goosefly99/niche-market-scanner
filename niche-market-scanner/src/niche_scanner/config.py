@@ -96,6 +96,22 @@ class ScannerSettings:
     def verticals(self) -> dict[str, Any]:
         return dict(self._data.get("verticals", {}))
 
+    @property
+    def dashboard(self) -> dict[str, Any]:
+        """Dashboard configuration with defaults.
+
+        Returns a dict with keys ``enabled`` (bool), ``host`` (str), and
+        ``port`` (int).  Missing keys are filled from safe defaults so
+        callers never need to handle ``KeyError``.
+        """
+        defaults: dict[str, Any] = {
+            "enabled": False,
+            "host": "127.0.0.1",
+            "port": 8050,
+        }
+        raw = self._data.get("dashboard", {}) or {}
+        return {**defaults, **raw}
+
     def is_vertical_enabled(self, name: str) -> bool:
         vertical = self._data.get("verticals", {}).get(name, {})
         return bool(vertical.get("enabled", False))
