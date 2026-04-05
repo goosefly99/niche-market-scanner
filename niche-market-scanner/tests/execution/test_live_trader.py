@@ -105,7 +105,7 @@ async def test_live_trade_bet_size_rejected(mock_client, journal):
     guard = RiskGuard(cfg, initial_balance_cents=100_000)
     trader = LiveTrader(client=mock_client, journal=journal, risk_guard=guard)
 
-    trade_id = await trader.execute(_signal(), _size())  # 87 cents > 50
+    await trader.execute(_signal(), _size())  # 87 cents > 50
     mock_client.create_order.assert_not_called()
     trades = await journal.get_trades()
     assert "REJECTED" in trades[0]["thesis"]
@@ -116,7 +116,7 @@ async def test_live_trade_api_failure_triggers_kill(mock_client, journal, guard)
     mock_client.create_order = AsyncMock(side_effect=RuntimeError("API down"))
     trader = LiveTrader(client=mock_client, journal=journal, risk_guard=guard)
 
-    trade_id = await trader.execute(_signal(), _size())
+    await trader.execute(_signal(), _size())
     assert guard.is_killed
     assert "Order placement failed" in guard.kill_reason
     trades = await journal.get_trades()

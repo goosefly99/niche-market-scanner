@@ -6,7 +6,6 @@ import asyncio
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 
 from niche_scanner.dashboard.server import create_app, start_dashboard

@@ -22,7 +22,7 @@ from niche_scanner.dashboard.pages import (
     risk_color,
 )
 from niche_scanner.dashboard.server import create_app
-from niche_scanner.execution.risk_guard import LiveTradingConfig, RiskGuard, RiskState
+from niche_scanner.execution.risk_guard import LiveTradingConfig, RiskGuard
 from niche_scanner.journal.db import SCHEMA
 from niche_scanner.monitor.health import HealthMonitor
 

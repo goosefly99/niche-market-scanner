@@ -17,7 +17,7 @@ from niche_scanner.config import (
 from niche_scanner.dashboard.server import create_app, start_dashboard
 from niche_scanner.monitor.health import HealthMonitor
 from niche_scanner.engines.base import EdgeEngine
-from niche_scanner.engines.economics import EconomicsEdgeEngine
+from niche_scanner.engines.economics import EconomicsEdgeEngine, ReleaseCalendar
 from niche_scanner.engines.weather import WeatherEdgeEngine
 from niche_scanner.execution.live_trader import LiveTrader
 from niche_scanner.execution.paper_trader import PaperTrader
@@ -161,6 +161,27 @@ async def main() -> None:
     if not engines:
         logger.warning("No engines enabled; scanner will produce no signals")
 
+    # 6b. Release calendar for dynamic scan interval switching
+    release_calendar = ReleaseCalendar.default()
+    scanner_cfg = settings.scanner
+    normal_interval_sec = float(scanner_cfg.get(
+        "economics_interval_min", 10,
+    )) * 60
+    urgent_interval_sec = float(scanner_cfg.get(
+        "economics_urgent_interval_min", 2,
+    )) * 60
+    urgent_window_hours = float(scanner_cfg.get(
+        "economics_urgent_hours_before", 48,
+    ))
+    logger.info(
+        "Release calendar: %d upcoming releases, "
+        "normal=%.0fs, urgent=%.0fs, window=%.0fh",
+        len(release_calendar.upcoming(days=30)),
+        normal_interval_sec,
+        urgent_interval_sec,
+        urgent_window_hours,
+    )
+
     # 7. Create scanner
     scanner = MarketScanner(
         client=client,
@@ -170,6 +191,10 @@ async def main() -> None:
         icao_stations=icao,
         alert_manager=alert_manager,
         economics_series=economics_series,
+        release_calendar=release_calendar,
+        normal_interval_sec=normal_interval_sec,
+        urgent_interval_sec=urgent_interval_sec,
+        urgent_window_hours=urgent_window_hours,
     )
 
     # 8. Determine bankroll
@@ -219,12 +244,11 @@ async def main() -> None:
             loop.add_signal_handler(sig, _handle_signal)
     # On Windows, KeyboardInterrupt is raised directly by asyncio.
 
-    scan_interval = settings.scanner.get(
-        "weather_interval_min", _DEFAULT_SCAN_INTERVAL_SEC / 60,
+    logger.info(
+        "Starting scan loop (dynamic intervals: normal=%.0fs, urgent=%.0fs)",
+        normal_interval_sec,
+        urgent_interval_sec,
     )
-    interval_sec = float(scan_interval) * 60
-
-    logger.info("Starting scan loop (interval=%.0fs)", interval_sec)
     monitor.heartbeat("main")
     try:
         while not shutdown_event.is_set():
@@ -257,6 +281,8 @@ async def main() -> None:
                 logger.exception("Scan cycle failed")
                 monitor.report_error("scanner", "Scan cycle exception")
 
+            # Dynamic interval: shorten when near an economic release
+            interval_sec = scanner.get_scan_interval_sec()
             try:
                 await asyncio.wait_for(
                     shutdown_event.wait(), timeout=interval_sec,

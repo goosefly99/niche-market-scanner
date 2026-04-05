@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 
 from niche_scanner.alerts.telegram import AlertManager
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
+from niche_scanner.engines.economics import ReleaseCalendar, ReleaseCalendarEntry
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.journal.trade_journal import TradeJournal
 from niche_scanner.kalshi.models import Market, OrderBook
@@ -415,7 +416,7 @@ async def test_scan_cycle_fetches_economics_series(
         icao_stations=mock_icao,
         economics_series=["KXRECSSNBER"],
     )
-    signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
+    await scanner.scan_cycle(bankroll_cents=1_000_000)
 
     # Verify both weather and economics markets were fetched
     call_series = [
@@ -440,3 +441,164 @@ async def test_scan_cycle_works_without_economics_series(
     # Should not raise — economics_series defaults to empty
     signals = await scanner.scan_cycle(bankroll_cents=1_000_000)
     assert isinstance(signals, list)
+
+
+# ---------------------------------------------------------------------------
+# Item 5.3: Release calendar dynamic interval switching
+# ---------------------------------------------------------------------------
+
+
+def test_get_scan_interval_no_calendar(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Without a release calendar, the normal interval is always returned."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=None,
+        normal_interval_sec=600.0,
+        urgent_interval_sec=120.0,
+    )
+    assert scanner.get_scan_interval_sec() == 600.0
+
+
+def test_get_scan_interval_no_upcoming_release(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """With all releases in the distant future, normal interval is returned."""
+    # All releases are far in the future (2027)
+    entries = [
+        ReleaseCalendarEntry("cpi", "2027-01-15", "Far future CPI"),
+    ]
+    cal = ReleaseCalendar(entries)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=cal,
+        normal_interval_sec=600.0,
+        urgent_interval_sec=120.0,
+        urgent_window_hours=48.0,
+    )
+    assert scanner.get_scan_interval_sec() == 600.0
+
+
+def test_get_scan_interval_release_within_window(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """When a release is within the urgent window, urgent interval is returned.
+
+    We build a calendar with a CPI release 12 hours from "now" and
+    verify that ``get_scan_interval_sec`` returns the urgent interval.
+    The ``is_within_window`` call inside the method uses real ``datetime.now()``
+    so we construct the entry relative to the real clock to avoid flakes.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    # Release date is tomorrow (midnight UTC). Since ReleaseCalendarEntry
+    # stores dates as midnight-UTC timestamps, "tomorrow" is always in
+    # the future and always within a 48-hour window.
+    release_date = (
+        datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        + timedelta(days=1)
+    ).strftime("%Y-%m-%d")
+    entries = [ReleaseCalendarEntry("cpi", release_date, "Imminent CPI")]
+    cal = ReleaseCalendar(entries)
+
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=cal,
+        normal_interval_sec=600.0,
+        urgent_interval_sec=120.0,
+        urgent_window_hours=48.0,
+    )
+    assert scanner.get_scan_interval_sec() == 120.0
+
+
+def test_get_scan_interval_release_outside_window(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """When no release is within the urgent window, normal interval is returned."""
+    # Only one release, far in the future
+    entries = [
+        ReleaseCalendarEntry("cpi", "2099-12-31", "Future CPI"),
+    ]
+    cal = ReleaseCalendar(entries)
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=cal,
+        normal_interval_sec=600.0,
+        urgent_interval_sec=120.0,
+        urgent_window_hours=48.0,
+    )
+    assert scanner.get_scan_interval_sec() == 600.0
+
+
+def test_get_scan_interval_custom_intervals(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """Custom interval values are correctly propagated from constructor."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=None,
+        normal_interval_sec=300.0,
+        urgent_interval_sec=60.0,
+        urgent_window_hours=24.0,
+    )
+    # No calendar, so always normal
+    assert scanner.get_scan_interval_sec() == 300.0
+    assert scanner._urgent_interval_sec == 60.0
+    assert scanner._urgent_window_hours == 24.0
+
+
+def test_get_scan_interval_empty_calendar(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """An empty release calendar returns the normal interval."""
+    cal = ReleaseCalendar([])
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+        release_calendar=cal,
+        normal_interval_sec=600.0,
+        urgent_interval_sec=120.0,
+    )
+    assert scanner.get_scan_interval_sec() == 600.0
+
+
+def test_scanner_backward_compat_without_calendar_args(
+    mock_client, sizer, trader, mock_icao,
+) -> None:
+    """MarketScanner still works without any calendar-related arguments."""
+    scanner = MarketScanner(
+        client=mock_client,
+        engines=[StubEngine()],
+        sizer=sizer,
+        trader=trader,
+        icao_stations=mock_icao,
+    )
+    # Defaults: no calendar, 600s normal, 120s urgent
+    assert scanner._release_calendar is None
+    assert scanner._normal_interval_sec == 600.0
+    assert scanner._urgent_interval_sec == 120.0
+    assert scanner.get_scan_interval_sec() == 600.0

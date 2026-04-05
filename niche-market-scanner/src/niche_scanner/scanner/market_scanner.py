@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from niche_scanner.config import ICAOStations
 from niche_scanner.engines.base import EdgeEngine, EdgeSignal
+from niche_scanner.engines.economics import ReleaseCalendar
 from niche_scanner.execution.paper_trader import PaperTrader
 from niche_scanner.kalshi.client import KalshiClient
 from niche_scanner.kalshi.models import OrderBook
@@ -38,6 +39,18 @@ class MarketScanner:
     alert_manager:
         Optional Telegram alert manager for sending signal and scan
         summary notifications. When ``None``, alerting is silently skipped.
+    release_calendar:
+        Optional release calendar for dynamic scan interval switching.
+        When provided, ``get_scan_interval_sec()`` returns the urgent
+        interval if any tracked release type is within the configured
+        window, otherwise the normal interval.
+    normal_interval_sec:
+        Default scan interval in seconds when no release is imminent.
+    urgent_interval_sec:
+        Shorter scan interval in seconds used when a release is imminent.
+    urgent_window_hours:
+        Hours before a release at which the scanner switches to
+        the urgent interval.
     """
 
     def __init__(
@@ -49,6 +62,10 @@ class MarketScanner:
         icao_stations: ICAOStations | None = None,
         alert_manager: AlertManager | None = None,
         economics_series: list[str] | None = None,
+        release_calendar: ReleaseCalendar | None = None,
+        normal_interval_sec: float = 600.0,
+        urgent_interval_sec: float = 120.0,
+        urgent_window_hours: float = 48.0,
     ) -> None:
         self._client = client
         self._engines = engines
@@ -57,6 +74,41 @@ class MarketScanner:
         self._icao = icao_stations
         self._alert_manager = alert_manager
         self._economics_series = economics_series or []
+        self._release_calendar = release_calendar
+        self._normal_interval_sec = normal_interval_sec
+        self._urgent_interval_sec = urgent_interval_sec
+        self._urgent_window_hours = urgent_window_hours
+
+    def get_scan_interval_sec(self) -> float:
+        """Return the current scan interval in seconds.
+
+        When a ``ReleaseCalendar`` is configured and any tracked release
+        type is within the urgent window, returns the urgent interval.
+        Otherwise returns the normal interval.
+
+        The release types checked are all top-level keys in the
+        ``EconomicsEdgeEngine.SERIES_TICKER_MAP`` (cpi, fed_rate, jobs,
+        gdp, unemployment, gas, recession, credit).
+        """
+        if self._release_calendar is None:
+            return self._normal_interval_sec
+
+        from niche_scanner.engines.economics import EconomicsEdgeEngine
+
+        for release_type in EconomicsEdgeEngine.SERIES_TICKER_MAP:
+            if self._release_calendar.is_within_window(
+                release_type, hours=self._urgent_window_hours,
+            ):
+                logger.info(
+                    "Release calendar: %s within %.0fh window — "
+                    "using urgent interval (%.0fs)",
+                    release_type,
+                    self._urgent_window_hours,
+                    self._urgent_interval_sec,
+                )
+                return self._urgent_interval_sec
+
+        return self._normal_interval_sec
 
     async def scan_cycle(self, bankroll_cents: int) -> list[EdgeSignal]:
         """Run one full scan cycle and return all detected signals.

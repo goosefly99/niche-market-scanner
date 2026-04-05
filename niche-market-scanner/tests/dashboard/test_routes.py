@@ -7,7 +7,6 @@ lightweight mocks for RiskGuard, HealthMonitor, and ScannerSettings.
 
 from __future__ import annotations
 
-import dataclasses
 from unittest.mock import MagicMock
 
 import aiosqlite
@@ -15,7 +14,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from niche_scanner.dashboard.server import create_app
-from niche_scanner.execution.risk_guard import LiveTradingConfig, RiskGuard, RiskState
+from niche_scanner.execution.risk_guard import LiveTradingConfig, RiskGuard
 from niche_scanner.journal.db import SCHEMA
 from niche_scanner.monitor.health import HealthMonitor
 
