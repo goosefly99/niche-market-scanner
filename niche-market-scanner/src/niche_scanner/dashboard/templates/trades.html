@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Trades{% endblock %}
+{% block page_title %}Trade History{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Filters -->
+    <div class="bg-gray-800 rounded-lg p-4 flex flex-wrap items-center gap-4">
+        <label class="text-xs text-gray-400 uppercase tracking-wide">Filters</label>
+
+        <select name="engine"
+                hx-get="/trades"
+                hx-target="#trade-table-body"
+                hx-include="[name='engine'],[name='action'],[name='outcome']"
+                hx-swap="innerHTML"
+                class="bg-gray-700 text-gray-200 text-sm rounded px-3 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none">
+            <option value="" {% if not filter_engine %}selected{% endif %}>All Engines</option>
+            <option value="weather" {% if filter_engine == "weather" %}selected{% endif %}>Weather</option>
+            <option value="economics" {% if filter_engine == "economics" %}selected{% endif %}>Economics</option>
+        </select>
+
+        <select name="action"
+                hx-get="/trades"
+                hx-target="#trade-table-body"
+                hx-include="[name='engine'],[name='action'],[name='outcome']"
+                hx-swap="innerHTML"
+                class="bg-gray-700 text-gray-200 text-sm rounded px-3 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none">
+            <option value="" {% if not filter_action %}selected{% endif %}>All Actions</option>
+            <option value="buy" {% if filter_action == "buy" %}selected{% endif %}>Buy</option>
+            <option value="sell" {% if filter_action == "sell" %}selected{% endif %}>Sell</option>
+            <option value="rejected" {% if filter_action == "rejected" %}selected{% endif %}>Rejected</option>
+            <option value="failed" {% if filter_action == "failed" %}selected{% endif %}>Failed</option>
+        </select>
+
+        <select name="outcome"
+                hx-get="/trades"
+                hx-target="#trade-table-body"
+                hx-include="[name='engine'],[name='action'],[name='outcome']"
+                hx-swap="innerHTML"
+                class="bg-gray-700 text-gray-200 text-sm rounded px-3 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none">
+            <option value="" {% if not filter_outcome %}selected{% endif %}>All Outcomes</option>
+            <option value="win" {% if filter_outcome == "win" %}selected{% endif %}>Win</option>
+            <option value="loss" {% if filter_outcome == "loss" %}selected{% endif %}>Loss</option>
+            <option value="pending" {% if filter_outcome == "pending" %}selected{% endif %}>Pending</option>
+        </select>
+
+        <span class="ml-auto text-xs text-gray-500">{{ total }} trade{{ "s" if total != 1 }}</span>
+    </div>
+
+    <!-- Trade Table -->
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-gray-500 uppercase bg-gray-800/80">
+                        <th class="text-left px-4 py-3">ID</th>
+                        <th class="text-left px-4 py-3">Ticker</th>
+                        <th class="text-left px-4 py-3">Engine</th>
+                        <th class="text-left px-4 py-3">Side</th>
+                        <th class="text-left px-4 py-3">Action</th>
+                        <th class="text-right px-4 py-3">Contracts</th>
+                        <th class="text-right px-4 py-3">Price</th>
+                        <th class="text-right px-4 py-3">Cost</th>
+                        <th class="text-right px-4 py-3">Edge</th>
+                        <th class="text-left px-4 py-3">Outcome</th>
+                    </tr>
+                </thead>
+                <tbody id="trade-table-body" class="divide-y divide-gray-700">
+                    {% include "partials/_trade_rows.html" %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total > limit %}
+    <div class="flex items-center justify-between text-sm text-gray-400">
+        <div class="flex gap-2">
+            {% if offset > 0 %}
+            <button hx-get="/trades?offset={{ [offset - limit, 0] | max }}&limit={{ limit }}{% if filter_engine %}&engine={{ filter_engine }}{% endif %}{% if filter_action %}&action={{ filter_action }}{% endif %}{% if filter_outcome %}&outcome={{ filter_outcome }}{% endif %}"
+                    hx-target="#trade-table-body"
+                    hx-swap="innerHTML"
+                    class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 transition-colors">
+                Previous
+            </button>
+            {% endif %}
+            {% if offset + limit < total %}
+            <button hx-get="/trades?offset={{ offset + limit }}&limit={{ limit }}{% if filter_engine %}&engine={{ filter_engine }}{% endif %}{% if filter_action %}&action={{ filter_action }}{% endif %}{% if filter_outcome %}&outcome={{ filter_outcome }}{% endif %}"
+                    hx-target="#trade-table-body"
+                    hx-swap="innerHTML"
+                    class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 transition-colors">
+                Next
+            </button>
+            {% endif %}
+        </div>
+        <span>
+            Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

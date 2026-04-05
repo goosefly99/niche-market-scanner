@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Signals{% endblock %}
+{% block page_title %}Recent Signals{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Header with signal count badge -->
+    <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <h3 class="text-sm font-semibold text-gray-300">Edge Signals</h3>
+            <span class="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full font-mono">
+                {{ signal_count }}
+            </span>
+        </div>
+        <span class="text-xs text-gray-500">Polling every 10s</span>
+    </div>
+
+    <!-- Signals Table (HTMX-polled) -->
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto"
+             hx-get="/signals"
+             hx-trigger="every 10s"
+             hx-target="#signals-table-body"
+             hx-swap="innerHTML">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-gray-500 uppercase bg-gray-800/80">
+                        <th class="text-left px-4 py-3">Ticker</th>
+                        <th class="text-left px-4 py-3">Engine</th>
+                        <th class="text-left px-4 py-3">Side</th>
+                        <th class="text-right px-4 py-3">Model Prob</th>
+                        <th class="text-right px-4 py-3">Market Prob</th>
+                        <th class="text-right px-4 py-3">Edge</th>
+                        <th class="text-right px-4 py-3">Kelly %</th>
+                        <th class="text-left px-4 py-3">Thesis</th>
+                    </tr>
+                </thead>
+                <tbody id="signals-table-body" class="divide-y divide-gray-700">
+                    {% include "partials/_signals_table.html" %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

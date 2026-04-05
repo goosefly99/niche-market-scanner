@@ -18,18 +18,18 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 | 1.10 | Update docker-compose.yml port mapping (127.0.0.1:8050:8050) | Complete | -- | `docker-compose.yml` |
 | 1.11 | Enable WAL mode on SQLite connection | Complete | -- | `journal/db.py` |
 
-## Phase 2: HTMX Frontend Pages
+## Phase 2: HTMX Frontend Pages (Complete except 2.9 — depends on Phase 5)
 
 | # | Task | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
 | 2.1 | Create `base.html` layout (Tailwind CDN, HTMX CDN, nav, kill switch button) | Done (scaffold) | -- | `templates/base.html` |
-| 2.2 | Create `overview.html` (P&L cards, risk gauges, health lights, positions, balance chart) | Not Started | 2.1 | `templates/overview.html` |
-| 2.3 | Create `trades.html` (filterable table, HTMX pagination) | Not Started | 2.1 | `templates/trades.html` |
-| 2.4 | Create `signals.html` (HTMX-polled signals table, every 10s) | Not Started | 2.1 | `templates/signals.html` |
-| 2.5 | Create `config.html` (read-only settings, reload button) | Not Started | 2.1 | `templates/config.html` |
-| 2.6 | Create pages.py route handler (/, /trades, /signals, /config) | Not Started | 2.1 | `dashboard/pages.py` |
-| 2.7 | Create HTMX partial templates (_trade_rows, _overview_stats, etc.) | Not Started | 2.2, 2.3 | `templates/partials/` |
-| 2.8 | Add Jinja2 template filters (cents_to_dollars, format_pct, relative_time) | Not Started | 2.1 | `dashboard/server.py` or `pages.py` |
+| 2.2 | Create `overview.html` (P&L cards, risk gauges, health lights, positions, balance chart) | Complete | 2.1 | `templates/overview.html` |
+| 2.3 | Create `trades.html` (filterable table, HTMX pagination) | Complete | 2.1 | `templates/trades.html` |
+| 2.4 | Create `signals.html` (HTMX-polled signals table, every 10s) | Complete | 2.1 | `templates/signals.html` |
+| 2.5 | Create `config.html` (read-only settings, reload button) | Complete | 2.1 | `templates/config.html` |
+| 2.6 | Create pages.py route handler (/, /trades, /signals, /config) | Complete | 2.1 | `dashboard/pages.py` |
+| 2.7 | Create HTMX partial templates (_trade_rows, _overview_stats, etc.) | Complete | 2.2, 2.3 | `templates/partials/` |
+| 2.8 | Add Jinja2 template filters (cents_to_dollars, format_pct, relative_time) | Complete | 2.1 | `dashboard/server.py` or `pages.py` |
 | 2.9 | Wire kill switch single-click UX with 5s undo toast | Not Started | 2.1, 5.1 | `templates/base.html` |
 
 ## Phase 3: Scan Cycle + Balance Persistence

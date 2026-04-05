@@ -1,0 +1,51 @@
+{% for trade in trades %}
+<tr class="hover:bg-gray-700/50 transition-colors">
+    <td class="px-4 py-2 text-gray-400 font-mono text-xs">{{ trade.id }}</td>
+    <td class="px-4 py-2 text-gray-200 font-mono text-xs">{{ trade.ticker }}</td>
+    <td class="px-4 py-2">
+        <span class="px-1.5 py-0.5 rounded text-xs
+            {% if trade.engine == 'weather' %}bg-blue-900/50 text-blue-300
+            {% elif trade.engine == 'economics' %}bg-purple-900/50 text-purple-300
+            {% else %}bg-gray-700 text-gray-400{% endif %}">
+            {{ trade.engine }}
+        </span>
+    </td>
+    <td class="px-4 py-2 text-gray-300 text-xs">{{ trade.side }}</td>
+    <td class="px-4 py-2">
+        <span class="text-xs
+            {% if trade.action == 'buy' %}text-green-400
+            {% elif trade.action == 'sell' %}text-blue-400
+            {% elif trade.action == 'rejected' %}text-yellow-400
+            {% elif trade.action == 'failed' %}text-red-400
+            {% else %}text-gray-400{% endif %}">
+            {{ trade.action }}
+        </span>
+    </td>
+    <td class="px-4 py-2 text-right text-gray-300 font-mono text-xs">{{ trade.contracts }}</td>
+    <td class="px-4 py-2 text-right text-gray-300 font-mono text-xs">{{ trade.price_cents | cents_to_dollars }}</td>
+    <td class="px-4 py-2 text-right text-gray-300 font-mono text-xs">
+        {{ (trade.contracts * trade.price_cents) | cents_to_dollars }}
+    </td>
+    <td class="px-4 py-2 text-right font-mono text-xs
+        {% if trade.edge_pp and trade.edge_pp > 0 %}text-green-400
+        {% elif trade.edge_pp and trade.edge_pp < 0 %}text-red-400
+        {% else %}text-gray-400{% endif %}">
+        {% if trade.edge_pp is not none %}{{ "%.1f" | format(trade.edge_pp) }}pp{% else %}-{% endif %}
+    </td>
+    <td class="px-4 py-2">
+        {% if trade.outcome == 'win' %}
+        <span class="px-1.5 py-0.5 rounded text-xs bg-green-900/50 text-green-300">win</span>
+        {% elif trade.outcome == 'loss' %}
+        <span class="px-1.5 py-0.5 rounded text-xs bg-red-900/50 text-red-300">loss</span>
+        {% else %}
+        <span class="px-1.5 py-0.5 rounded text-xs bg-gray-700 text-gray-400">pending</span>
+        {% endif %}
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="10" class="px-4 py-8 text-center text-gray-500 text-sm">
+        No trades found
+    </td>
+</tr>
+{% endfor %}

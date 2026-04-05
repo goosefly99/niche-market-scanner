@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Config{% endblock %}
+{% block page_title %}Configuration{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <!-- Reload button -->
+    <div class="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-300">Scanner Settings</h3>
+            <p class="text-xs text-gray-500 mt-0.5">Read-only view of active configuration</p>
+        </div>
+        <button hx-post="/api/config/reload"
+                hx-headers='{"X-Confirm": "true"}'
+                hx-target="#reload-status"
+                hx-swap="innerHTML"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+            Reload Config
+        </button>
+    </div>
+    <div id="reload-status"></div>
+
+    <!-- Config sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        <!-- Scanner section -->
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-3">Scanner</h4>
+            <dl class="space-y-2 text-sm">
+                {% if settings.scanner is mapping %}
+                {% for key, value in settings.scanner.items() %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-400 font-mono text-xs">{{ key }}</dt>
+                    <dd class="text-gray-200 font-mono text-xs">{{ value }}</dd>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Sizing section -->
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-3">Sizing</h4>
+            <dl class="space-y-2 text-sm">
+                {% if settings.sizing is mapping %}
+                {% for key, value in settings.sizing.items() %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-400 font-mono text-xs">{{ key }}</dt>
+                    <dd class="text-gray-200 font-mono text-xs">{{ value }}</dd>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Live Trading section -->
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-3">Live Trading</h4>
+            <dl class="space-y-2 text-sm">
+                {% if settings.live_trading is defined and settings.live_trading is mapping %}
+                {% for key, value in settings.live_trading.items() %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-400 font-mono text-xs">{{ key }}</dt>
+                    <dd class="text-gray-200 font-mono text-xs">{{ value }}</dd>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-gray-500 text-xs">Not configured</p>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Verticals section -->
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h4 class="text-xs text-gray-400 uppercase tracking-wide mb-3">Verticals</h4>
+            <dl class="space-y-2 text-sm">
+                {% if settings.verticals is mapping %}
+                {% for name, cfg in settings.verticals.items() %}
+                <div class="flex justify-between">
+                    <dt class="text-gray-400 font-mono text-xs">{{ name }}</dt>
+                    <dd class="text-gray-200 font-mono text-xs">
+                        {% if cfg is mapping and cfg.enabled is defined %}
+                            {% if cfg.enabled %}
+                            <span class="text-green-400">enabled</span>
+                            {% else %}
+                            <span class="text-gray-500">disabled</span>
+                            {% endif %}
+                        {% else %}
+                            {{ cfg }}
+                        {% endif %}
+                    </dd>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </dl>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

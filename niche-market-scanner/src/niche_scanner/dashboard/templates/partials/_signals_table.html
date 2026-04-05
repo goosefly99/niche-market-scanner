@@ -1,0 +1,34 @@
+{% for signal in signals %}
+<tr class="hover:bg-gray-700/50 transition-colors">
+    <td class="px-4 py-2 text-gray-200 font-mono text-xs">{{ signal.ticker }}</td>
+    <td class="px-4 py-2">
+        <span class="px-1.5 py-0.5 rounded text-xs
+            {% if signal.engine == 'weather' %}bg-blue-900/50 text-blue-300
+            {% elif signal.engine == 'economics' %}bg-purple-900/50 text-purple-300
+            {% else %}bg-gray-700 text-gray-400{% endif %}">
+            {{ signal.engine }}
+        </span>
+    </td>
+    <td class="px-4 py-2 text-gray-300 text-xs">{{ signal.side }}</td>
+    <td class="px-4 py-2 text-right font-mono text-xs text-gray-300">
+        {{ "%.1f" | format(signal.model_prob * 100) }}%
+    </td>
+    <td class="px-4 py-2 text-right font-mono text-xs text-gray-300">
+        {{ "%.1f" | format(signal.market_prob * 100) }}%
+    </td>
+    <td class="px-4 py-2 text-right font-mono text-xs
+        {% if signal.edge_pp > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+        {{ "%.1f" | format(signal.edge_pp) }}pp
+    </td>
+    <td class="px-4 py-2 text-right font-mono text-xs text-gray-300">
+        {{ "%.1f" | format(signal.kelly_fraction * 100) }}%
+    </td>
+    <td class="px-4 py-2 text-gray-400 text-xs truncate max-w-xs">{{ signal.thesis }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="8" class="px-4 py-8 text-center text-gray-500 text-sm">
+        No signals detected yet (buffer populated in Phase 4)
+    </td>
+</tr>
+{% endfor %}
