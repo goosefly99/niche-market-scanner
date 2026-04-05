@@ -295,17 +295,15 @@ async def get_balance(request: Request) -> dict:
 @api_router.get("/balance/history")
 async def get_balance_history(
     request: Request,
-    since_hours: int = Query(24, ge=1),
     limit: int = Query(500, ge=1, le=5000),
 ) -> dict:
     """Balance time series from balance_history table.
 
-    Returns an empty list until BalanceTracker (Phase 3) creates and
-    populates the ``balance_history`` table.
+    Returns snapshots ordered oldest-first (chronological) for charting.
     """
-    # Phase 3: query BalanceTracker.get_history(since_hours, limit)
-    # The balance_history table does not exist yet; return empty gracefully.
-    return {"snapshots": []}
+    tracker = request.app.state.balance_tracker
+    snapshots = await tracker.get_history(limit=limit)
+    return {"snapshots": snapshots}
 
 
 # ---------------------------------------------------------------------------
@@ -317,18 +315,16 @@ async def get_balance_history(
 async def get_scan_cycles(
     request: Request,
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ) -> dict:
     """Scan cycle history from scan_cycles table.
 
-    Returns an empty list until ScanCycleLogger (Phase 3) creates and
-    populates the ``scan_cycles`` table.
+    Returns cycles ordered newest-first for the dashboard activity log.
     """
-    # Phase 3: query ScanCycleLogger.get_recent_cycles(limit, offset)
-    # The scan_cycles table does not exist yet; return empty gracefully.
+    cycle_logger = request.app.state.scan_cycle_logger
+    cycles = await cycle_logger.get_recent_cycles(limit=limit)
     return {
-        "cycles": [],
-        "total": 0,
+        "cycles": cycles,
+        "total": len(cycles),
     }
 
 

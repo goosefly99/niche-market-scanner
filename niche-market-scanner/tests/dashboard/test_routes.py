@@ -483,11 +483,48 @@ class TestGetBalance:
 
 
 class TestGetBalanceHistory:
-    async def test_returns_empty(self, client: AsyncClient) -> None:
-        """Phase 3 stub — returns empty list until BalanceTracker exists."""
+    async def test_returns_empty_when_no_snapshots(self, client: AsyncClient) -> None:
         resp = await client.get("/api/balance/history")
         assert resp.status_code == 200
         assert resp.json()["snapshots"] == []
+
+    async def test_returns_recorded_snapshots(
+        self, client: AsyncClient, db_conn: aiosqlite.Connection,
+    ) -> None:
+        await db_conn.execute(
+            """
+            INSERT INTO balance_history
+                (balance_cents, peak_cents, drawdown_pct, cumulative_spend_cents)
+            VALUES (?, ?, ?, ?)
+            """,
+            (95_000, 100_000, 5.0, 5_000),
+        )
+        await db_conn.commit()
+
+        resp = await client.get("/api/balance/history")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["snapshots"]) == 1
+        assert body["snapshots"][0]["balance_cents"] == 95_000
+        assert body["snapshots"][0]["peak_cents"] == 100_000
+
+    async def test_respects_limit(
+        self, client: AsyncClient, db_conn: aiosqlite.Connection,
+    ) -> None:
+        for i in range(5):
+            await db_conn.execute(
+                """
+                INSERT INTO balance_history
+                    (balance_cents, peak_cents, drawdown_pct, cumulative_spend_cents)
+                VALUES (?, ?, ?, ?)
+                """,
+                (100_000 - i * 1_000, 100_000, float(i), i * 1_000),
+            )
+        await db_conn.commit()
+
+        resp = await client.get("/api/balance/history?limit=2")
+        assert resp.status_code == 200
+        assert len(resp.json()["snapshots"]) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -496,13 +533,56 @@ class TestGetBalanceHistory:
 
 
 class TestGetScanCycles:
-    async def test_returns_empty(self, client: AsyncClient) -> None:
-        """Phase 3 stub — returns empty list until ScanCycleLogger exists."""
+    async def test_returns_empty_when_no_cycles(self, client: AsyncClient) -> None:
         resp = await client.get("/api/scan-cycles")
         assert resp.status_code == 200
         body = resp.json()
         assert body["cycles"] == []
         assert body["total"] == 0
+
+    async def test_returns_recorded_cycles(
+        self, client: AsyncClient, db_conn: aiosqlite.Connection,
+    ) -> None:
+        await db_conn.execute(
+            """
+            INSERT INTO scan_cycles
+                (markets_scanned, signals_found, executed, skipped,
+                 no_exposure_cents, duration_ms)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (200, 3, 2, 1, 500, 1234),
+        )
+        await db_conn.commit()
+
+        resp = await client.get("/api/scan-cycles")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 1
+        assert len(body["cycles"]) == 1
+        assert body["cycles"][0]["markets_scanned"] == 200
+        assert body["cycles"][0]["signals_found"] == 3
+        assert body["cycles"][0]["duration_ms"] == 1234
+
+    async def test_respects_limit(
+        self, client: AsyncClient, db_conn: aiosqlite.Connection,
+    ) -> None:
+        for i in range(5):
+            await db_conn.execute(
+                """
+                INSERT INTO scan_cycles
+                    (markets_scanned, signals_found, executed, skipped,
+                     no_exposure_cents, duration_ms)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (100 + i, i, 0, i, 0, 500 + i),
+            )
+        await db_conn.commit()
+
+        resp = await client.get("/api/scan-cycles?limit=3")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 3
+        assert len(body["cycles"]) == 3
 
 
 # ---------------------------------------------------------------------------
@@ -512,7 +592,7 @@ class TestGetScanCycles:
 
 class TestGetRecentSignals:
     async def test_returns_empty(self, client: AsyncClient) -> None:
-        """Phase 4 stub — returns empty list until signal buffer is wired."""
+        """Returns empty list until signal buffer is wired (future work)."""
         resp = await client.get("/api/signals/recent")
         assert resp.status_code == 200
         body = resp.json()

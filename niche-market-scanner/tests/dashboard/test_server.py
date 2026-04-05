@@ -65,6 +65,8 @@ class TestCreateApp:
         assert hasattr(app.state, "scanner")
         assert hasattr(app.state, "alert_manager")
         assert hasattr(app.state, "templates")
+        assert hasattr(app.state, "scan_cycle_logger")
+        assert hasattr(app.state, "balance_tracker")
 
     def test_api_router_mounted(self) -> None:
         app = _make_app()

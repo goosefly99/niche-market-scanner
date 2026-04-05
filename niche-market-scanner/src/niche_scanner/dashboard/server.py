@@ -68,6 +68,14 @@ def create_app(
     app.state.scanner = scanner
     app.state.alert_manager = alert_manager
 
+    # --- Dashboard persistence components (shared connection) ----------
+    from niche_scanner.dashboard.balance_tracker import BalanceTracker
+    from niche_scanner.dashboard.scan_cycle_logger import ScanCycleLogger
+
+    conn = journal.connection
+    app.state.scan_cycle_logger = ScanCycleLogger(conn)
+    app.state.balance_tracker = BalanceTracker(conn)
+
     # --- Templates ------------------------------------------------------
     app.state.templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
