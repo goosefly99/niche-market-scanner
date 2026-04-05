@@ -36,7 +36,7 @@ Spec: `strategies/specs/niche-scanner-dashboard--dashboard-v1.json` (v1.1, valid
 
 | # | Task | Status | Depends On | Target Files |
 |---|------|--------|------------|--------------|
-| 3.1 | Add scan_cycles and balance_history CREATE TABLE to db.py | Not Started | -- | `journal/db.py` |
+| 3.1 | Add scan_cycles and balance_history CREATE TABLE to db.py | Complete | -- | `journal/db.py` |
 | 3.2 | Create ScanCycleLogger (record_cycle, get_recent_cycles) | Not Started | 3.1 | `dashboard/scan_cycle_logger.py` |
 | 3.3 | Create BalanceTracker (record_snapshot, get_history) | Not Started | 3.1 | `dashboard/balance_tracker.py` |
 | 3.4 | Integrate ScanCycleLogger into main.py scan loop (with timer) | Not Started | 3.2, 1.7 | `main.py` |
