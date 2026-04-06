@@ -169,13 +169,13 @@ async def test_get_daily_stats_single_day(journal: TradeJournal) -> None:
     assert len(days) == 1
 
     day = days[0]
-    assert day["trades"] == 3
+    assert day["trade_count"] == 3
     assert day["wins"] == 2
     assert day["losses"] == 1
     # cost_cents for side='yes', price=40, contracts=10 -> 400 each
     # net_pnl = sum(payout - cost) = (100-400) + (100-400) + (0-400) = -1000
     assert day["net_pnl_cents"] == (100 - 400) + (100 - 400) + (0 - 400)
-    assert day["date"] is not None
+    assert day["day"] is not None
 
 
 async def test_get_daily_stats_multiple_days(journal: TradeJournal) -> None:
@@ -219,12 +219,12 @@ async def test_get_daily_stats_multiple_days(journal: TradeJournal) -> None:
     days = await journal.get_daily_stats()
     assert len(days) == 2
     # Ordered by date ASC
-    assert days[0]["date"] == "2026-04-01"
-    assert days[0]["trades"] == 2
+    assert days[0]["day"] == "2026-04-01"
+    assert days[0]["trade_count"] == 2
     assert days[0]["wins"] == 1
     assert days[0]["losses"] == 1
-    assert days[1]["date"] == "2026-04-02"
-    assert days[1]["trades"] == 1
+    assert days[1]["day"] == "2026-04-02"
+    assert days[1]["trade_count"] == 1
     assert days[1]["wins"] == 1
     assert days[1]["losses"] == 0
 

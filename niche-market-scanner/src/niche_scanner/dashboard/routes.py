@@ -18,7 +18,6 @@ import dataclasses
 import logging
 from typing import Optional
 
-import aiosqlite
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 
@@ -79,22 +78,17 @@ async def get_trades(
 async def get_trade_by_id(request: Request, trade_id: int) -> JSONResponse:
     """Single trade detail by ID.
 
+    Delegates to ``TradeJournal.get_trade_by_id()``.
     Returns 404 if the trade does not exist.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal.connection
-    conn.row_factory = aiosqlite.Row
-
-    cursor = await conn.execute(
-        "SELECT * FROM trades WHERE id = ?", (trade_id,),
-    )
-    row = await cursor.fetchone()
-    if row is None:
+    trade = await journal.get_trade_by_id(trade_id)
+    if trade is None:
         return JSONResponse(
             status_code=404,
             content={"error": "Trade not found", "trade_id": trade_id},
         )
-    return JSONResponse(content={"trade": dict(row)})
+    return JSONResponse(content={"trade": trade})
 
 
 @api_router.get("/stats")
@@ -112,29 +106,11 @@ async def get_stats(
 async def get_daily_stats(request: Request) -> dict:
     """Daily P&L aggregation for charting.
 
-    Groups resolved trades by date(created_at) and sums net P&L per day.
+    Delegates to ``TradeJournal.get_daily_stats()`` which groups resolved
+    trades by date and sums net P&L per day.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal.connection
-    conn.row_factory = aiosqlite.Row
-
-    cursor = await conn.execute(
-        """
-        SELECT
-            date(created_at)                             AS day,
-            COUNT(*)                                     AS trade_count,
-            COALESCE(SUM(outcome = 'win'), 0)            AS wins,
-            COALESCE(SUM(outcome = 'loss'), 0)           AS losses,
-            COALESCE(SUM(payout_cents - cost_cents), 0)  AS net_pnl_cents
-        FROM trades
-        WHERE outcome IS NOT NULL
-        GROUP BY date(created_at)
-        ORDER BY day ASC
-        """,
-    )
-    rows = await cursor.fetchall()
-    days = [dict(row) for row in rows]
-
+    days = await journal.get_daily_stats()
     return {"days": days}
 
 

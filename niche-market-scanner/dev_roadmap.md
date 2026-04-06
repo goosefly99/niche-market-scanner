@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 40 |
+| Complete | 41 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **40** |
+| **Total** | **41** |
 
 ---
 
@@ -114,6 +114,7 @@ Improvements identified during codebase review after Phase 5 completion.
 | 6.11 | Fix dashboard crash in paper mode: all routes and pages accessed `risk_guard.state`/`.config`/`.is_killed` without null-checking, but `risk_guard` is `None` in paper mode (the default). Added null-safe handling across `routes.py` (4 endpoints) and `pages.py` (4 page routes), with 9 paper-mode tests. | Complete | Critical | `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/dashboard/pages.py`, `tests/dashboard/test_routes.py` |
 | 6.12 | Reuse a shared `httpx.AsyncClient` in AlertManager instead of creating and tearing down a new client for every Telegram message (same anti-pattern fixed in 6.10 for engines). Added lazy client init, `close()` method, wired shutdown into `main.py`, 7 new tests. | Complete | Medium | `src/niche_scanner/alerts/telegram.py`, `src/niche_scanner/main.py`, `tests/alerts/test_telegram.py` |
 | 6.13 | Extract duplicated trade query logic from `routes.py` and `pages.py` into `TradeJournal.query_trades()`. Both dashboard modules contained identical inline SQL for filtering, counting, and paginating trades. The new method centralises this in the journal where it belongs, eliminating a DRY violation and removing raw `aiosqlite` usage from `pages.py`. 8 new unit tests for `query_trades()`. | Complete | Medium | `src/niche_scanner/journal/trade_journal.py`, `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/dashboard/pages.py`, `tests/journal/test_trade_journal.py`, `tests/dashboard/test_routes.py`, `tests/dashboard/test_pages.py` |
+| 6.14 | Delegate remaining raw SQL in `routes.py` to `TradeJournal` methods: `get_trade_by_id` and `get_daily_stats` endpoints now call journal methods instead of duplicating SQL. Removed `aiosqlite` import from routes. Replaced MagicMock-with-duplicated-SQL test fixture with a real `TradeJournal` backed by in-memory SQLite, eliminating ~70 lines of mock SQL. Aligned `get_daily_stats()` column aliases (`day`, `trade_count`) with the API contract. | Complete | Medium | `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/journal/trade_journal.py`, `tests/dashboard/test_routes.py`, `tests/journal/test_trade_journal.py` |
 
 ---
 

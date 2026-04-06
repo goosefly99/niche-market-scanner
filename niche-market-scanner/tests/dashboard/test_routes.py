@@ -15,7 +15,7 @@ from httpx import ASGITransport, AsyncClient
 
 from niche_scanner.dashboard.server import create_app
 from niche_scanner.execution.risk_guard import LiveTradingConfig, RiskGuard
-from niche_scanner.journal.db import SCHEMA
+from niche_scanner.journal.trade_journal import TradeJournal
 from niche_scanner.monitor.health import HealthMonitor
 
 
@@ -25,13 +25,29 @@ from niche_scanner.monitor.health import HealthMonitor
 
 
 @pytest.fixture()
-async def db_conn():
-    """Create an in-memory SQLite database with the trades schema."""
-    conn = await aiosqlite.connect(":memory:")
-    await conn.executescript(SCHEMA)
-    await conn.commit()
-    yield conn
-    await conn.close()
+async def journal():
+    """Create a real TradeJournal backed by an in-memory SQLite database.
+
+    Using the real journal eliminates duplicated SQL that was previously
+    copied into MagicMock shims.  All journal methods (``get_stats``,
+    ``query_trades``, ``get_trade_by_id``, ``get_daily_stats``, etc.)
+    work against the same in-memory schema and are exercised end-to-end.
+    """
+    j = TradeJournal(db_path=":memory:")
+    await j.initialize()
+    yield j
+    await j.close()
+
+
+@pytest.fixture()
+async def db_conn(journal: TradeJournal):
+    """Expose the raw aiosqlite connection for helper inserts.
+
+    Tests that need to insert trades via ``_insert_trade()`` use this
+    fixture.  The connection is the same one owned by the ``journal``
+    fixture so rows are immediately visible to journal methods.
+    """
+    return journal.connection
 
 
 @pytest.fixture()
@@ -81,97 +97,13 @@ def settings() -> MagicMock:
 
 
 @pytest.fixture()
-async def journal_mock(db_conn):
-    """A lightweight mock that exposes the real aiosqlite connection.
+async def journal_mock(journal: TradeJournal):
+    """Alias for the real journal fixture used by the client fixture.
 
-    The mock satisfies ``journal._ensure_conn()`` and ``journal.get_stats()``.
+    Previously this was a MagicMock with duplicated SQL logic for
+    ``get_stats``, ``query_trades``, etc.  Now all journal methods are
+    exercised through the real ``TradeJournal`` class.
     """
-    journal = MagicMock()
-    # Expose as property-like attribute for routes.py (journal.connection)
-    journal.connection = db_conn
-    # Keep legacy mock for any remaining _ensure_conn callers
-    journal._ensure_conn.return_value = db_conn
-
-    # Wire get_stats to the real DB (same logic as TradeJournal.get_stats)
-    async def _get_stats(engine=None):
-        db_conn.row_factory = None
-        if engine is not None:
-            cursor = await db_conn.execute(
-                """
-                SELECT COUNT(*), COALESCE(SUM(outcome = 'win'), 0),
-                       COALESCE(SUM(outcome = 'loss'), 0),
-                       COALESCE(AVG(edge_pp), 0.0),
-                       COALESCE(SUM(payout_cents - cost_cents), 0)
-                FROM trades WHERE outcome IS NOT NULL AND engine = ?
-                """,
-                (engine,),
-            )
-        else:
-            cursor = await db_conn.execute(
-                """
-                SELECT COUNT(*), COALESCE(SUM(outcome = 'win'), 0),
-                       COALESCE(SUM(outcome = 'loss'), 0),
-                       COALESCE(AVG(edge_pp), 0.0),
-                       COALESCE(SUM(payout_cents - cost_cents), 0)
-                FROM trades WHERE outcome IS NOT NULL
-                """,
-            )
-        row = await cursor.fetchone()
-        total, wins, losses, avg_edge, net_pnl = row
-        return {
-            "total_trades": total,
-            "wins": wins,
-            "losses": losses,
-            "win_rate": wins / total if total > 0 else 0.0,
-            "avg_edge_pp": avg_edge,
-            "net_pnl_cents": net_pnl,
-        }
-
-    journal.get_stats = _get_stats
-
-    # Wire query_trades to the real DB (same logic as TradeJournal.query_trades)
-    async def _query_trades(
-        *,
-        engine=None,
-        action=None,
-        outcome=None,
-        limit=50,
-        offset=0,
-    ):
-        db_conn.row_factory = aiosqlite.Row
-
-        clauses: list[str] = []
-        params: list = []
-        if engine is not None:
-            clauses.append("engine = ?")
-            params.append(engine)
-        if action is not None:
-            clauses.append("action = ?")
-            params.append(action)
-        if outcome is not None:
-            if outcome == "pending":
-                clauses.append("outcome IS NULL")
-            else:
-                clauses.append("outcome = ?")
-                params.append(outcome)
-
-        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-
-        count_cursor = await db_conn.execute(
-            f"SELECT COUNT(*) FROM trades{where}", params,
-        )
-        count_row = await count_cursor.fetchone()
-        total = count_row[0] if count_row else 0
-
-        cursor = await db_conn.execute(
-            f"SELECT * FROM trades{where} ORDER BY id DESC LIMIT ? OFFSET ?",
-            [*params, limit, offset],
-        )
-        rows = await cursor.fetchall()
-        trades = [dict(row) for row in rows]
-        return trades, total
-
-    journal.query_trades = _query_trades
     return journal
 
 
