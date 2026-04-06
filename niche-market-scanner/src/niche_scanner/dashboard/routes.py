@@ -186,15 +186,39 @@ def _serialize_risk_config(risk_guard: object) -> dict:
 
 @api_router.get("/risk/state")
 async def get_risk_state(request: Request) -> dict:
-    """Serialize full RiskState from RiskGuard."""
+    """Serialize full RiskState from RiskGuard.
+
+    Returns a zeroed-out state dict when running in paper mode
+    (``risk_guard`` is ``None``).
+    """
     risk_guard = request.app.state.risk_guard
+    if risk_guard is None:
+        return {
+            "peak_balance_cents": 0,
+            "current_balance_cents": 0,
+            "cumulative_spend_cents": 0,
+            "daily_loss_cents": 0,
+            "daily_trade_count": 0,
+            "open_position_count": 0,
+            "day_start_balance_cents": 0,
+            "day_start_timestamp": 0.0,
+            "killed": False,
+            "kill_reason": "",
+            "positions": {},
+        }
     return _serialize_risk_state(risk_guard)
 
 
 @api_router.get("/risk/config")
 async def get_risk_config(request: Request) -> dict:
-    """Serialize LiveTradingConfig from RiskGuard."""
+    """Serialize LiveTradingConfig from RiskGuard.
+
+    Returns an empty dict when running in paper mode
+    (``risk_guard`` is ``None``).
+    """
     risk_guard = request.app.state.risk_guard
+    if risk_guard is None:
+        return {}
     return _serialize_risk_config(risk_guard)
 
 
@@ -240,7 +264,10 @@ async def get_health(request: Request) -> dict:
 
 @api_router.get("/scanner/status")
 async def get_scanner_status(request: Request) -> dict:
-    """Scanner mode, enabled engines, scan interval, last scan timestamp."""
+    """Scanner mode, enabled engines, scan interval, last scan timestamp.
+
+    ``killed`` is always ``False`` in paper mode (no risk guard).
+    """
     settings = request.app.state.settings
     risk_guard = request.app.state.risk_guard
 
@@ -265,7 +292,7 @@ async def get_scanner_status(request: Request) -> dict:
             "economics_interval_min": scanner_cfg.get("economics_interval_min"),
         },
         "verticals": verticals_cfg,
-        "killed": risk_guard.is_killed,
+        "killed": risk_guard.is_killed if risk_guard is not None else False,
     }
 
 
@@ -276,8 +303,21 @@ async def get_scanner_status(request: Request) -> dict:
 
 @api_router.get("/balance")
 async def get_balance(request: Request) -> dict:
-    """Current balance from RiskGuard.state."""
+    """Current balance from RiskGuard.state.
+
+    In paper mode (``risk_guard`` is ``None``) returns zeroed values.
+    The paper-mode effective balance is tracked by ``main.py`` via
+    ``BalanceTracker`` snapshots instead.
+    """
     risk_guard = request.app.state.risk_guard
+    if risk_guard is None:
+        return {
+            "balance_cents": 0,
+            "peak_cents": 0,
+            "drawdown_pct": 0.0,
+            "cumulative_spend_cents": 0,
+        }
+
     state = risk_guard.state
 
     peak = state.peak_balance_cents

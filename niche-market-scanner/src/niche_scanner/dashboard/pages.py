@@ -177,14 +177,25 @@ async def overview_page(request: Request) -> HTMLResponse:
     # Fetch stats
     stats: dict = await journal.get_stats()
 
-    # Risk state and config
-    risk_state = risk_guard.state
-    risk_config = risk_guard.config
-
-    # Balance info
-    peak = risk_state.peak_balance_cents
-    current = risk_state.current_balance_cents
-    drawdown_pct = (1.0 - current / peak) if peak > 0 else 0.0
+    # Risk state and config — None in paper mode (no RiskGuard).
+    if risk_guard is not None:
+        risk_state = risk_guard.state
+        risk_config = risk_guard.config
+        peak = risk_state.peak_balance_cents
+        current = risk_state.current_balance_cents
+        drawdown_pct = (1.0 - current / peak) if peak > 0 else 0.0
+        cumulative_spend = risk_state.cumulative_spend_cents
+        killed = risk_state.killed
+        kill_reason = risk_state.kill_reason
+    else:
+        risk_state = None
+        risk_config = None
+        peak = 0
+        current = 0
+        drawdown_pct = 0.0
+        cumulative_spend = 0
+        killed = False
+        kill_reason = ""
 
     # Health report
     health_report = health_monitor.check_health()
@@ -208,11 +219,11 @@ async def overview_page(request: Request) -> HTMLResponse:
         "balance_cents": current,
         "peak_cents": peak,
         "drawdown_pct": drawdown_pct,
-        "cumulative_spend_cents": risk_state.cumulative_spend_cents,
+        "cumulative_spend_cents": cumulative_spend,
         "health_report": health_report,
         "balance_history": balance_history,
-        "killed": risk_state.killed,
-        "kill_reason": risk_state.kill_reason,
+        "killed": killed,
+        "kill_reason": kill_reason,
     }
 
     templates = request.app.state.templates
@@ -282,8 +293,8 @@ async def trades_page(
         "filter_engine": engine,
         "filter_action": action,
         "filter_outcome": outcome,
-        "killed": risk_guard.state.killed,
-        "kill_reason": risk_guard.state.kill_reason,
+        "killed": risk_guard.state.killed if risk_guard is not None else False,
+        "kill_reason": risk_guard.state.kill_reason if risk_guard is not None else "",
     }
 
     templates = request.app.state.templates
@@ -329,8 +340,8 @@ async def signals_page(
         "active_page": "signals",
         "signals": signals,
         "signal_count": len(signals),
-        "killed": risk_guard.state.killed,
-        "kill_reason": risk_guard.state.kill_reason,
+        "killed": risk_guard.state.killed if risk_guard is not None else False,
+        "kill_reason": risk_guard.state.kill_reason if risk_guard is not None else "",
     }
 
     templates = request.app.state.templates
@@ -349,8 +360,8 @@ async def config_page(request: Request) -> HTMLResponse:
         "request": request,
         "active_page": "config",
         "settings": settings,
-        "killed": risk_guard.state.killed,
-        "kill_reason": risk_guard.state.kill_reason,
+        "killed": risk_guard.state.killed if risk_guard is not None else False,
+        "kill_reason": risk_guard.state.kill_reason if risk_guard is not None else "",
     }
 
     templates = request.app.state.templates

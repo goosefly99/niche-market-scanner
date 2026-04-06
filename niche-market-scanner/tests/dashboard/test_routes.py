@@ -684,3 +684,123 @@ class TestGetRecentSignals:
     ) -> None:
         resp = await client.get("/api/signals/recent?limit=1000")
         assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Paper mode — risk_guard=None
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def paper_settings() -> MagicMock:
+    """Mock ScannerSettings configured for paper mode."""
+    s = MagicMock()
+    s.scanner = {
+        "weather_interval_min": 5,
+        "economics_interval_min": 10,
+    }
+    s.sizing = {
+        "paper_trade": True,
+        "kelly_fraction": 0.5,
+    }
+    s.verticals = {
+        "weather": {"enabled": True},
+        "economics": {"enabled": True},
+        "thin_market": {"enabled": False},
+    }
+    return s
+
+
+@pytest.fixture()
+async def paper_client(journal_mock, health_monitor, paper_settings):
+    """AsyncClient with risk_guard=None (paper mode)."""
+    scanner = MagicMock()
+    alert_manager = MagicMock()
+
+    app = create_app(
+        risk_guard=None,
+        health_monitor=health_monitor,
+        journal=journal_mock,
+        settings=paper_settings,
+        scanner=scanner,
+        alert_manager=alert_manager,
+    )
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+
+
+class TestPaperModeRiskState:
+    """risk_guard=None must not crash any endpoint."""
+
+    async def test_risk_state_returns_zeroed_dict(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/risk/state")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["killed"] is False
+        assert body["current_balance_cents"] == 0
+        assert body["peak_balance_cents"] == 0
+        assert body["positions"] == {}
+
+    async def test_risk_config_returns_empty_dict(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/risk/config")
+        assert resp.status_code == 200
+        assert resp.json() == {}
+
+    async def test_scanner_status_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/scanner/status")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["mode"] == "paper"
+        assert body["killed"] is False
+
+    async def test_balance_returns_zeroed_dict(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/balance")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["balance_cents"] == 0
+        assert body["peak_cents"] == 0
+        assert body["drawdown_pct"] == 0.0
+
+    async def test_balance_history_works_in_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/balance/history")
+        assert resp.status_code == 200
+        assert resp.json()["snapshots"] == []
+
+    async def test_health_works_in_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/health")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["scan_loop_alive"] is True
+
+    async def test_trades_works_in_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/trades")
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
+    async def test_signals_works_in_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/signals/recent")
+        assert resp.status_code == 200
+        assert resp.json()["count"] == 0
+
+    async def test_ping_works_in_paper_mode(
+        self, paper_client: AsyncClient,
+    ) -> None:
+        resp = await paper_client.get("/api/ping")
+        assert resp.status_code == 200

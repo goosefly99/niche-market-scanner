@@ -37,6 +37,9 @@ alongside the scanner's scan loop. All persistence goes through a single shared
 - **Single shared `aiosqlite.Connection`** — TradeJournal owns it. ScanCycleLogger
   and BalanceTracker receive it as a constructor parameter. Never open a second
   connection to `data/trades.db`.
+- **`risk_guard` is `None` in paper mode.** Every route and page handler that
+  accesses `request.app.state.risk_guard` MUST null-check before calling
+  `.state`, `.config`, or `.is_killed`. Return zeroed defaults when `None`.
 - **Read-only by default.** Only four POST endpoints exist: `/api/risk/kill`,
   `/api/risk/undo-kill`, `/api/risk/reset`, `/api/config/reload`. All require
   `X-Confirm: true` header.
