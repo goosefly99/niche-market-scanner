@@ -243,45 +243,19 @@ async def trades_page(
 
     When an HTMX request targets the trade table body, renders only the
     ``_trade_rows.html`` partial. Otherwise renders the full page.
+
+    Delegates filtering and pagination to ``TradeJournal.query_trades()``.
     """
-    # Re-use the API logic for trade data by querying the DB directly
     journal = request.app.state.journal
     risk_guard = request.app.state.risk_guard
-    import aiosqlite
 
-    conn: aiosqlite.Connection = journal.connection
-    conn.row_factory = aiosqlite.Row
-
-    clauses: list[str] = []
-    params: list[str | int] = []
-
-    if engine is not None:
-        clauses.append("engine = ?")
-        params.append(engine)
-    if action is not None:
-        clauses.append("action = ?")
-        params.append(action)
-    if outcome is not None:
-        if outcome == "pending":
-            clauses.append("outcome IS NULL")
-        else:
-            clauses.append("outcome = ?")
-            params.append(outcome)
-
-    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-
-    count_cursor = await conn.execute(
-        f"SELECT COUNT(*) FROM trades{where}", params,
+    trades, total = await journal.query_trades(
+        engine=engine,
+        action=action,
+        outcome=outcome,
+        limit=limit,
+        offset=offset,
     )
-    count_row = await count_cursor.fetchone()
-    total: int = count_row[0] if count_row else 0
-
-    cursor = await conn.execute(
-        f"SELECT * FROM trades{where} ORDER BY id DESC LIMIT ? OFFSET ?",
-        [*params, limit, offset],
-    )
-    rows = await cursor.fetchall()
-    trades = [dict(row) for row in rows]
 
     context = {
         "request": request,

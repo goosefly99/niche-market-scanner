@@ -54,45 +54,18 @@ async def get_trades(
 ) -> dict:
     """Paginated trade list with optional engine/action/outcome filters.
 
-    Builds a dynamic WHERE clause from the provided filters. The ``outcome``
-    filter value ``"pending"`` matches rows where ``outcome IS NULL``.
+    Delegates filtering and pagination to ``TradeJournal.query_trades()``.
+    The ``outcome`` filter value ``"pending"`` matches rows where
+    ``outcome IS NULL``.
     """
     journal = request.app.state.journal
-    conn: aiosqlite.Connection = journal.connection
-    conn.row_factory = aiosqlite.Row
-
-    clauses: list[str] = []
-    params: list[str | int] = []
-
-    if engine is not None:
-        clauses.append("engine = ?")
-        params.append(engine)
-    if action is not None:
-        clauses.append("action = ?")
-        params.append(action)
-    if outcome is not None:
-        if outcome == "pending":
-            clauses.append("outcome IS NULL")
-        else:
-            clauses.append("outcome = ?")
-            params.append(outcome)
-
-    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-
-    # Total count for pagination
-    count_cursor = await conn.execute(
-        f"SELECT COUNT(*) FROM trades{where}", params,
+    trades, total = await journal.query_trades(
+        engine=engine,
+        action=action,
+        outcome=outcome,
+        limit=limit,
+        offset=offset,
     )
-    count_row = await count_cursor.fetchone()
-    total: int = count_row[0] if count_row else 0
-
-    # Paginated rows
-    cursor = await conn.execute(
-        f"SELECT * FROM trades{where} ORDER BY id DESC LIMIT ? OFFSET ?",
-        [*params, limit, offset],
-    )
-    rows = await cursor.fetchall()
-    trades = [dict(row) for row in rows]
 
     return {
         "trades": trades,

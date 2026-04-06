@@ -104,6 +104,78 @@ class TradeJournal:
         )
         await conn.commit()
 
+    async def query_trades(
+        self,
+        *,
+        engine: str | None = None,
+        action: str | None = None,
+        outcome: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[dict], int]:
+        """Paginated trade query with optional filters.
+
+        Parameters
+        ----------
+        engine:
+            Filter by engine name (e.g. ``"weather"``, ``"economics"``).
+        action:
+            Filter by action (``"buy"``, ``"sell"``, ``"rejected"``,
+            ``"failed"``).
+        outcome:
+            Filter by outcome.  ``"pending"`` matches unresolved trades
+            (``outcome IS NULL``); ``"win"`` / ``"loss"`` match resolved
+            trades.
+        limit:
+            Maximum rows to return (default 50).
+        offset:
+            Number of rows to skip for pagination (default 0).
+
+        Returns
+        -------
+        tuple[list[dict], int]
+            A ``(trades, total)`` pair where *trades* is a list of
+            row dicts ordered newest-first and *total* is the count
+            of all matching rows (before LIMIT/OFFSET).
+        """
+        conn = self._ensure_conn()
+        conn.row_factory = aiosqlite.Row
+
+        clauses: list[str] = []
+        params: list[str | int] = []
+
+        if engine is not None:
+            clauses.append("engine = ?")
+            params.append(engine)
+        if action is not None:
+            clauses.append("action = ?")
+            params.append(action)
+        if outcome is not None:
+            if outcome == "pending":
+                clauses.append("outcome IS NULL")
+            else:
+                clauses.append("outcome = ?")
+                params.append(outcome)
+
+        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+
+        # Total count for pagination
+        count_cursor = await conn.execute(
+            f"SELECT COUNT(*) FROM trades{where}", params,
+        )
+        count_row = await count_cursor.fetchone()
+        total: int = count_row[0] if count_row else 0
+
+        # Paginated rows
+        cursor = await conn.execute(
+            f"SELECT * FROM trades{where} ORDER BY id DESC LIMIT ? OFFSET ?",
+            [*params, limit, offset],
+        )
+        rows = await cursor.fetchall()
+        trades = [dict(row) for row in rows]
+
+        return trades, total
+
     async def get_trades(
         self,
         engine: str | None = None,

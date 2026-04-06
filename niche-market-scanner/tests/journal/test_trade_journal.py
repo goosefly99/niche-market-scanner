@@ -227,3 +227,112 @@ async def test_get_daily_stats_multiple_days(journal: TradeJournal) -> None:
     assert days[1]["trades"] == 1
     assert days[1]["wins"] == 1
     assert days[1]["losses"] == 0
+
+
+# ---------------------------------------------------------------------------
+# query_trades
+# ---------------------------------------------------------------------------
+
+
+async def test_query_trades_empty_db(journal: TradeJournal) -> None:
+    """Empty database returns empty list and zero total."""
+    trades, total = await journal.query_trades()
+    assert trades == []
+    assert total == 0
+
+
+async def test_query_trades_returns_all(journal: TradeJournal) -> None:
+    """Returns all trades when no filters are applied."""
+    await journal.record_trade(_make_record(ticker="T-1"))
+    await journal.record_trade(_make_record(ticker="T-2"))
+    await journal.record_trade(_make_record(ticker="T-3"))
+
+    trades, total = await journal.query_trades()
+    assert total == 3
+    assert len(trades) == 3
+    # Newest first
+    assert trades[0]["ticker"] == "T-3"
+    assert trades[2]["ticker"] == "T-1"
+
+
+async def test_query_trades_filter_engine(journal: TradeJournal) -> None:
+    """Filtering by engine returns only matching trades."""
+    await journal.record_trade(_make_record(engine="weather", ticker="W-1"))
+    await journal.record_trade(_make_record(engine="economics", ticker="E-1"))
+    await journal.record_trade(_make_record(engine="weather", ticker="W-2"))
+
+    trades, total = await journal.query_trades(engine="economics")
+    assert total == 1
+    assert len(trades) == 1
+    assert trades[0]["ticker"] == "E-1"
+
+
+async def test_query_trades_filter_action(journal: TradeJournal) -> None:
+    """Filtering by action returns only matching trades."""
+    await journal.record_trade(_make_record(action="buy", ticker="B-1"))
+    await journal.record_trade(_make_record(action="rejected", ticker="R-1"))
+
+    trades, total = await journal.query_trades(action="rejected")
+    assert total == 1
+    assert trades[0]["ticker"] == "R-1"
+
+
+async def test_query_trades_filter_outcome_pending(journal: TradeJournal) -> None:
+    """Filtering by outcome='pending' returns unresolved trades."""
+    tid1 = await journal.record_trade(_make_record(ticker="P-1", price_cents=40))
+    await journal.record_trade(_make_record(ticker="P-2", price_cents=40))
+    await journal.record_outcome(tid1, payout_cents=100)  # resolved as win
+
+    trades, total = await journal.query_trades(outcome="pending")
+    assert total == 1
+    assert trades[0]["ticker"] == "P-2"
+    assert trades[0]["outcome"] is None
+
+
+async def test_query_trades_filter_outcome_win(journal: TradeJournal) -> None:
+    """Filtering by outcome='win' returns only winning trades."""
+    tid1 = await journal.record_trade(_make_record(ticker="W-1", price_cents=40))
+    tid2 = await journal.record_trade(_make_record(ticker="L-1", price_cents=40))
+    await journal.record_outcome(tid1, payout_cents=100)
+    await journal.record_outcome(tid2, payout_cents=0)
+
+    trades, total = await journal.query_trades(outcome="win")
+    assert total == 1
+    assert trades[0]["ticker"] == "W-1"
+
+
+async def test_query_trades_combined_filters(journal: TradeJournal) -> None:
+    """Multiple filters are combined with AND."""
+    await journal.record_trade(_make_record(engine="weather", action="buy", ticker="WB-1"))
+    await journal.record_trade(_make_record(engine="weather", action="rejected", ticker="WR-1"))
+    await journal.record_trade(_make_record(engine="economics", action="buy", ticker="EB-1"))
+
+    trades, total = await journal.query_trades(engine="weather", action="buy")
+    assert total == 1
+    assert trades[0]["ticker"] == "WB-1"
+
+
+async def test_query_trades_pagination(journal: TradeJournal) -> None:
+    """Limit and offset control pagination; total reflects full count."""
+    for i in range(5):
+        await journal.record_trade(_make_record(ticker=f"PAG-{i}"))
+
+    # Page 1: first 2 trades (newest first)
+    trades, total = await journal.query_trades(limit=2, offset=0)
+    assert total == 5
+    assert len(trades) == 2
+    assert trades[0]["ticker"] == "PAG-4"
+    assert trades[1]["ticker"] == "PAG-3"
+
+    # Page 2: next 2
+    trades, total = await journal.query_trades(limit=2, offset=2)
+    assert total == 5
+    assert len(trades) == 2
+    assert trades[0]["ticker"] == "PAG-2"
+    assert trades[1]["ticker"] == "PAG-1"
+
+    # Page 3: last 1
+    trades, total = await journal.query_trades(limit=2, offset=4)
+    assert total == 5
+    assert len(trades) == 1
+    assert trades[0]["ticker"] == "PAG-0"

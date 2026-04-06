@@ -128,6 +128,50 @@ async def journal_mock(db_conn):
         }
 
     journal.get_stats = _get_stats
+
+    # Wire query_trades to the real DB (same logic as TradeJournal.query_trades)
+    async def _query_trades(
+        *,
+        engine=None,
+        action=None,
+        outcome=None,
+        limit=50,
+        offset=0,
+    ):
+        db_conn.row_factory = aiosqlite.Row
+
+        clauses: list[str] = []
+        params: list = []
+        if engine is not None:
+            clauses.append("engine = ?")
+            params.append(engine)
+        if action is not None:
+            clauses.append("action = ?")
+            params.append(action)
+        if outcome is not None:
+            if outcome == "pending":
+                clauses.append("outcome IS NULL")
+            else:
+                clauses.append("outcome = ?")
+                params.append(outcome)
+
+        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+
+        count_cursor = await db_conn.execute(
+            f"SELECT COUNT(*) FROM trades{where}", params,
+        )
+        count_row = await count_cursor.fetchone()
+        total = count_row[0] if count_row else 0
+
+        cursor = await db_conn.execute(
+            f"SELECT * FROM trades{where} ORDER BY id DESC LIMIT ? OFFSET ?",
+            [*params, limit, offset],
+        )
+        rows = await cursor.fetchall()
+        trades = [dict(row) for row in rows]
+        return trades, total
+
+    journal.query_trades = _query_trades
     return journal
 
 

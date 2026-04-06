@@ -11,7 +11,7 @@ reads from the dashboard while the scanner writes.
 | Module | Role |
 |---|---|
 | `db.py` | Schema definition and `init_db(path)` function. Three tables: `trades` (with generated `cost_cents` column), `scan_cycles`, `balance_history`. WAL journal mode enabled on every connection. |
-| `trade_journal.py` | `TradeJournal` class — async CRUD for trades. `TradeRecord` dataclass for inserts. Methods: `record_trade`, `record_outcome`, `get_trades`, `get_trade_by_id`, `get_daily_stats`, `get_stats`. Exposes `connection` property for shared access by dashboard components. |
+| `trade_journal.py` | `TradeJournal` class — async CRUD for trades. `TradeRecord` dataclass for inserts. Methods: `record_trade`, `record_outcome`, `query_trades` (paginated with engine/action/outcome filters), `get_trades`, `get_trade_by_id`, `get_daily_stats`, `get_stats`. Exposes `connection` property for shared access by dashboard components. |
 
 ## Key Conventions
 
