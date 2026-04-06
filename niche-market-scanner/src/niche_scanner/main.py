@@ -411,6 +411,11 @@ async def main() -> None:
                     logger.exception(
                         "Failed to close engine %s", type(engine).__name__,
                     )
+        # Close the AlertManager's shared HTTP client.
+        try:
+            await alert_manager.close()
+        except Exception:
+            logger.exception("Failed to close AlertManager HTTP client")
         await client.close()
         await journal.close()
         logger.info("Shutdown complete")

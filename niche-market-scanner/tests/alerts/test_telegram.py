@@ -5,6 +5,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
+import httpx
+import respx
+
 from niche_scanner.engines.base import EdgeSignal
 from niche_scanner.sizing.kelly import PositionSize
 
@@ -133,3 +136,85 @@ class TestAlertManager:
         mgr = AlertManager(bot_token="", chat_id="")
         response = mgr.handle_command("/foobar")
         assert "Unknown" in response or "help" in response.lower()
+
+
+# ---------------------------------------------------------------------------
+# HTTP client lifecycle tests
+# ---------------------------------------------------------------------------
+
+
+class TestAlertManagerHTTPClient:
+    """Tests for the shared httpx.AsyncClient lifecycle in AlertManager."""
+
+    def test_http_client_is_none_initially(self) -> None:
+        """The internal HTTP client is not created until first use."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        assert mgr._http_client is None
+
+    def test_get_http_client_creates_on_first_call(self) -> None:
+        """_get_http_client() lazily creates the client."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        client = mgr._get_http_client()
+        assert isinstance(client, httpx.AsyncClient)
+        assert mgr._http_client is client
+
+    def test_get_http_client_returns_same_instance(self) -> None:
+        """Subsequent calls return the same client instance."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        c1 = mgr._get_http_client()
+        c2 = mgr._get_http_client()
+        assert c1 is c2
+
+    async def test_close_releases_client(self) -> None:
+        """close() shuts down the HTTP client and resets to None."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        _ = mgr._get_http_client()
+        assert mgr._http_client is not None
+
+        await mgr.close()
+        assert mgr._http_client is None
+
+    async def test_close_is_idempotent(self) -> None:
+        """Calling close() twice does not raise."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        await mgr.close()  # No client created yet
+        await mgr.close()  # Still no error
+
+    @respx.mock
+    async def test_send_reuses_client(self) -> None:
+        """_send() reuses the shared client across multiple calls."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+
+        # Mock the Telegram API endpoint
+        respx.post("https://api.telegram.org/botfake:token/sendMessage").mock(
+            return_value=httpx.Response(200, json={"ok": True}),
+        )
+
+        await mgr._send("first message")
+        client_after_first = mgr._http_client
+
+        await mgr._send("second message")
+        client_after_second = mgr._http_client
+
+        assert client_after_first is client_after_second
+        assert respx.calls.call_count == 2
+
+    @respx.mock
+    async def test_send_creates_client_lazily(self) -> None:
+        """_send() creates the HTTP client if none exists yet."""
+        from niche_scanner.alerts.telegram import AlertManager
+        mgr = AlertManager(bot_token="fake:token", chat_id="123")
+        assert mgr._http_client is None
+
+        respx.post("https://api.telegram.org/botfake:token/sendMessage").mock(
+            return_value=httpx.Response(200, json={"ok": True}),
+        )
+
+        await mgr._send("hello")
+        assert mgr._http_client is not None

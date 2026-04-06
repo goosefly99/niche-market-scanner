@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import logging
 
+import httpx
+
 from niche_scanner.engines.base import EdgeSignal
 from niche_scanner.sizing.kelly import PositionSize
 
@@ -32,6 +34,11 @@ class AlertManager:
 
     Initializes in disabled mode when credentials are empty.
     All public methods are safe to call regardless of enabled state.
+
+    The manager holds a single long-lived :class:`httpx.AsyncClient`
+    (created lazily on first send) to reuse TCP connections and TLS
+    sessions across alert messages, matching the pattern used by the
+    weather and economics engines.
     """
 
     def __init__(
@@ -44,7 +51,7 @@ class AlertManager:
         self.chat_id = chat_id
         self.paper_mode = paper_mode
         self.enabled = bool(bot_token and chat_id)
-        self._bot = None  # Lazy-initialized telegram.Bot
+        self._http_client: httpx.AsyncClient | None = None
 
         if self.enabled:
             logger.info("Telegram alerts enabled (chat_id=%s)", chat_id)
@@ -108,6 +115,22 @@ class AlertManager:
         )
 
     # ------------------------------------------------------------------
+    # HTTP client lifecycle
+    # ------------------------------------------------------------------
+
+    def _get_http_client(self) -> httpx.AsyncClient:
+        """Return the shared HTTP client, creating it on first use."""
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient()
+        return self._http_client
+
+    async def close(self) -> None:
+        """Release HTTP resources. Safe to call multiple times."""
+        if self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
+
+    # ------------------------------------------------------------------
     # Sending
     # ------------------------------------------------------------------
 
@@ -118,25 +141,25 @@ class AlertManager:
         await self._send(text)
 
     async def _send(self, text: str) -> None:
-        """Actually send via Telegram Bot API.
+        """Send a message via the Telegram Bot API.
 
-        Uses python-telegram-bot library if available, falls back to
-        direct httpx POST to the Bot API.
+        Reuses a shared :class:`httpx.AsyncClient` so consecutive
+        messages keep the TCP connection warm instead of opening and
+        tearing down a new TLS session for each alert.
         """
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         try:
-            import httpx
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    url,
-                    json={"chat_id": self.chat_id, "text": text},
-                    timeout=10.0,
+            client = self._get_http_client()
+            resp = await client.post(
+                url,
+                json={"chat_id": self.chat_id, "text": text},
+                timeout=10.0,
+            )
+            if resp.status_code != 200:
+                logger.warning(
+                    "Telegram send failed: %d %s",
+                    resp.status_code, resp.text[:200],
                 )
-                if resp.status_code != 200:
-                    logger.warning(
-                        "Telegram send failed: %d %s",
-                        resp.status_code, resp.text[:200],
-                    )
         except Exception:
             logger.exception("Failed to send Telegram message")
 

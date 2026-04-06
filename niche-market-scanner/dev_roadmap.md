@@ -8,11 +8,11 @@
 
 | Status | Count |
 |--------|-------|
-| Complete | 38 |
+| Complete | 39 |
 | In Progress | 0 |
 | Not Started | 0 |
 | Blocked | 0 |
-| **Total** | **38** |
+| **Total** | **39** |
 
 ---
 
@@ -112,6 +112,7 @@ Improvements identified during codebase review after Phase 5 completion.
 | 6.9 | Extract Trader protocol (execution/base.py) with public total_cost_cents; replace getattr on PaperTrader._total_cost_cents in main.py and fix incorrect PaperTrader type hint in MarketScanner | Complete | Medium | `src/niche_scanner/execution/base.py`, `src/niche_scanner/execution/paper_trader.py`, `src/niche_scanner/execution/live_trader.py`, `src/niche_scanner/scanner/market_scanner.py`, `src/niche_scanner/main.py`, `tests/execution/test_base.py` |
 | 6.10 | Reuse a shared `httpx.AsyncClient` inside the weather and economics engines so NOAA and FRED fetches reuse TCP connections instead of creating and tearing down a new client on every call (kept backwards-compatible: engines lazily build their own client when none is injected, exposing a `close()` method for orderly shutdown) | Complete | Medium | `src/niche_scanner/engines/weather.py`, `src/niche_scanner/engines/economics.py`, `src/niche_scanner/engines/AGENTS.md`, `src/niche_scanner/main.py`, `tests/engines/test_economics.py`, `tests/engines/test_weather.py` |
 | 6.11 | Fix dashboard crash in paper mode: all routes and pages accessed `risk_guard.state`/`.config`/`.is_killed` without null-checking, but `risk_guard` is `None` in paper mode (the default). Added null-safe handling across `routes.py` (4 endpoints) and `pages.py` (4 page routes), with 9 paper-mode tests. | Complete | Critical | `src/niche_scanner/dashboard/routes.py`, `src/niche_scanner/dashboard/pages.py`, `tests/dashboard/test_routes.py` |
+| 6.12 | Reuse a shared `httpx.AsyncClient` in AlertManager instead of creating and tearing down a new client for every Telegram message (same anti-pattern fixed in 6.10 for engines). Added lazy client init, `close()` method, wired shutdown into `main.py`, 7 new tests. | Complete | Medium | `src/niche_scanner/alerts/telegram.py`, `src/niche_scanner/main.py`, `tests/alerts/test_telegram.py` |
 
 ---
 
